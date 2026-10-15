@@ -1,0 +1,33 @@
+# Shared settings for both pairs. Change only by group agreement (see agreements/).
+# Relative paths are resolved against the repository root.
+
+seed: 42
+
+paths:
+  data_dir: data/iwildcam_v2.0
+  checkpoint: checkpoints/iwildcam_erm_seed0_best_model.pth
+  predictions: outputs/predictions.parquet
+  embeddings: outputs/embeddings.npy
+
+dataset:
+  name: iwildcam                # WILDS iWildCam (camera-trap images, 182 classes)
+  version: "2.0"
+  url: https://worksheets.codalab.org/rest/bundles/0x6313da2b204647e79a14b468131fcd64/contents/blob/
+  # WILDS splits: train, val (OOD), test (OOD), id_val, id_test
+  splits: [id_val, val, id_test, test]   # TODO: confirm which splits the group analyses
+  max_samples_per_split: null   # int -> fixed random subset per split (seeded); null -> all
+  # Columns from metadata.csv copied into the predictions file
+  metadata_columns: [location_remapped, location, sequence_remapped, seq_id, category_id, datetime, filename]
+
+model:
+  arch: resnet50                # torchvision, as in the WILDS baseline
+  num_classes: 182
+  image_size: [448, 448]        # WILDS iwildcam target_resolution
+  # WILDS ERM baseline, seed 0 (CodaLab bundle iwildcam_erm_seed0)
+  checkpoint_url: https://worksheets.codalab.org/rest/bundles/0xc006392d35404899bf248d8f3dc8a8f2/contents/blob/best_model.pth
+
+inference:
+  batch_size: 32
+  num_workers: 4
+  device: auto                  # auto | cuda | cpu
+  save_embeddings: false        # penultimate-layer (2048-d) features, row-aligned with predictions

@@ -1,0 +1,17 @@
+# Large artifacts: fetched via scripts/download_data.sh, never committed
+data/*
+!data/.gitkeep
+checkpoints/
+outputs/
+
+# Secrets
+.env
+
+# Python / Jupyter
+__pycache__/
+*.egg-info/
+.venv/
+.ipynb_checkpoints/
+
+# IDE
+.idea/
