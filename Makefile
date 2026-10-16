@@ -14,7 +14,7 @@ endif
 setup:
 	$(PYTHON) -m venv $(VENV)
 	$(BIN)/pip install --upgrade pip
-	$(BIN)/pip install -e ".[analysis,dev]" --extra-index-url https://download.pytorch.org/whl/cu132
+	$(BIN)/pip install -e ".[analysis,dev]" -c constraints.txt --extra-index-url https://download.pytorch.org/whl/cu132
 	$(BIN)/nbstripout --install
 
 ## Download iWildCam v2.0 (~12 GB) and the WILDS ERM checkpoint

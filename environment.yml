@@ -1,5 +1,6 @@
 # Conda environment for the AI and Visualization project (alternative to `make setup`).
-# Python comes from conda; all packages come from pyproject.toml via pip.
+# Python comes from conda; all packages come from pyproject.toml via pip,
+# with the exact versions pinned in constraints.txt.
 # Create from the repository root:  conda env create -f environment.yml
 name: ai-and-vis
 channels:
@@ -10,4 +11,5 @@ dependencies:
   - pip:
       # PyTorch built with CUDA 13.2 (required for RTX 50xx / Blackwell GPUs)
       - --extra-index-url https://download.pytorch.org/whl/cu132
+      - -c constraints.txt
       - -e .[analysis,dev]
