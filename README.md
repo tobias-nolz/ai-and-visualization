@@ -1,37 +1,37 @@
-# Vis4AI Lab Project: Visualizing a ResNet-50 on WILDS iWildCam
+# AI and Visualization Lab Project: Visualizing a ResNet-50 on WILDS iWildCam
 
 We analyze how a camera-trap species classifier behaves and why, using visualization.
 
 - **Task:** species classification of camera-trap images (182 classes, incl. `empty`)
 - **Model:** ResNet-50 (torchvision), the [WILDS](https://wilds.stanford.edu) ERM baseline checkpoint (`iwildcam_erm_seed0`), used as released (no fine-tuning)
-- **Dataset:** WILDS iWildCam v2.0 (~12 GB; splits `train`, `val`/`test` = unseen camera locations, `id_val`/`id_test` = seen locations)
+- **Dataset:** WILDS iWildCam v2.0 (~12 GB; splits `train`, `val`/`test` = unseen camera locations, `id_val`/`id_test` = seen locations); [CodaLab dataset bundle](https://worksheets.codalab.org/bundles/0x6313da2b204647e79a14b468131fcd64)
 - **Compute:** local GPU
-- **Stack:** Python 3.11, PyTorch
+- **Stack:** Python 3.14, PyTorch (CUDA 13.2 build)
 
 The group of four works in two pairs on the **same model and data**:
 
-| Phase | Focus | Pair A | Pair B |
-|---|---|---|---|
-| I | Black-box behavior (inputs/outputs only) | **with** generative AI | without |
-| II | Opening the model (representations, saliency/attention, SHAP/LIME, kNN, checkpoints; ≥ 2 techniques per pair) | without | **with** generative AI |
+| Phase | Focus                                                                                                         | Pair A                 | Pair B                 |
+|-------|---------------------------------------------------------------------------------------------------------------|------------------------|------------------------|
+| I     | Black-box behavior (inputs/outputs only)                                                                      | **with** generative AI | without                |
+| II    | Opening the model (representations, saliency/attention, SHAP/LIME, kNN, checkpoints; ≥ 2 techniques per pair) | without                | **with** generative AI |
 
 The AI-aided pair logs every important interaction in its `ai_log.md`.
 
 ## Team
 
-| Pair | Member | Email |
-|---|---|---|
-| A | TODO | TODO |
-| A | TODO | TODO |
-| B | TODO | TODO |
-| B | TODO | TODO |
+| Pair | Member |
+|------|--------|
+| A    | Lara   |
+| A    | Lisa   |
+| B    | Martin |
+| B    | Tobias |
 
 ## Deadlines
 
-| Date | Deliverable |
-|---|---|
-| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `phase1/pair_a/ai_log.md`, `phase1/comparison.md` |
-| **09.12.2026** | Final submission (Phase II): code of both pairs, `phase2/pair_b/ai_log.md`, `phase2/comparison.md`, `reflection/notes.md` |
+| Date           | Deliverable                                                                                                               |
+|----------------|---------------------------------------------------------------------------------------------------------------------------|
+| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `phase1/pair_a/ai_log.md`, `phase1/comparison.md`                      |
+| **09.12.2026** | Final submission (Phase II): code of both pairs, `phase2/pair_b/ai_log.md`, `phase2/comparison.md`                        |
 
 ## Folder map
 
@@ -39,51 +39,100 @@ The AI-aided pair logs every important interaction in its `ai_log.md`.
 common/                   shared, installable package (pip install -e .)
   config.yaml             all settings: model, dataset version, splits, seed, paths
   data.py                 metadata, splits, preprocessing, seeds
-  model.py                loads the WILDS ResNet-50 checkpoint
+  model.py                loads the WILDS ResNet-50 checkpoint (+ ImageNet backbone for the baseline)
   inference.py            predictions + confidences (+ optional embeddings)
+  evaluate.py             official WILDS metrics + linear-probe baseline
 scripts/
   download_data.sh        dataset + checkpoint download
   run_inference.py        writes outputs/predictions.parquet
-agreements/               joint direction for each phase (filled in together)
+  evaluate_baselines.py   writes outputs/baselines.csv + linear-probe predictions
+notebooks/
+  00_quickstart.ipynb     shared demo: data, models and outputs (start here; no analysis; outputs committed)
 phase1/, phase2/
   pair_a/, pair_b/        notebooks/, src/, figures/ (+ ai_log.md for the AI-aided pair)
   comparison.md           Pair A vs. Pair B
-reflection/notes.md       AI4Vis reflection: failure patterns, best practices
 data/, checkpoints/, outputs/   gitignored, created by the scripts
 ```
 
 ## Setup and run
 
-Requires Python 3.11, `make`, `curl`, and a CUDA GPU (falls back to CPU, slowly).
+Requires `make` and `curl`. Everyone should use the same Python version (3.14).
+
+Without a GPU, it's usually easiest to get the outputs from a teammate (see below).
+
+**1. Environment** (pick one)
+
+Option A: conda (recommended; also works with `mamba` / `micromamba`):
 
 ```bash
-make setup            # .venv + pip install -e ".[dev]" + nbstripout git filter
+conda env create -f environment.yml   # run from the repo root; creates env "ai-and-vis"
+conda activate ai-and-vis
+nbstripout --install                  # register the notebook git filter (once per clone)
+```
+
+Update after `pyproject.toml` changes: `conda env update -f environment.yml`.
+
+Option B: venv (needs a system Python 3.14 with `venv`, e.g. `sudo apt install python3.14-venv`):
+
+```bash
+make setup            # .venv + pip install -e ".[analysis,dev]" + nbstripout git filter
+```
+
+Use a different interpreter with `make setup PYTHON=/path/to/python3`.
+
+**2. Run** (the Makefile uses the active `ai-and-vis` conda env, otherwise `.venv`)
+
+```bash
 make data             # downloads ~12 GB dataset + ~96 MB checkpoint (skips what exists)
 make inference        # writes outputs/predictions.parquet
+make baselines        # writes outputs/baselines.csv (see "Baseline performance")
 make strip-notebooks  # strip outputs from all notebooks (also done automatically on commit)
 ```
 
-Use a different interpreter with `make setup PYTHON=/path/to/python3.11`.
+**3. Explore:** open `notebooks/00_quickstart.ipynb` for a tour of the data, both models and all outputs.
 
-### Predictions file
+**Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet`, `outputs/baselines.csv` and `checkpoints/linear_probe.pt`. Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
 
-`outputs/predictions.parquet` has one row per image:
 
-| Column | Meaning |
-|---|---|
-| `id` | WILDS `image_id` |
-| `split` | WILDS split |
-| `label`, `label_name` | true class index and species name |
-| `prediction`, `prediction_name` | predicted class index and species name |
-| `confidence` | max softmax probability |
-| `prob_0` … `prob_181` | full softmax distribution |
-| `location_remapped`, `location`, `sequence_remapped`, `seq_id`, `category_id`, `datetime`, `filename` | metadata (set in `config.yaml`) |
+### Predictions files
 
-With `inference.save_embeddings: true`, `outputs/embeddings.npy` holds the 2048-d penultimate features, row-aligned with the parquet file.
+`outputs/predictions.parquet` (fine-tuned model, `make inference`) and `outputs/predictions_probe.parquet` (linear probe, `make baselines`) have the same columns and rows, one row per image:
+
+| Column                                                                                                | Meaning                                |
+|-------------------------------------------------------------------------------------------------------|----------------------------------------|
+| `id`                                                                                                  | WILDS `image_id`                       |
+| `split`                                                                                               | WILDS split                            |
+| `label`, `label_name`                                                                                 | true class index and species name      |
+| `prediction`, `prediction_name`                                                                       | predicted class index and species name |
+| `confidence`                                                                                          | max softmax probability                |
+| `prob_0` … `prob_181`                                                                                 | full softmax distribution              |
+| `location_remapped`, `location`, `sequence_remapped`, `seq_id`, `category_id`, `datetime`, `filename` | metadata (set in `config.yaml`)        |
+
+With `inference.save_embeddings: true`, `outputs/embeddings.npy` (fine-tuned) and `outputs/embeddings_imagenet.npy` (frozen ImageNet backbone) hold the 2048-d penultimate features, row-aligned with the matching parquet file (~600 MB each).
+
+Models for opening up in Phase II: `common.model.load_model(cfg)` (fine-tuned) and `common.model.load_probe_model(cfg)` (ImageNet backbone + linear probe from `checkpoints/linear_probe.pt`, written by `make baselines`). Both map normalized images (`common.data.normalize`) to logits over the 182 classes.
+
+### Baseline performance
+
+Shared reference for both pairs, using the official WILDS metrics (accuracy and macro F1; macro recall is in the CSV):
+
+- **WILDS fine-tuned:** the first of the two models we compare. ImageNet ResNet-50 fine-tuned end to end on `train`.
+- **ImageNet linear probe:** the second model: the same ImageNet ResNet-50, frozen; only a logistic-regression classifier is trained on its `train` features. Shows what fine-tuning the whole network adds.
+- **Majority class:** always predicts "empty", the most frequent training class. Shows how much of the accuracy comes for free.
+- **WILDS-reported:** the official training run's numbers for the released checkpoint (epoch 8); our fine-tuned row should match them.
+
+| Split     | Shift          | Always "empty" acc / F1 | WILDS-reported acc / F1 | Fine-tuned (reproduced) acc / F1 | Linear probe acc / F1 |
+|-----------|----------------|-------------------------|-------------------------|----------------------------------|-----------------------|
+| `id_val`  | seen cameras   | 0.404 / 0.008           | 0.823 / 0.482           | 0.823 / 0.479                    | 0.788 / 0.432         |
+| `val`     | unseen cameras | 0.160 / 0.004           | 0.611 / 0.364           | 0.612 / 0.366                    | 0.524 / 0.293         |
+| `id_test` | seen cameras   | 0.246 / 0.005           | 0.760 / 0.471           | 0.760 / 0.474                    | 0.736 / 0.457         |
+| `test`    | unseen cameras | 0.330 / 0.005           | 0.703 / 0.324           | 0.702 / 0.323                    | 0.657 / 0.239         |
+
+Our fine-tuned numbers match the WILDS-reported ones within 0.003 (newer library versions). Regenerate all rows with `make inference && make baselines`; the raw numbers incl. macro recall are in `outputs/baselines.csv`.
 
 ## Working rules
 
-- **Pipelines stay separate.** Each pair works only in its own `phaseX/pair_Y/` folder and on its own branch (`phase1-pair-a`, `phase1-pair-b`). Pairs share **only** `common/` and the predictions file. Changes to `common/` need agreement from both pairs.
+- **Pipelines stay separate.** Each pair works only in its own `phaseX/pair_Y/` folder and on its own branch (`phase1-pair-a`, `phase1-pair-b`). Pairs share **only** `common/` and the shared outputs (predictions files, embeddings, checkpoints). Changes to `common/` need agreement from both pairs.
 - **No data, checkpoints, or secrets in git.** Large artifacts come from `scripts/download_data.sh`; secrets go in `.env` (gitignored).
-- **Notebook outputs are not committed.** The nbstripout filter strips them on `git add`; run `make setup` once per clone to activate it.
+- **Notebook outputs are not committed** (except the shared `notebooks/00_quickstart.ipynb`, which sets `keep_output: true`). The nbstripout filter strips them on `git add`; run `make setup` or `nbstripout --install` once per clone to activate it.
 - **Log AI use** (AI-aided pair only): one entry per interaction in `ai_log.md`, including rejected suggestions and time spent verifying.
