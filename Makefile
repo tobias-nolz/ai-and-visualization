@@ -1,14 +1,20 @@
-PYTHON ?= python3.11
+PYTHON ?= python3.14
 VENV   := .venv
-BIN    := $(VENV)/bin
 
-.PHONY: setup data inference strip-notebooks
+# Use the activated conda env `ai-and-vis` (see environment.yml) if present, else .venv
+ifeq ($(CONDA_DEFAULT_ENV),ai-and-vis)
+BIN := $(CONDA_PREFIX)/bin
+else
+BIN := $(VENV)/bin
+endif
+
+.PHONY: setup data inference baselines strip-notebooks
 
 ## Create .venv, install common/ (editable) + dev tools, register the nbstripout git filter
 setup:
 	$(PYTHON) -m venv $(VENV)
 	$(BIN)/pip install --upgrade pip
-	$(BIN)/pip install -e ".[dev]"
+	$(BIN)/pip install -e ".[analysis,dev]" --extra-index-url https://download.pytorch.org/whl/cu132
 	$(BIN)/nbstripout --install
 
 ## Download iWildCam v2.0 (~12 GB) and the WILDS ERM checkpoint
@@ -18,6 +24,10 @@ data:
 ## Write outputs/predictions.parquet
 inference:
 	$(BIN)/python scripts/run_inference.py
+
+## Write outputs/baselines.csv: WILDS fine-tuned model vs. ImageNet linear probe (needs `make inference`)
+baselines:
+	$(BIN)/python scripts/evaluate_baselines.py
 
 ## Strip outputs from all notebooks in the working tree
 strip-notebooks:
