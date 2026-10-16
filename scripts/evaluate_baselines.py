@@ -70,7 +70,10 @@ def main(cfg: dict) -> pd.DataFrame:
     frames, embeddings = [], []
     for split in cfg["dataset"]["splits"]:
         df = select_split(meta, split, cfg)
-        feats = extract_features(cfg, df, backbone, device, desc=f"probe: {split}")
+        if split == "train":  # same images and order as used for fitting: reuse the features
+            feats = train_feats
+        else:
+            feats = extract_features(cfg, df, backbone, device, desc=f"probe: {split}")
         frames.append(prediction_table(cfg, df, split, probe.predict_proba(feats), names))
         embeddings.append(feats.numpy())
         rows.append({"model": "ImageNet linear probe", "split": split,

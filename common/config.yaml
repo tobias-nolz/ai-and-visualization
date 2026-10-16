@@ -19,7 +19,8 @@ dataset:
   version: "2.0"
   url: https://worksheets.codalab.org/rest/bundles/0x6313da2b204647e79a14b468131fcd64/contents/blob/
   # WILDS splits: train, val (OOD), test (OOD), id_val, id_test
-  splits: [id_val, val, id_test, test]   # TODO: confirm which splits the group analyses
+  # evaluation splits first; train last (for kNN / embedding analyses), so evaluation rows keep their positions
+  splits: [id_val, val, id_test, test, train]
   max_samples_per_split: null   # int -> fixed random subset per split (seeded); null -> all
   # Columns from metadata.csv copied into the predictions file
   metadata_columns: [location_remapped, location, sequence_remapped, seq_id, category_id, datetime, filename]
@@ -35,7 +36,7 @@ inference:
   batch_size: 32
   num_workers: 4
   device: auto                  # auto | cuda | cpu
-  save_embeddings: false        # 2048-d penultimate features of both models (~600 MB each), row-aligned with predictions
+  save_embeddings: true         # 2048-d penultimate features of both models (~1.7 GB each), row-aligned with predictions
 
 # Baseline: frozen ImageNet ResNet-50 features + logistic regression, trained on `train`
 linear_probe:
