@@ -72,6 +72,8 @@ nbstripout --install                  # register the notebook git filter (once p
 
 Update after `pyproject.toml` changes: `conda env update -f environment.yml`.
 
+Both options install the exact package versions pinned in `constraints.txt`, so everyone gets the same versions. After adding or upgrading a package, regenerate it (see the comment at the top of the file) and commit it.
+
 Option B: venv (needs a system Python 3.14 with `venv`, e.g. `sudo apt install python3.14-venv`):
 
 ```bash
@@ -84,19 +86,19 @@ Use a different interpreter with `make setup PYTHON=/path/to/python3`.
 
 ```bash
 make data             # downloads ~12 GB dataset + ~96 MB checkpoint (skips what exists)
-make inference        # writes outputs/predictions.parquet
+make inference        # writes outputs/predictions.parquet (+ embeddings.npy)
 make baselines        # writes outputs/baselines.csv (see "Baseline performance")
 make strip-notebooks  # strip outputs from all notebooks (also done automatically on commit)
 ```
 
 **3. Explore:** open `notebooks/00_quickstart.ipynb` for a tour of the data, both models and all outputs.
 
-**Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet`, `outputs/baselines.csv` and `checkpoints/linear_probe.pt`. Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
+**Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet` (~230 MB each), `outputs/baselines.csv`, `checkpoints/linear_probe.pt` and, for embedding analyses, `outputs/embeddings.npy` and `outputs/embeddings_imagenet.npy` (~1.7 GB each). Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/*.npy outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
 
 
 ### Predictions files
 
-`outputs/predictions.parquet` (fine-tuned model, `make inference`) and `outputs/predictions_probe.parquet` (linear probe, `make baselines`) have the same columns and rows, one row per image:
+`outputs/predictions.parquet` (fine-tuned model, `make inference`) and `outputs/predictions_probe.parquet` (linear probe, `make baselines`) have the same columns and rows, one row per image of every split in `dataset.splits`: the evaluation splits first, then `train` (filter with the `split` column):
 
 | Column                                                                                                | Meaning                                |
 |-------------------------------------------------------------------------------------------------------|----------------------------------------|
@@ -108,7 +110,7 @@ make strip-notebooks  # strip outputs from all notebooks (also done automaticall
 | `prob_0` … `prob_181`                                                                                 | full softmax distribution              |
 | `location_remapped`, `location`, `sequence_remapped`, `seq_id`, `category_id`, `datetime`, `filename` | metadata (set in `config.yaml`)        |
 
-With `inference.save_embeddings: true`, `outputs/embeddings.npy` (fine-tuned) and `outputs/embeddings_imagenet.npy` (frozen ImageNet backbone) hold the 2048-d penultimate features, row-aligned with the matching parquet file (~600 MB each).
+`outputs/embeddings.npy` (fine-tuned) and `outputs/embeddings_imagenet.npy` (frozen ImageNet backbone) hold the 2048-d penultimate features of the same images, row-aligned with the matching parquet file (~1.7 GB each; switch off with `inference.save_embeddings: false`). Row `i` of the embeddings belongs to row `i` of the predictions file, including the `train` rows, e.g. for nearest-neighbour searches. Load them with `np.load(path, mmap_mode="r")` to avoid reading everything into memory.
 
 Models for opening up in Phase II: `common.model.load_model(cfg)` (fine-tuned) and `common.model.load_probe_model(cfg)` (ImageNet backbone + linear probe from `checkpoints/linear_probe.pt`, written by `make baselines`). Both map normalized images (`common.data.normalize`) to logits over the 182 classes.
 
@@ -127,8 +129,11 @@ Shared reference for both pairs, using the official WILDS metrics (accuracy and 
 | `val`     | unseen cameras | 0.160 / 0.004           | 0.611 / 0.364           | 0.612 / 0.366                    | 0.524 / 0.293         |
 | `id_test` | seen cameras   | 0.246 / 0.005           | 0.760 / 0.471           | 0.760 / 0.474                    | 0.736 / 0.457         |
 | `test`    | unseen cameras | 0.330 / 0.005           | 0.703 / 0.324           | 0.702 / 0.323                    | 0.657 / 0.239         |
+| `train`   | training data  | 0.370 / 0.003           | 0.989 / 0.794¹          | 0.993 / 0.814                    | 0.996 / 0.991         |
 
-Our fine-tuned numbers match the WILDS-reported ones within 0.003 (newer library versions). Regenerate all rows with `make inference && make baselines`; the raw numbers incl. macro recall are in `outputs/baselines.csv`.
+On the evaluation splits, our fine-tuned numbers match the WILDS-reported ones within 0.003 (newer library versions). On `train`, both models reach over 99% accuracy (the probe also near-perfect macro F1): they were trained on these images, so this row measures fit to the training data, not generalization. Regenerate all rows with `make inference && make baselines`; the raw numbers incl. macro recall are in `outputs/baselines.csv`.
+
+¹ WILDS logs `train` metrics during training epoch 8, while the weights are still being updated; our row evaluates the final model afterwards, so the values differ slightly.
 
 ## Working rules
 
