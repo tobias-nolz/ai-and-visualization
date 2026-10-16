@@ -1,4 +1,4 @@
-# Shared settings for both pairs. Change only by group agreement (see agreements/).
+# Shared settings for both pairs. Change only by group agreement.
 # Relative paths are resolved against the repository root.
 
 seed: 42
@@ -8,6 +8,11 @@ paths:
   checkpoint: checkpoints/iwildcam_erm_seed0_best_model.pth
   predictions: outputs/predictions.parquet
   embeddings: outputs/embeddings.npy
+  # written by `make baselines` (linear probe on frozen ImageNet features)
+  predictions_probe: outputs/predictions_probe.parquet
+  embeddings_imagenet: outputs/embeddings_imagenet.npy
+  probe_checkpoint: checkpoints/linear_probe.pt
+  baselines: outputs/baselines.csv
 
 dataset:
   name: iwildcam                # WILDS iWildCam (camera-trap images, 182 classes)
@@ -30,4 +35,10 @@ inference:
   batch_size: 32
   num_workers: 4
   device: auto                  # auto | cuda | cpu
-  save_embeddings: false        # penultimate-layer (2048-d) features, row-aligned with predictions
+  save_embeddings: false        # 2048-d penultimate features of both models (~600 MB each), row-aligned with predictions
+
+# Baseline: frozen ImageNet ResNet-50 features + logistic regression, trained on `train`
+linear_probe:
+  C: 1.0                        # inverse L2 regularization strength (not tuned)
+  max_iter: 1000                # L-BFGS iterations (upper limit)
+  tol: 1.0e-4                   # stop when the largest gradient entry is below this
