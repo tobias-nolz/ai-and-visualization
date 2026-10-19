@@ -25,6 +25,7 @@ analysis = [
     "matplotlib",
     "seaborn",
     "plotly",
+    "dash",
     # embeddings, kNN, projections (scikit-learn is a core dependency)
     "umap-learn",
     # explainability: saliency/attribution (captum, grad-cam), SHAP, LIME
