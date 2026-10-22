@@ -2,6 +2,8 @@
 
 We analyze how a camera-trap species classifier behaves and why, using visualization.
 
+## Overview
+
 - **Task:** species classification of camera-trap images (182 classes, incl. `empty`)
 - **Model:** ResNet-50 (torchvision), the [WILDS](https://wilds.stanford.edu) ERM baseline checkpoint (`iwildcam_erm_seed0`), used as released (no fine-tuning)
 - **Dataset:** WILDS iWildCam v2.0 (~12 GB; splits `train`, `val`/`test` = unseen camera locations, `id_val`/`id_test` = seen locations); [CodaLab dataset bundle](https://worksheets.codalab.org/bundles/0x6313da2b204647e79a14b468131fcd64)
@@ -16,6 +18,27 @@ The group of four works in two pairs on the **same model and data**:
 | II    | Opening the model (representations, saliency/attention, SHAP/LIME, kNN, checkpoints; ≥ 2 techniques per pair) | without                | **with** generative AI |
 
 The AI-aided pair logs every important interaction in its `ai_log.md`.
+
+### Task
+
+We investigate wildlife species classification using the WILDS iWildCam v2.0 dataset, which contains camera-trap images from different locations across 182 classes, including empty scenes.
+
+Our goal is to explore and understand model behavior through visual analysis of its inputs and outputs, identifying interesting patterns and investigating them in depth. Building on these findings, we will examine the model's internal representations to better understand what it has learned and how this relates to its behavior.
+
+Dataset: https://wilds.stanford.edu/datasets/
+
+Paper: https://arxiv.org/abs/2012.07421
+
+
+### Model
+
+We use a ResNet-50 (PyTorch), pretrained on ImageNet and fine-tuned on WILDS iWildCam using Empirical Risk Minimization (ERM).
+
+Depending on our findings, we may also compare it with an ImageNet-pretrained ResNet-50 without full fine-tuning, using a linear classifier for the iWildCam classes, particularly in Phase II to investigate differences in learned representations.
+
+Repository: https://github.com/p-lambda/wilds
+
+Model checkpoints: https://worksheets.codalab.org/worksheets/0x52cea64d1d3f4fa89de326b4e31aa50a
 
 ## Team
 
