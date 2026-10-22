@@ -1,0 +1,33 @@
+{
+  "team_name": "Lost in Latent Space",
+  "students": [
+    {
+      "student_id": "k12205889",
+      "first_name": "Martin",
+      "last_name": "Dallinger",
+      "email": "k12205889@students.jku.at",
+      "github_user": "S0urC10ud"
+    },
+    {
+      "student_id": "k12209298",
+      "first_name": "Lisa",
+      "last_name": "Krimbacher",
+      "email": "k12209298@students.jku.at",
+      "github_user": "lisakrimbacher"
+    },
+    {
+      "student_id": "k12311040",
+      "first_name": "Tobias",
+      "last_name": "Nolz",
+      "email": "k12311040@students.jku.at",
+      "github_user": "tobias-nolz"
+    },
+    {
+      "student_id": "k12216038",
+      "first_name": "Lara",
+      "last_name": "Pötzl",
+      "email": "k12216038@students.jku.at",
+      "github_user": "larapx"
+    }
+  ]
+}

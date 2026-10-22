@@ -1,0 +1,25 @@
+{
+  "team_name": "Lost in Latent Space",
+  "students": [
+    {
+      "first_name": "Martin",
+      "last_name": "Dallinger",
+      "workload": 0.25
+    },
+    {
+      "first_name": "Lisa",
+      "last_name": "Krimbacher",
+      "workload": 0.25
+    },
+    {
+      "first_name": "Tobias",
+      "last_name": "Nolz",
+      "workload": 0.25
+    },
+    {
+      "first_name": "Lara",
+      "last_name": "Pötzl",
+      "workload": 0.25
+    }
+  ]
+} 
