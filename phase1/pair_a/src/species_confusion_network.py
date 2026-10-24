@@ -566,9 +566,10 @@ def compute_layout(
         if m == 1:
             comp_radii.append(0.0)
         elif m == 2:
-            comp_radii.append(0.6)
+            comp_radii.append(0.65)
         else:
-            comp_radii.append(max(0.75, 0.45 + 0.08 * m))
+            base_r = 0.65 + 0.12 * m if m >= 6 else 0.45 + 0.08 * m
+            comp_radii.append(max(0.85, base_r))
 
     comp_centers: dict[int, tuple[float, float]] = {}
     if num_comp == 1:
@@ -719,22 +720,25 @@ def network_figure(
         is_outgoing = (focused_class is not None and src == focused_class)
         is_incoming = (focused_class is not None and dst == focused_class)
 
+        rel_weight = np.sqrt(float(row.count) / max_count)
+
         if focused_class is None:
-            edge_color = "rgba(100, 116, 139, 0.42)"
-            line_width = 1.2 + 5.5 * np.sqrt(float(row.count) / max_count)
-            arrow_color = "#64748b"
+            # Uniform opacity so high-count connections scale purely by width and never appear as an isolated dark color
+            edge_color = "rgba(100, 116, 139, 0.48)"
+            line_width = 1.4 + 5.5 * rel_weight
+            arrow_color = edge_color
         elif is_outgoing:
-            edge_color = "rgba(234, 88, 12, 0.90)"
-            line_width = 2.5 + 6.0 * np.sqrt(float(row.count) / max_count)
+            edge_color = "rgba(234, 88, 12, 0.92)"
+            line_width = 2.5 + 6.0 * rel_weight
             arrow_color = "#ea580c"
         elif is_incoming:
-            edge_color = "rgba(2, 132, 199, 0.90)"
-            line_width = 2.5 + 6.0 * np.sqrt(float(row.count) / max_count)
+            edge_color = "rgba(2, 132, 199, 0.92)"
+            line_width = 2.5 + 6.0 * rel_weight
             arrow_color = "#0284c7"
         else:
-            edge_color = "rgba(203, 213, 225, 0.12)"
-            line_width = 1.0
-            arrow_color = "rgba(203, 213, 225, 0.12)"
+            edge_color = "rgba(148, 163, 184, 0.22)"
+            line_width = 1.2
+            arrow_color = "rgba(148, 163, 184, 0.25)"
 
         fig.add_trace(go.Scatter(
             x=pts[:, 0], y=pts[:, 1], mode="lines",
@@ -743,23 +747,41 @@ def network_figure(
         ))
 
         n_pts = len(pts)
-        arrow_idx_tail = int(n_pts * 0.70)
-        arrow_idx_head = int(n_pts * 0.84)
-        if focused_class is None or is_outgoing or is_incoming:
-            # Subtle scaling so arrowhead is always visible beyond line stroke without becoming oversized
-            arrow_size = 1.0 + 0.05 * line_width
-            arrow_width = 1.6 + 0.08 * line_width
-            fig.add_annotation(
-                x=float(pts[arrow_idx_head, 0]),
-                y=float(pts[arrow_idx_head, 1]),
-                ax=float(pts[arrow_idx_tail, 0]),
-                ay=float(pts[arrow_idx_tail, 1]),
-                xref="x", yref="y", axref="x", ayref="y",
-                showarrow=True, arrowhead=2,
-                arrowsize=arrow_size,
-                arrowwidth=arrow_width,
-                arrowcolor=arrow_color,
-            )
+        if is_dst_hub:
+            # Inward spoke to central hub: stop arrow at midpoint to keep well clear of central node
+            arrow_idx_head = int(n_pts * 0.50)
+            arrow_idx_tail = int(n_pts * 0.32)
+        elif is_src_hub:
+            # Outward spoke from central hub: start arrow at midpoint towards outer peripheral node
+            arrow_idx_head = int(n_pts * 0.68)
+            arrow_idx_tail = int(n_pts * 0.50)
+        else:
+            # General curve/chords: position arrow cleanly along the forward midpoint
+            arrow_idx_head = int(n_pts * 0.58)
+            arrow_idx_tail = int(n_pts * 0.40)
+
+        # Enforce minimum arrow vector length (0.35 units ~ 16 px) along the tangent so Plotly never collapses it
+        p_head = pts[arrow_idx_head]
+        tangent = pts[arrow_idx_head] - pts[arrow_idx_head - 1]
+        tan_norm = np.linalg.norm(tangent)
+        u = tangent / tan_norm if tan_norm > 1e-6 else np.array([0.0, 1.0])
+        vec_len = max(0.35, np.linalg.norm(pts[arrow_idx_head] - pts[arrow_idx_tail]))
+        p_tail = p_head - u * vec_len
+
+        # Subtle scaling so arrowhead is always visible beyond line stroke without becoming oversized
+        arrow_size = 1.0 + 0.05 * line_width
+        arrow_width = 1.6 + 0.08 * line_width
+        fig.add_annotation(
+            x=float(p_head[0]),
+            y=float(p_head[1]),
+            ax=float(p_tail[0]),
+            ay=float(p_tail[1]),
+            xref="x", yref="y", axref="x", ayref="y",
+            showarrow=True, arrowhead=2,
+            arrowsize=arrow_size,
+            arrowwidth=arrow_width,
+            arrowcolor=arrow_color,
+        )
 
         mid_pt = pts[int(len(pts) * 0.5)]
         src_name = names.get(src, str(src))
