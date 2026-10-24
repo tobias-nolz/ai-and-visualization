@@ -540,3 +540,39 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 - **Problems caused:** none
 - **Time spent verifying:** 5 minutes
 ---
+
+### 2026-10-24: Restoring Network Edge Arrowheads & Hub Spoke Clearance
+
+- **Who:** Lisa
+- **Goal:** Ensure all confusion connections show directed arrowheads without collapsing on short edges or colliding with central hub nodes.
+- **Prompt (important ones):**
+  ```
+  A few issues with directed arrowheads in the confusion network:
+  - Can you check why there are no arrowheads for some connections here?
+  - On the central hub cluster, the arrows are overlapping and occluding the middle node.
+  - Make sure all connections consistently display directed arrows with adequate clearance.
+  ```
+- **AI output summary:** Diagnosed that Plotly suppressed arrowheads on short connections because the vector length between index points fell below ~8–10 px. Enforced a minimum tangent vector length of 0.35 data units (~16 px) so every connection renders an arrowhead. Resolved hub node overlap by offsetting spoke midpoint boundaries (inward spokes stop at 50%, outward spokes start at 50%) and expanding radial clearance for dense hub components ($m \ge 6$).
+- **Decision:** accepted
+- **Why:** Restores complete directional readability across all confusion connections while keeping central hub nodes unobstructed.
+- **Problems caused:** Subsequent opacity scaling created an unintended contrast discrepancy on heavy edges.
+- **Time spent verifying:** 15 minutes
+---
+
+### 2026-10-24: Color Harmonization and Uniform Edge Opacity
+
+- **Who:** Lisa
+- **Goal:** Eliminate color discrepancies between edge strokes and arrowheads, and standardize edge opacity across mistake volumes.
+- **Prompt (important ones):**
+  ```
+  The arrow styling and opacity need refinement:
+  - The thick connection at the bottom has a different, much darker color than the rest of the arrows.
+  - Can we remove dynamic opacity so all connections share the same consistent color?
+  - Line thickness should communicate error volume, but the color and opacity should remain uniform across all edges.
+  ```
+- **AI output summary:** Identified that dynamic opacity scaling caused high-error edges to render at 0.90 opacity (an isolated dark slate), while low-error edges rendered at 0.40 opacity (faint silver-gray), and earlier stroke vs. arrowhead RGB channels were mismatched. Removed dynamic opacity in overview mode and unified all overview edges, ensuring error magnitude is expressed strictly through stroke width without color or darkness discrepancies.
+- **Decision:** accepted
+- **Why:** Delivers clean visual hierarchy across the entire network, preventing heavy confusion edges from appearing as mismatched dark lines.
+- **Problems caused:** none
+- **Time spent verifying:** 15 minutes
+---
