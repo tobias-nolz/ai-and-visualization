@@ -576,3 +576,23 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
+
+### 2026-10-25: Increasing Inter-Cluster Spacing and In-Cluster Node Clearance
+
+- **Who:** Lisa
+- **Goal:** Reduce species name text overlaps by increasing inter-cluster separation and enlarging in-cluster node distances.
+- **Prompt (important ones):**
+  ```
+  sometimes the species names are overlapping. how could this be fixed?
+  - can we please first try it by just increasing cluster distnaces?
+  - is it possible to have the in-cluster distances larger so that there is less overlap of the text with other nodes?
+  ```
+- **AI output summary:**
+  1. Increased satellite orbit buffer from `+ 3.2` to `+ 5.4` data units and ring mode fallback spacing from `max(2.8, ...)` to `max(3.8, ...)` to provide clearance between opposing cluster perimeters.
+  2. Expanded in-cluster radii ($m \ge 6$: $1.30 + 0.22 \cdot m$; 2-node pairs: $1.20$; small clusters: min $1.50$) to give nodes adequate angular separation within clusters.
+  3. Dynamically offset node labels using the marker's visual pixel diameter converted to data coordinates (`node_r_data + margin`), preventing labels from rendering over node circle markers (such as the central hub node and perimeter nodes).
+- **Decision:** accepted
+- **Why:** Substantially reduces label crowding and eliminates text occluding node circle markers, preserving single-line species labels.
+- **Problems caused:** none
+- **Time spent verifying:** 15 minutes
+---

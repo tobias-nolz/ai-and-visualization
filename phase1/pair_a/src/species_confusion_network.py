@@ -566,10 +566,10 @@ def compute_layout(
         if m == 1:
             comp_radii.append(0.0)
         elif m == 2:
-            comp_radii.append(0.65)
+            comp_radii.append(1.20)
         else:
-            base_r = 0.65 + 0.12 * m if m >= 6 else 0.45 + 0.08 * m
-            comp_radii.append(max(0.85, base_r))
+            base_r = 1.30 + 0.22 * m if m >= 6 else 0.85 + 0.16 * m
+            comp_radii.append(max(1.50, base_r))
 
     comp_centers: dict[int, tuple[float, float]] = {}
     if num_comp == 1:
@@ -580,8 +580,8 @@ def compute_layout(
         r_center = comp_radii[0]
         num_sat = num_comp - 1
         max_sat_r = max(comp_radii[1:]) if num_sat > 0 else 0.6
-        orbit_r = r_center + max_sat_r + 3.2
-        min_orbit_for_sat = (num_sat * (max_sat_r * 2 + 1.8)) / (2 * np.pi)
+        orbit_r = r_center + max_sat_r + 5.4
+        min_orbit_for_sat = (num_sat * (max_sat_r * 2 + 3.6)) / (2 * np.pi)
         orbit_r = max(orbit_r, min_orbit_for_sat)
         # Offset starting angle by 45 degrees so satellites never sit on the 3 o'clock axis
         phi = np.linspace(np.pi / 4, 2 * np.pi + np.pi / 4, num_sat, endpoint=False)
@@ -590,7 +590,7 @@ def compute_layout(
     else:
         # Multiple smaller clusters distributed on a ring with generous spacing
         max_r = max(comp_radii) if comp_radii else 0.8
-        ring_r = max(2.8, (num_comp * (max_r * 2 + 1.8)) / (2 * np.pi))
+        ring_r = max(3.8, (num_comp * (max_r * 2 + 3.4)) / (2 * np.pi))
         phi = np.linspace(np.pi / 4, 2 * np.pi + np.pi / 4, num_comp, endpoint=False)
         for idx in range(num_comp):
             comp_centers[idx] = (ring_r * np.cos(phi[idx]), ring_r * np.sin(phi[idx]))
@@ -650,16 +650,40 @@ def compute_layout(
     return positions, ordered_nodes, node_centers
 
 
-def bezier_curve(p0: np.ndarray, p1: np.ndarray, curvature: float = 0.14, n_pts: int = 20) -> np.ndarray:
+def bezier_curve(
+    p0: np.ndarray,
+    p1: np.ndarray,
+    curvature: float = 0.16,
+    n_pts: int = 100,
+) -> np.ndarray:
+    """Sample a quadratic curve; the displayed spline removes visible corners."""
     t = np.linspace(0, 1, n_pts)[:, None]
-    mid = (p0 + p1) / 2.0
-    diff = p1 - p0
-    dist = np.linalg.norm(diff)
-    if dist < 1e-6 or abs(curvature) < 1e-4:
-        return (1 - t) * p0 + t * p1
-    normal = np.array([-diff[1], diff[0]]) / dist
-    c = mid + curvature * dist * normal
-    return (1 - t) ** 2 * p0 + 2 * (1 - t) * t * c + t ** 2 * p1
+    direction = p1 - p0
+    normal = np.array([-direction[1], direction[0]])
+    control = (p0 + p1) / 2 + curvature * normal
+    return (1 - t) ** 2 * p0 + 2 * (1 - t) * t * control + t ** 2 * p1
+
+
+def route_edge(src, dst, positions, clearance, mutual=False):
+    """Prefer a gentle curve; bend farther only to clear another species node.
+
+    Reciprocal edges keep positive curvature in their own direction, putting
+    them on opposite sides. Clearance guides routing at the initial view;
+    Plotly handles the endpoint's pixel spacing separately at every zoom.
+    """
+    p0, p1 = np.asarray(positions[src]), np.asarray(positions[dst])
+    bends = [0.24, 0.34, 0.46, 0.60] if mutual else [0.12, -0.12, 0.24, -0.24, 0.40, -0.40, 0.60, -0.60]
+    obstacles = [node for node in positions if node not in (src, dst)]
+    candidates = []
+    for bend in bends:
+        points = bezier_curve(p0, p1, bend)
+        penalty = 0.0
+        for node in obstacles:
+            distance = np.linalg.norm(points - positions[node], axis=1).min()
+            penetration = max(0.0, clearance[node] - distance)
+            penalty += (penetration / clearance[node]) ** 2
+        candidates.append((penalty, abs(bend), points))
+    return min(candidates, key=lambda candidate: candidate[:2])[2]
 
 
 # -----------------------------------------------------------------------------
@@ -690,32 +714,23 @@ def network_figure(
     max_count = max(float(edges["count"].max()), 1.0)
     max_support = max(float(stats.loc[stats.index.isin(ordered_nodes), "support"].max() or 1.0), 1.0)
     edge_pairs = set(zip(edges["source"].astype(int), edges["target"].astype(int)))
+    # Marker diameters are pixels. Reuse the exact same sizes for endpoint gaps.
+    diameters = {
+        node: 16.0 + 20.0 * np.sqrt(float(stats.loc[node, "support"]) / max_support)
+        if node in stats.index else 16.0
+        for node in ordered_nodes
+    }
+    coordinates = np.asarray(list(positions.values()))
+    units_per_pixel = 1.2 * max(np.ptp(coordinates[:, 0]) / 520, np.ptp(coordinates[:, 1]) / 590, 0.002)
+    clearance = {node: (diameters[node] / 2 + 9) * units_per_pixel for node in ordered_nodes}
+
 
     # 1. Edges
     for row in edges.itertuples(index=False):
         src, dst = int(row.source), int(row.target)
         if src not in positions or dst not in positions:
             continue
-        p0 = np.array(positions[src])
-        p1 = np.array(positions[dst])
-
-        c_src = node_centers.get(src, (0.0, 0.0))
-        c_dst = node_centers.get(dst, (0.0, 0.0))
-        is_src_hub = np.hypot(p0[0] - c_src[0], p0[1] - c_src[1]) < 1e-3
-        is_dst_hub = np.hypot(p1[0] - c_dst[0], p1[1] - c_dst[1]) < 1e-3
-        is_spoke = is_src_hub or is_dst_hub
-        is_mutual = (dst, src) in edge_pairs
-
-        if is_spoke:
-            # Straight radial spokes for central hub so converging chords never cross
-            curvature = 0.0
-        elif is_mutual:
-            # Wide opposing curvature so bidirectional pairs form a clean separated oval
-            curvature = 0.28
-        else:
-            curvature = 0.14
-
-        pts = bezier_curve(p0, p1, curvature=curvature, n_pts=20)
+        pts = route_edge(src, dst, positions, clearance, mutual=(dst, src) in edge_pairs)
 
         is_outgoing = (focused_class is not None and src == focused_class)
         is_incoming = (focused_class is not None and dst == focused_class)
@@ -726,62 +741,37 @@ def network_figure(
             # Uniform opacity so high-count connections scale purely by width and never appear as an isolated dark color
             edge_color = "rgba(100, 116, 139, 0.48)"
             line_width = 1.4 + 5.5 * rel_weight
-            arrow_color = edge_color
         elif is_outgoing:
             edge_color = "rgba(234, 88, 12, 0.92)"
             line_width = 2.5 + 6.0 * rel_weight
-            arrow_color = "#ea580c"
         elif is_incoming:
             edge_color = "rgba(2, 132, 199, 0.92)"
             line_width = 2.5 + 6.0 * rel_weight
-            arrow_color = "#0284c7"
         else:
             edge_color = "rgba(148, 163, 184, 0.22)"
             line_width = 1.2
-            arrow_color = "rgba(148, 163, 184, 0.25)"
+
+        # Draw the head from the rendered spline, not the untrimmed endpoint.
+        # That keeps its base centered on the shaft at every zoom level.
+        target_gap = diameters[dst] / 2 + (3.5 if dst == focused_class else 1.5) / 2
 
         fig.add_trace(go.Scatter(
             x=pts[:, 0], y=pts[:, 1], mode="lines",
-            line={"width": line_width, "color": edge_color},
+            meta={"edge_geometry": {
+                "start_gap": diameters[src] / 2 + (3.5 if src == focused_class else 1.5) / 2,
+                "end_gap": target_gap,
+                "head_length": max(10.0, line_width * 1.6),
+                "head_half_width": max(3.5, line_width * 0.8),
+            }},
+            line={
+                "width": line_width,
+                "color": edge_color,
+                "shape": "spline",
+                "smoothing": 1.0,
+                "simplify": False,
+            },
             hoverinfo="skip", showlegend=False,
         ))
-
-        n_pts = len(pts)
-        if is_dst_hub:
-            # Inward spoke to central hub: stop arrow at midpoint to keep well clear of central node
-            arrow_idx_head = int(n_pts * 0.50)
-            arrow_idx_tail = int(n_pts * 0.32)
-        elif is_src_hub:
-            # Outward spoke from central hub: start arrow at midpoint towards outer peripheral node
-            arrow_idx_head = int(n_pts * 0.68)
-            arrow_idx_tail = int(n_pts * 0.50)
-        else:
-            # General curve/chords: position arrow cleanly along the forward midpoint
-            arrow_idx_head = int(n_pts * 0.58)
-            arrow_idx_tail = int(n_pts * 0.40)
-
-        # Enforce minimum arrow vector length (0.35 units ~ 16 px) along the tangent so Plotly never collapses it
-        p_head = pts[arrow_idx_head]
-        tangent = pts[arrow_idx_head] - pts[arrow_idx_head - 1]
-        tan_norm = np.linalg.norm(tangent)
-        u = tangent / tan_norm if tan_norm > 1e-6 else np.array([0.0, 1.0])
-        vec_len = max(0.35, np.linalg.norm(pts[arrow_idx_head] - pts[arrow_idx_tail]))
-        p_tail = p_head - u * vec_len
-
-        # Subtle scaling so arrowhead is always visible beyond line stroke without becoming oversized
-        arrow_size = 1.0 + 0.05 * line_width
-        arrow_width = 1.6 + 0.08 * line_width
-        fig.add_annotation(
-            x=float(p_head[0]),
-            y=float(p_head[1]),
-            ax=float(p_tail[0]),
-            ay=float(p_tail[1]),
-            xref="x", yref="y", axref="x", ayref="y",
-            showarrow=True, arrowhead=2,
-            arrowsize=arrow_size,
-            arrowwidth=arrow_width,
-            arrowcolor=arrow_color,
-        )
 
         mid_pt = pts[int(len(pts) * 0.5)]
         src_name = names.get(src, str(src))
@@ -821,7 +811,7 @@ def network_figure(
         else:
             supp, errs, rate, fp = 0, 0, 0.0, 0
 
-        size = 16.0 + 20.0 * np.sqrt(supp / max_support)
+        size = diameters[class_id]
         node_sizes.append(size)
         node_colors.append(rate)
 
@@ -864,7 +854,7 @@ def network_figure(
                 "x": 1.0,
             },
             "line": {"width": node_borders, "color": node_border_colors},
-            "opacity": 0.98,
+            "opacity": 1.0,
         },
         hoverinfo="none",
         customdata=[["node", int(nid)] for nid in ordered_nodes],
@@ -879,16 +869,18 @@ def network_figure(
         raw_name = names.get(class_id, str(class_id))
         display_name = raw_name if len(raw_name) <= 16 else raw_name[:14] + "…"
 
+        node_r_data = (diameters.get(class_id, 16.0) / 2.0) * (units_per_pixel / 1.2)
+
         if dist_from_c < 1e-3:
-            # Hub node placed at center of cluster: position label directly below node
+            # Hub node placed at center of cluster: position label directly below node with clearance
             lx = x
-            ly = y - 0.22
+            ly = y - (node_r_data + 0.22)
             x_anchor = "center"
             y_anchor = "top"
         else:
             angle = np.arctan2(y - cy, x - cx)
             # Alternate label offset distance to prevent adjacent text collisions in dense clusters
-            label_dist = 0.12 if idx % 2 == 0 else 0.22
+            label_dist = node_r_data + (0.16 if idx % 2 == 0 else 0.28)
             lx = x + label_dist * np.cos(angle)
             ly = y + label_dist * np.sin(angle)
             x_anchor = "left" if np.cos(angle) > 0.08 else ("right" if np.cos(angle) < -0.08 else "center")
@@ -2106,6 +2098,82 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+// Use the same rendered curve for the shaft endpoint and arrowhead base.
+// SVG lengths are pixels, so gaps and head sizes stay fixed after zoom/resize.
+function trimConfusionEdges(graph) {
+    for (const trace of graph._fullData || []) {
+        const gap = trace.meta && trace.meta.edge_geometry;
+        if (!gap) continue;
+        const group = graph.querySelector('.trace' + trace.uid);
+        const path = group && group.querySelector('path.js-line');
+        if (!path) continue;
+        const length = path.getTotalLength();
+        // Find the actual circle intersections, rather than subtracting a
+        // radius along a bent path (which leaves a visible gap).
+        const source = path.getPointAtLength(0);
+        const target = path.getPointAtLength(length);
+        function boundary(center, radius, fromSource) {
+            let low = 0, high = length;
+            for (let i = 0; i < 32; i++) {
+                const mid = (low + high) / 2;
+                const point = path.getPointAtLength(mid);
+                const inside = Math.hypot(point.x - center.x, point.y - center.y) < radius;
+                if (inside === fromSource) low = mid;
+                else high = mid;
+            }
+            return (low + high) / 2;
+        }
+        const startLength = boundary(source, gap.start_gap, true);
+        const tipLength = boundary(target, gap.end_gap, false);
+        const available = tipLength - startLength;
+        group.style.visibility = available > 0 ? 'visible' : 'hidden';
+        if (available <= 0) continue;
+
+        // Short edges still get a head: reduce its size instead of hiding it.
+        const headLength = Math.min(gap.head_length, available * 0.55);
+        const headWidth = gap.head_half_width * headLength / gap.head_length;
+        const baseLength = tipLength - headLength;
+        const visible = baseLength - startLength;
+        const tip = path.getPointAtLength(tipLength);
+        const base = path.getPointAtLength(baseLength);
+        const dx = tip.x - base.x, dy = tip.y - base.y;
+        const distance = Math.hypot(dx, dy) || 1;
+        const nx = -dy / distance * headWidth;
+        const ny = dx / distance * headWidth;
+
+        let head = group.querySelector('.confusion-arrowhead');
+        if (!head) {
+            head = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            head.classList.add('confusion-arrowhead');
+            head.setAttribute('pointer-events', 'none');
+            group.appendChild(head);
+        }
+        head.setAttribute('d', `M ${tip.x} ${tip.y} L ${base.x + nx} ${base.y + ny} L ${base.x - nx} ${base.y - ny} Z`);
+        head.setAttribute('fill', trace.line.color);
+        head.setAttribute('stroke', 'none');
+
+        // Stop at the head's base; no translucent shaft underneath the triangle.
+        path.style.strokeDasharray = `0 ${startLength} ${visible} ${length}`;
+        path.style.strokeDashoffset = '0';
+        path.style.strokeLinecap = 'butt';
+    }
+}
+
+function connectConfusionEdges() {
+    const graph = document.querySelector('#network .js-plotly-plot');
+    if (!graph || typeof graph.on !== 'function' || graph.dataset.edgeTrimming) return;
+    graph.dataset.edgeTrimming = 'ready';
+    graph.on('plotly_afterplot', () => trimConfusionEdges(graph));
+    trimConfusionEdges(graph);
+}
+
+// Dash mounts the graph after this page script has loaded.
+new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
+    childList: true,
+    subtree: true
+});
+
 </script>
 </head>""",
     )
