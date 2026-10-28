@@ -25,6 +25,7 @@ analysis = [
     "matplotlib",
     "seaborn",
     "plotly",
+    "kaleido",            # static (pdf/svg) export of plotly figures; needs Chrome once: `plotly_get_chrome`
     # embeddings, kNN, projections (scikit-learn is a core dependency)
     "umap-learn",
     # explainability: saliency/attribution (captum, grad-cam), SHAP, LIME
@@ -32,6 +33,8 @@ analysis = [
     "grad-cam",
     "shap",
     "lime",
+    # segmentation (Pair B cut-outs for the background-swap experiment)
+    "segment-anything",
     # notebooks
     "ipywidgets",
 ]
