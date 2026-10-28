@@ -1,6 +1,8 @@
 # Large artifacts: fetched via scripts/download_data.sh, never committed
 data/*
 !data/.gitkeep
+# hand-made class -> species group mapping (Pair B), not downloaded
+!data/species_groups.csv
 checkpoints/
 outputs/
 

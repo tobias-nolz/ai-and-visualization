@@ -1,0 +1,46 @@
+group,variant,file,common_name,species,image_id,split,location,src_w,src_h
+elephant,0,elephant_0.png,African elephant,loxodonta africana,8a36b3bc-21bc-11ea-a13a-137349068a90,id_test,359,2048,1536
+elephant,1,elephant_1.png,African elephant,loxodonta africana,888a42a4-21bc-11ea-a13a-137349068a90,id_test,247,2048,1536
+elephant,2,elephant_2.png,African elephant,loxodonta africana,8c8b6b4e-21bc-11ea-a13a-137349068a90,val,306,2048,1536
+giraffe,0,giraffe_0.png,giraffe,giraffa camelopardalis,92abde46-21bc-11ea-a13a-137349068a90,test,291,1920,1080
+giraffe,1,giraffe_1.png,giraffe,giraffa camelopardalis,8ff11a7c-21bc-11ea-a13a-137349068a90,val,306,2048,1536
+giraffe,2,giraffe_2.png,giraffe,giraffa camelopardalis,954f8ea4-21bc-11ea-a13a-137349068a90,train,259,1920,1080
+zebra/horse,0,zebra_horse_0.png,plains zebra,equus quagga,8a369dd2-21bc-11ea-a13a-137349068a90,id_test,91,2048,1536
+zebra/horse,1,zebra_horse_1.png,plains zebra,equus quagga,8744e570-21bc-11ea-a13a-137349068a90,val,306,2048,1536
+zebra/horse,2,zebra_horse_2.png,Grevy's zebra,equus grevyi,86d575d2-21bc-11ea-a13a-137349068a90,test,501,1920,1080
+antelope,0,antelope_0.png,black-fronted duiker,cephalophus nigrifrons,9022494e-21bc-11ea-a13a-137349068a90,id_test,356,2048,1536
+antelope,1,antelope_1.png,waterbuck,kobus ellipsiprymnus,95f78456-21bc-11ea-a13a-137349068a90,test,206,2048,1536
+antelope,2,antelope_2.png,Guenther's dik-dik,madoqua guentheri,89d878a6-21bc-11ea-a13a-137349068a90,test,329,2048,1536
+cattle/buffalo,0,cattle_buffalo_0.png,cattle,bos taurus,89b35828-21bc-11ea-a13a-137349068a90,id_test,508,2048,1536
+cattle/buffalo,1,cattle_buffalo_1.png,cattle,bos taurus,9959ce74-21bc-11ea-a13a-137349068a90,val,306,2048,1536
+cattle/buffalo,2,cattle_buffalo_2.png,cattle,bos taurus,90e8f80a-21bc-11ea-a13a-137349068a90,test,501,1920,1080
+deer,0,deer_0.png,Central American red brocket,mazama temama,8a8e7070-21bc-11ea-a13a-137349068a90,id_val,105,1920,1080
+deer,1,deer_1.png,Yucatan brown brocket,mazama pandora,8786e11e-21bc-11ea-a13a-137349068a90,test,531,1920,1080
+deer,2,deer_2.png,white-tailed deer,odocoileus virginianus,94107e22-21bc-11ea-a13a-137349068a90,val,529,1920,1080
+pig/peccary,0,pig_peccary_0.png,collared peccary,pecari tajacu,906f316e-21bc-11ea-a13a-137349068a90,val,109,1920,1080
+pig/peccary,1,pig_peccary_1.png,bushpig,potamochoerus larvatus,9410c7b0-21bc-11ea-a13a-137349068a90,id_test,25,2048,1536
+pig/peccary,2,pig_peccary_2.png,wild boar,sus scrofa,89b0a182-21bc-11ea-a13a-137349068a90,id_val,496,2048,1536
+tapir,0,tapir_0.png,Baird's tapir,tapirus bairdii,94028772-21bc-11ea-a13a-137349068a90,train,453,1920,1080
+tapir,1,tapir_1.png,Baird's tapir,tapirus bairdii,871fe3a6-21bc-11ea-a13a-137349068a90,train,444,1920,1080
+tapir,2,tapir_2.png,Baird's tapir,tapirus bairdii,8c2d5f86-21bc-11ea-a13a-137349068a90,train,453,1920,1080
+big cat,0,big_cat_0.png,puma,puma concolor,94351fb6-21bc-11ea-a13a-137349068a90,val,457,2864,1795
+big cat,1,big_cat_1.png,jaguar,panthera onca,8e7afcb2-21bc-11ea-a13a-137349068a90,test,470,1920,1080
+big cat,2,big_cat_2.png,tiger,panthera tigris,97e0bdbe-21bc-11ea-a13a-137349068a90,test,115,2048,1536
+small cat,0,small_cat_0.png,ocelot,leopardus pardalis,9800721c-21bc-11ea-a13a-137349068a90,test,45,2895,1826
+small cat,1,small_cat_1.png,Asian golden cat,pardofelis temminckii,8b9a86d4-21bc-11ea-a13a-137349068a90,id_val,237,2048,1536
+small cat,2,small_cat_2.png,ocelot,leopardus pardalis,97c8a382-21bc-11ea-a13a-137349068a90,test,218,1920,1080
+dog/fox,0,dog_fox_0.png,gray fox,urocyon cinereoargenteus,8ba25e2c-21bc-11ea-a13a-137349068a90,test,218,1920,1080
+dog/fox,1,dog_fox_1.png,gray fox,urocyon cinereoargenteus,95ab9532-21bc-11ea-a13a-137349068a90,id_val,119,1920,1080
+dog/fox,2,dog_fox_2.png,gray fox,urocyon cinereoargenteus,8c6755b0-21bc-11ea-a13a-137349068a90,val,456,1920,1080
+monkey/ape,0,monkey_ape_0.png,L'Hoest's monkey,cercopithecus lhoesti,95fab054-21bc-11ea-a13a-137349068a90,id_test,356,2048,1536
+monkey/ape,1,monkey_ape_1.png,macaque,macaca sp,91d443f0-21bc-11ea-a13a-137349068a90,test,111,2048,1536
+monkey/ape,2,monkey_ape_2.png,olive baboon,papio anubis,8b96141e-21bc-11ea-a13a-137349068a90,test,501,1920,1080
+agouti/paca,0,agouti_paca_0.png,lowland paca,cuniculus paca,9005e286-21bc-11ea-a13a-137349068a90,test,315,2833,1826
+agouti/paca,1,agouti_paca_1.png,Central American agouti,dasyprocta punctata,94aa829c-21bc-11ea-a13a-137349068a90,test,531,1920,1080
+agouti/paca,2,agouti_paca_2.png,Central American agouti,dasyprocta punctata,93c96a0a-21bc-11ea-a13a-137349068a90,id_test,392,1920,1080
+porcupine,0,porcupine_0.png,Malayan porcupine,hystrix brachyura,913538d2-21bc-11ea-a13a-137349068a90,test,126,2048,1536
+porcupine,1,porcupine_1.png,Malayan porcupine,hystrix brachyura,944a4ab2-21bc-11ea-a13a-137349068a90,val,204,2048,1536
+porcupine,2,porcupine_2.png,Malayan porcupine,hystrix brachyura,8d320b16-21bc-11ea-a13a-137349068a90,train,496,2048,1536
+bird,0,bird_0.png,ocellated turkey,meleagris ocellata,9395be76-21bc-11ea-a13a-137349068a90,test,176,1920,1080
+bird,1,bird_1.png,crested guan,penelope purpurascens,9019a1ae-21bc-11ea-a13a-137349068a90,test,218,1920,1080
+bird,2,bird_2.png,great curassow,crax rubra,962c5a46-21bc-11ea-a13a-137349068a90,id_val,440,1920,1080

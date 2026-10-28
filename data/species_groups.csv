@@ -1,0 +1,183 @@
+y,name,common_name,group
+0,empty,empty,empty
+1,tayassu pecari,white-lipped peccary,pig/peccary
+2,dasyprocta punctata,Central American agouti,agouti/paca
+3,cuniculus paca,lowland paca,agouti/paca
+4,puma concolor,puma,big cat
+5,tapirus terrestris,South American tapir,tapir
+6,pecari tajacu,collared peccary,pig/peccary
+7,mazama americana,red brocket deer,deer
+8,leopardus pardalis,ocelot,small cat
+9,geotrygon montana,ruddy quail-dove,bird
+10,nasua nasua,South American coati,coati/raccoon
+11,dasypus novemcinctus,nine-banded armadillo,anteater/armadillo
+12,eira barbara,tayra,weasel/badger
+13,didelphis marsupialis,common opossum,opossum
+14,procyon cancrivorus,crab-eating raccoon,coati/raccoon
+15,panthera onca,jaguar,big cat
+16,myrmecophaga tridactyla,giant anteater,anteater/armadillo
+17,tinamus major,great tinamou,bird
+18,sylvilagus brasiliensis,tapeti,rabbit/hare
+19,puma yagouaroundi,jaguarundi,small cat
+20,leopardus wiedii,margay,small cat
+21,mazama gouazoubira,gray brocket deer,deer
+22,philander opossum,gray four-eyed opossum,opossum
+23,capra aegagrus,goat,goat/sheep
+24,bos taurus,cattle,cattle/buffalo
+25,ovis aries,sheep,goat/sheep
+26,canis lupus,wolf,dog/fox
+27,lepus saxatilis,scrub hare,rabbit/hare
+28,papio anubis,olive baboon,monkey/ape
+29,genetta genetta,common genet,genet/civet/mongoose
+30,tragelaphus scriptus,bushbuck,antelope
+31,herpestes sanguineus,slender mongoose,genet/civet/mongoose
+32,loxodonta africana,African elephant,elephant
+33,cricetomys gambianus,giant pouched rat,rat/mouse
+34,raphicerus campestris,steenbok,antelope
+35,hyaena hyaena,striped hyena,hyena
+36,aepyceros melampus,impala,antelope
+37,crocuta crocuta,spotted hyena,hyena
+38,caracal caracal,caracal,small cat
+39,equus ferus,horse,zebra/horse
+40,panthera leo,lion,big cat
+41,tragelaphus oryx,eland,antelope
+42,kobus ellipsiprymnus,waterbuck,antelope
+43,phacochoerus africanus,warthog,pig/peccary
+44,panthera pardus,leopard,big cat
+45,ichneumia albicauda,white-tailed mongoose,genet/civet/mongoose
+46,canis mesomelas,black-backed jackal,dog/fox
+47,syncerus caffer,African buffalo,cattle/buffalo
+48,equus quagga,plains zebra,zebra/horse
+49,giraffa camelopardalis,giraffe,giraffe
+50,alcelaphus buselaphus,hartebeest,antelope
+51,chlorocebus pygerythrus,vervet monkey,monkey/ape
+52,madoqua guentheri,Guenther's dik-dik,antelope
+53,potamochoerus larvatus,bushpig,pig/peccary
+54,nanger granti,Grant's gazelle,antelope
+55,eudorcas thomsonii,Thomson's gazelle,antelope
+56,struthio camelus,ostrich,bird
+57,orycteropus afer,aardvark,anteater/armadillo
+58,acinonyx jubatus,cheetah,big cat
+59,eupodotis senegalensis,white-bellied bustard,bird
+60,felis silvestris,wildcat,small cat
+61,oryx beisa,beisa oryx,antelope
+62,lophotis gindiana,buff-crested bustard,bird
+63,ardeotis kori,kori bustard,bird
+64,lissotis melanogaster,black-bellied bustard,bird
+65,argusianus argus,great argus,bird
+66,prionailurus bengalensis,leopard cat,small cat
+67,hemigalus derbyanus,banded civet,genet/civet/mongoose
+68,muntiacus muntjak,muntjac,deer
+69,sus scrofa,wild boar,pig/peccary
+70,helarctos malayanus,sun bear,bear
+71,rusa unicolor,sambar deer,deer
+72,hystrix brachyura,Malayan porcupine,porcupine
+73,pardofelis temminckii,Asian golden cat,small cat
+74,panthera tigris,tiger,big cat
+75,lariscus insignis,three-striped ground squirrel,squirrel
+76,chalcophaps indica,emerald dove,bird
+77,genetta tigrina,Cape genet,genet/civet/mongoose
+78,hystrix cristata,crested porcupine,porcupine
+79,lycaon pictus,African wild dog,dog/fox
+80,procavia capensis,rock hyrax,other
+81,canis familiaris,domestic dog,dog/fox
+82,unknown bird,unknown bird,bird
+83,unknown bat,unknown bat,other
+84,momotus momota,blue-crowned motmot,bird
+85,dasyprocta fuliginosa,black agouti,agouti/paca
+86,geotrygon sp,quail-dove,bird
+87,nasua narica,white-nosed coati,coati/raccoon
+88,tamandua mexicana,northern tamandua,anteater/armadillo
+89,didelphis sp,opossum,opossum
+90,penelope purpurascens,crested guan,bird
+91,phaetornis sp,hermit hummingbird,bird
+92,brotogeris sp,parakeet,bird
+93,camelus dromedarius,dromedary camel,camel
+94,otocyon megalotis,bat-eared fox,dog/fox
+95,acryllium vulturinum,vulturine guineafowl,bird
+96,equus grevyi,Grevy's zebra,zebra/horse
+97,proteles cristata,aardwolf,hyena
+98,leptailurus serval,serval,small cat
+99,tragelaphus strepsiceros,greater kudu,antelope
+100,hippopotamus amphibius,hippopotamus,hippo
+101,burhinus capensis,spotted thick-knee,bird
+102,paguma larvata,masked palm civet,genet/civet/mongoose
+103,pardofelis marmorata,marbled cat,small cat
+104,cuon alpinus,dhole,dog/fox
+105,varanus salvator,water monitor,other
+106,martes flavigula,yellow-throated marten,weasel/badger
+107,prionodon linsang,banded linsang,genet/civet/mongoose
+108,rollulus rouloul,crested partridge,bird
+109,lophura inornata,Salvadori's pheasant,bird
+110,polyplectron chalcurum,bronze-tailed peacock-pheasant,bird
+111,manis javanica,Sunda pangolin,anteater/armadillo
+112,capricornis sumatraensis,Sumatran serow,goat/sheep
+113,macaca sp,macaque,monkey/ape
+114,francolinus nobilis,handsome francolin,bird
+115,cercopithecus lhoesti,L'Hoest's monkey,monkey/ape
+116,cephalophus nigrifrons,black-fronted duiker,antelope
+117,atherurus africanus,brush-tailed porcupine,porcupine
+118,pan troglodytes,chimpanzee,monkey/ape
+119,cercopithecus mitis,blue monkey,monkey/ape
+120,funisciurus carruthersi,Carruthers's squirrel,squirrel
+121,motacilla flava,yellow wagtail,bird
+122,andropadus latirostris,yellow-whiskered greenbul,bird
+123,andropadus virens,little greenbul,bird
+124,thamnomys venustus,thicket rat,rat/mouse
+125,protoxerus stangeri,forest giant squirrel,squirrel
+126,paraxerus boehmi,Boehm's bush squirrel,squirrel
+127,cephalophus silvicultor,yellow-backed duiker,antelope
+128,oenomys hypoxanthus,rufous-nosed rat,rat/mouse
+129,melocichla mentalis,moustached grass warbler,bird
+130,hybomys univittatus,striped mouse,rat/mouse
+131,colomys goslingi,African wading rat,rat/mouse
+132,hylomyscus stella,wood mouse,rat/mouse
+133,genetta servalina,servaline genet,genet/civet/mongoose
+134,canis adustus,side-striped jackal,dog/fox
+135,mus minutoides,pygmy mouse,rat/mouse
+136,musophaga rossae,Ross's turaco,bird
+137,turtur tympanistria,tambourine dove,bird
+138,praomys tullbergi,soft-furred mouse,rat/mouse
+139,malacomys longipes,swamp rat,rat/mouse
+140,alopochen aegyptiaca,Egyptian goose,bird
+141,deomys ferrugineus,link rat,rat/mouse
+142,francolinus africanus,grey-winged francolin,bird
+143,turdus olivaceus,olive thrush,bird
+144,mazama sp,brocket deer,deer
+145,urocyon cinereoargenteus,gray fox,dog/fox
+146,meleagris ocellata,ocellated turkey,bird
+147,crax rubra,great curassow,bird
+148,agouti paca,lowland paca,agouti/paca
+149,tapirus bairdii,Baird's tapir,tapir
+150,procyon lotor,raccoon,coati/raccoon
+151,odocoileus virginianus,white-tailed deer,deer
+152,leptotila plumbeiceps,grey-headed dove,bird
+153,mazama temama,Central American red brocket,deer
+154,conepatus semistriatus,striped hog-nosed skunk,weasel/badger
+155,mazama pandora,Yucatan brown brocket,deer
+156,ortalis vetula,plain chachalaca,bird
+157,presbytis thomasi,Thomas's langur,monkey/ape
+158,neofelis diardi,Sunda clouded leopard,big cat
+159,arctonyx hoevenii,Sumatran hog badger,weasel/badger
+160,tragulus sp,mouse-deer,deer
+161,dendrocitta occipitalis,Sumatran treepie,bird
+162,niltava sumatrana,Sumatran niltava,bird
+163,leiothrix argentauris,silver-eared mesia,bird
+164,arborophila rubrirostris,red-billed partridge,bird
+165,lophura sp,pheasant,bird
+166,myiophoneus glaucinus,Javan whistling thrush,bird
+167,lophura erythrophthalma,crestless fireback,bird
+168,spilornis cheela,crested serpent eagle,bird
+169,myiophoneus caeruleus,blue whistling thrush,bird
+170,herpestes semitorquatus,collared mongoose,genet/civet/mongoose
+171,cerdocyon thous,crab-eating fox,dog/fox
+172,motorcycle,motorcycle,other
+173,peromyscus sp,deer mouse,rat/mouse
+174,puma yagoroundi,jaguarundi,small cat
+175,tigrisoma mexicanum,bare-throated tiger heron,bird
+176,claravis pretiosa,blue ground dove,bird
+177,sciurus sp,squirrel,squirrel
+178,ave desconocida,unknown bird,bird
+179,aramides cajanea,grey-necked wood rail,bird
+180,unknown dove,unknown dove,bird
+181,mazama  temama,Central American red brocket,deer
