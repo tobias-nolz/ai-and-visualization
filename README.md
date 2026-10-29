@@ -1,25 +1,6 @@
 # AI and Visualization Lab Project: Visualizing a ResNet-50 on WILDS iWildCam
 
-We analyze how a camera-trap species classifier behaves and why, using visualization.
-
-## Overview
-
-- **Task:** species classification of camera-trap images (182 classes, incl. `empty`)
-- **Model:** ResNet-50 (torchvision), the [WILDS](https://wilds.stanford.edu) ERM baseline checkpoint (`iwildcam_erm_seed0`), used as released (no fine-tuning)
-- **Dataset:** WILDS iWildCam v2.0 (~12 GB; splits `train`, `val`/`test` = unseen camera locations, `id_val`/`id_test` = seen locations); [CodaLab dataset bundle](https://worksheets.codalab.org/bundles/0x6313da2b204647e79a14b468131fcd64)
-- **Compute:** local GPU
-- **Stack:** Python 3.14, PyTorch (CUDA 13.2 build)
-
-The group of four works in two pairs on the **same model and data**:
-
-| Phase | Focus                                                                                                         | Pair A                 | Pair B                 |
-|-------|---------------------------------------------------------------------------------------------------------------|------------------------|------------------------|
-| I     | Black-box behavior (inputs/outputs only)                                                                      | **with** generative AI | without                |
-| II    | Opening the model (representations, saliency/attention, SHAP/LIME, kNN, checkpoints; ≥ 2 techniques per pair) | without                | **with** generative AI |
-
-The AI-aided pair logs every important interaction in its `ai_log.md`.
-
-### Task
+## Task
 
 We investigate wildlife species classification using the WILDS iWildCam v2.0 dataset, which contains camera-trap images from different locations across 182 classes, including empty scenes.
 
@@ -30,7 +11,7 @@ Dataset: https://wilds.stanford.edu/datasets/
 Paper: https://arxiv.org/abs/2012.07421
 
 
-### Model
+## Model
 
 We use a ResNet-50 (PyTorch), pretrained on ImageNet and fine-tuned on WILDS iWildCam using Empirical Risk Minimization (ERM).
 
@@ -40,7 +21,11 @@ Repository: https://github.com/p-lambda/wilds
 
 Model checkpoints: https://worksheets.codalab.org/worksheets/0x52cea64d1d3f4fa89de326b4e31aa50a
 
+---
+
 ## Team
+
+Group: Lost in latent space
 
 | Pair | Member |
 |------|--------|
@@ -48,13 +33,6 @@ Model checkpoints: https://worksheets.codalab.org/worksheets/0x52cea64d1d3f4fa89
 | A    | Lisa   |
 | B    | Martin |
 | B    | Tobias |
-
-## Deadlines
-
-| Date           | Deliverable                                                                                                               |
-|----------------|---------------------------------------------------------------------------------------------------------------------------|
-| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `phase1/pair_a/ai_log.md`, `phase1/comparison.md`                      |
-| **09.12.2026** | Final submission (Phase II): code of both pairs, `phase2/pair_b/ai_log.md`, `phase2/comparison.md`                        |
 
 ## Folder map
 
@@ -157,10 +135,3 @@ Shared reference for both pairs, using the official WILDS metrics (accuracy and 
 On the evaluation splits, our fine-tuned numbers match the WILDS-reported ones within 0.003 (newer library versions). On `train`, both models reach over 99% accuracy (the probe also near-perfect macro F1): they were trained on these images, so this row measures fit to the training data, not generalization. Regenerate all rows with `make inference && make baselines`; the raw numbers incl. macro recall are in `outputs/baselines.csv`.
 
 ¹ WILDS logs `train` metrics during training epoch 8, while the weights are still being updated; our row evaluates the final model afterwards, so the values differ slightly.
-
-## Working rules
-
-- **Pipelines stay separate.** Each pair works only in its own `phaseX/pair_Y/` folder and on its own branch (`phase1-pair-a`, `phase1-pair-b`). Pairs share **only** `common/` and the shared outputs (predictions files, embeddings, checkpoints). Changes to `common/` need agreement from both pairs.
-- **No data, checkpoints, or secrets in git.** Large artifacts come from `scripts/download_data.sh`; secrets go in `.env` (gitignored).
-- **Notebook outputs are not committed** (except the shared `notebooks/00_quickstart.ipynb`, which sets `keep_output: true`). The nbstripout filter strips them on `git add`; run `make setup` or `nbstripout --install` once per clone to activate it.
-- **Log AI use** (AI-aided pair only): one entry per interaction in `ai_log.md`, including rejected suggestions and time spent verifying.
