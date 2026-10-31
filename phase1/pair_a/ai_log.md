@@ -596,3 +596,299 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
+
+### 2026-10-19: Checking if seasonal analysis actually makes sense
+
+- **Who:** Lara
+- **Goal:** Check if splitting camera trap photos by four calendar seasons is ecologically sound or just a bad assumption.
+- **Prompt (important ones):**
+  ```
+  where was this dataset recorded, does seasons really make any sense for this use case for the dataset iWildCam?
+  ```
+- **AI output summary:** this dataset has 414 camera-trap locations distributed globally, therefore dividing the dataset into four calendar seasons is potentially misleading.
+- **Decision:** accepted
+- **Why:** moving forward with a visualization question according to seasonal changes does not really make sense when this is not generalizable good enough
+- **Problems caused:** none
+- **Time spent verifying:** 5
+
+---
+
+### 2026-10-19: Setting up the False Detection Gallery pipeline
+
+- **Who:** Lara
+- **Goal:** Drop the broken audit script we had before and start fresh with Idea 4 (auditing false detections on empty frames).
+- **Prompt (important ones):**
+  ```
+  Idea 4: Does the model hallucinate animals in empty images?
+  Visualization concept: False Detection Gallery
+  Build a gallery of images labeled empty that the model classifies as an animal.
+  Allow users to organize the gallery by predicted species, confidence and camera location. Add grouping by visual background characteristics such as darkness, vegetation density or color distribution.
+  ```
+- **AI output summary:** Outlined a Python script to filter empty frames from `predictions.parquet`, compute visual background metrics with PIL and NumPy, and structure the data for an interactive gallery.
+- **Decision:** modified
+- **Why:** The AI initially tried to load huge external computer vision libraries and wanted to re-run model inference on the whole 12 GB dataset from scratch. I stopped it and told it to just use our existing `predictions.parquet` and lightweight PIL/NumPy operations.
+- **Problems caused:** bug 
+- **Time spent verifying:** 15
+
+---
+
+### 2026-10-19: building the gallery pipeline and notebook
+
+- **Who:** Lara
+- **Goal:** Turn our analysis into an interactive website and an accompanying notebook to walk through the data.
+- **Prompt (important ones):**
+  ```
+  ```
+- **AI output summary:** code
+- **Decision:** modified
+- **Why:**  produced a functional prototype
+- **Problems caused:** none
+- **Time spent verifying:** 15
+
+---
+
+### 2026-10-19: converting to light theme and adding interactive charts
+
+- **Who:** Lara
+- **Goal:** replace the dark terminal-style layout with a clean, light-themed dashboard that includes interactive charts linked to example images.
+- **Prompt (important ones):**
+  ```
+  Refactor the gallery interface to a clean, light-themed research layout. Make sure any percentage plotted clearly states what it is calculating.
+  ```
+- **AI output summary:** modified code
+- **Decision:** accepted/modified
+- **Why:** light theme seemed a better choice, personally. also plots were not good enough readable this the chances in the percentage plotting
+- **Problems caused:** none
+- **Time spent verifying:** 3
+
+---
+
+### 2026-10-19: cleaning up camera bar chart percentages
+
+- **Who:** Lara
+- **Goal:** Fix the confusing numbers.
+- **Prompt (important ones):**
+  ```
+  The floating percentages on the camera bar chart conflict with the y-axis. Add a switch between 'Count of False Alarms' and 'Error Rate'.
+  ```
+- **AI output summary:** Added a button between error count and false alarm rate, updated the bar labels.
+- **Decision:** accepted
+- **Why:** better visualizaion
+- **Problems caused:** none
+- **Time spent verifying:** 1
+
+---
+
+### 2026-10-19: sorting camera bars descending when switching to error rate
+
+- **Who:** Lara
+- **Goal:** make sure the camera bar chart stays sorted descending when switching from count view to error rate view.
+- **Prompt (important ones):**
+  ```
+  Update the camera hotspot chart logic so that switching the metric between Count and Error Rate re-sorts the bars in descending order.
+  ```
+- **AI output summary:** modified coded to update the ordering
+- **Decision:** accepted
+- **Why:** Simple fix, keeps the worst problem cameras on the left no matter which view you're looking at.
+- **Problems caused:** none
+- **Time spent verifying:** 3
+
+---
+
+### 2026-10-19: Fixing empty gallery bug when clicking confusion matrix cells
+
+- **Who:** Lara
+- **Goal:** Fix the bug where clicking on the confusion matrix showed zero photos, and add an inspector card below it.
+- **Prompt (important ones):**
+  ```
+  Fix an bug in the confusion matrix: clicking a cell currently displays zero gallery 
+  ```
+- **AI output summary:** found the bug and updated code 
+- **Decision:** accepted
+- **Why:** Clicking the cell was broken 
+- **Problems caused:** none
+- **Time spent verifying:** 12
+
+---
+
+### 2026-10-26: making the dashboard more intuitive with thematic colors
+
+- **Who:** Lara
+- **Goal:** make the dashboard friendlier for non-experts  and color-code the different sections.
+- **Prompt (important ones):**
+  ```
+  Improve the dashboard information. Apply distinct color accents to the analytical sections
+  ```
+- **AI output summary:** color-coded the tabs, and added a short explanation card.
+- **Decision:** accepted/modified
+- **Why:** changed explaination a little
+- **Problems caused:** none
+- **Time spent verifying:** 12
+
+---
+
+### 2026-10-26: connecting explainer cards to tabs
+
+- **Who:** Lara
+- **Goal:** Let users click on the top overview cards to jump straight down to that specific analysis tab.
+- **Prompt (important ones):**
+  ```
+  i like the overview cards, however can we turn it into interactive navigational controls: clicking a card should activate and scroll down to its detailed analysis tab.
+  ```
+- **AI output summary:** Added click handlers to the top summary cards that switch tabs and scroll to them
+- **Decision:** accepted
+- **Why:** makes the usage more natural and easier
+- **Problems caused:** none
+- **Time spent verifying:** 8
+
+---
+
+### 2026-10-28: adding phantom species ranking tab
+
+- **Who:** Lara
+- **Goal:** Add a table showing which animals get hallucinated most often by the model.
+- **Prompt (important ones):**
+  ```
+  Add a dedicated 'Phantom Species' tab featuring a ranked table of all species predicted on empty frames. Include error count, percentage of total false alarms, and mean model confidence, with clickable rows that filter the gallery.
+  ```
+- **AI output summary:** code, built species table
+- **Decision:** accepted
+- **Why:** good overview on what species are hallucinated into empty frames 
+- **Problems caused:** none
+- **Time spent verifying:** 10
+
+---
+
+### 2026-10-28: Coloring card borders by species and camera
+
+- **Who:** Lara
+- **Goal:** Make it obvious at a glance if two errors are the same species or from the same camera by color-coding card borders.
+- **Prompt (important ones):**
+  ```
+  can we colour in **only the baclground each** - colour the background behind the image - with an colour representing the species; and below the part - where "camera" and stuff in a color representing the camera which took the foto
+  ```
+- **AI output summary:** colour coded according to the prompt
+- **Decision:** accepted
+- **Why:** can see it at first glance
+- **Problems caused:** none
+- **Time spent verifying:** 7
+
+---
+
+### 2026-10-28: allow choosing how many images are displayed at a time
+
+- **Who:** Lara
+- **Goal:** allow choosing how many images are displayed at a time
+- **Prompt (important ones):**
+  ```
+  also make this changeable - so that more or less images are presented, depending on the user: Displaying 36 false detection frames:
+  ```
+- **AI output summary:** Added page size pills and buttons to browse through results.
+- **Decision:** accepted
+- **Why:** browsing through images is better
+- **Problems caused:** none
+- **Time spent verifying:** 4
+
+---
+
+### 2026-10-28: Deleting the duplicate tab buttons
+
+- **Who:** Lara
+- **Goal:** Get rid of the second row of tab buttons
+- **Prompt (important ones):**
+  ```
+  please remove this:
+  [Screenshot showing the horizontal tab button bar]
+  ```
+- **AI output summary:** removed it
+- **Decision:** accepted
+- **Why:** I had two identical sets of tab buttons stacked on top of each other.
+- **Problems caused:** none
+- **Time spent verifying:** 4
+
+---
+
+### 2026-10-30: Using real scientific binomial names
+
+- **Who:** Lara
+- **Goal:** Use proper scientific binomial names (*Panthera onca*, *Equus ferus*) matching the official dataset instead of informal names.
+- **Prompt (important ones):**
+  ```
+  can you please keep the original name of the species? keep the emoji but also the real scientific name
+  [Screenshot showing species header]
+  ```
+- **AI output summary:** Updated names with scientific names alongside animal emoji icons, kept the common name in paranthesis
+- **Decision:** accepted
+- **Why:** somewhere inbetween the LLM added names for the species that are more in the day to day usage for most. however, wanted to stick with the true scientifical naming - however, wanted to keep the emojies next to it, so that the scientific names are more intuitive
+- **Problems caused:** did not remove it all
+- **Time spent verifying:** 6
+
+---
+
+### 2026-10-30: Removing English names everywhere
+
+- **Who:** Lara
+- **Goal:** Completely scrub English common names for the species
+- **Prompt (important ones):**
+  ```
+  no this is still wrong -  Argusianus argus (Great Argus)
+  🐆 Panthera onca (Jaguar)
+  🐎 Equus ferus (Wild Horse)
+  🦃 Crax rubra (Great Curassow)
+  cut out the other naming entirly alsooo not in paranthesis
+  ```
+- **AI output summary:** cleaned the naming 
+- **Decision:** accepted
+- **Why:** keep everything consistent with the official dataset labels.
+- **Problems caused:** none
+- **Time spent verifying:** 5
+
+---
+
+### 2026-10-30: grouping errors into 4 physical illusion buckets
+
+- **Who:** Lara
+- **Goal:** See if grouping errors into 4 physical illusion buckets (flash glints, branches, camouflage leaves, sun glare) actually works.
+- **Prompt (important ones):**
+  ```
+  Implement a prototype "grouping errors into 4 physical illusion buckets": classify empty-frame false detections into physical visual mechanisms (specular flash reflections, branch pareidolia, foliage camouflage, and sun glare) using heuristic rules on image features.
+  ```
+- **AI output summary:** Added heuristic rules assigning every false alarm to one of the four illusion archetypes, with badges on cards and a dedicated dossier tab.
+- **Decision:** rejected
+- **Why:** Honestly, after looking at the results, it felt like total guesswork. can't actually prove whether the AI was fooled by a specific branch or a leafy patch.
+- **Problems caused:** just speculations, bug
+- **Time spent verifying:** 20
+
+---
+
+### 2026-10-31: Removing duplicate background buttons
+
+- **Who:** Lara
+- **Goal:** Get rid of the extra row of background buttons since we already have a dropdown for it
+- **Prompt (important ones):**
+  ```
+  Remove the duplicate visual background pill button row above the model tabs. Consolidate background filtering into the primary toolbar dropdown.
+  ```
+- **AI output summary:** Deleted code
+- **Decision:** accepted
+- **Why:** We had the exact same filter in two spots
+- **Problems caused:** none
+- **Time spent verifying:** 4
+
+---
+
+### 2026-10-31: removing a section 
+
+- **Who:** Lara
+- **Goal:** drop a section implemented 
+- **Prompt (important ones):**
+  ```
+  Remove the confidence comparison chapter comparing false negatives (missed animals) with false positives (hallucinations).
+  ```
+- **AI output summary:** Removed code
+- **Decision:** accepted
+- **Why:** was not intuitive enough
+- **Problems caused:** none
+- **Time spent verifying:** 6
+
+---
