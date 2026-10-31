@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Training label review</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        height: 100dvh;
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: 44px minmax(0, 1fr) 28px;
+        background: #fff;
+        color: #222;
+        font: 14px Arial, sans-serif;
+      }
+
+      header, footer {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 12px;
+      }
+
+      header {
+        border-bottom: 1px solid #ccc;
+      }
+
+      footer {
+        justify-content: space-between;
+        color: #555;
+        font-size: 12px;
+      }
+
+      button {
+        font: inherit;
+        color: inherit;
+      }
+
+      header button {
+        padding: 4px 9px;
+        border: 1px solid #bbb;
+        background: white;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: .4;
+        cursor: default;
+      }
+
+      button:focus-visible {
+        outline: 2px solid #0077bb;
+        outline-offset: 2px;
+      }
+
+      #title {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      main {
+        display: grid;
+        gap: 8px;
+        padding: 8px 12px;
+        min-height: 0;
+      }
+
+      .frame {
+        min-width: 0;
+        min-height: 0;
+        padding: 0;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) 26px;
+        border: 2px solid transparent;
+        background: #eee;
+        text-align: left;
+      }
+
+      .frame img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        min-height: 0;
+        background: #222;
+      }
+
+      .caption {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 0 7px;
+        overflow: hidden;
+        font-size: 12px;
+      }
+
+      .caption span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .frame[aria-pressed="true"] {
+        border-color: #0077bb;
+        background: #dceef9;
+      }
+
+      .frame[aria-pressed="true"] .caption::after {
+        content: "ABSENT";
+        color: #005782;
+        font-weight: bold;
+      }
+
+      #saveState {
+        white-space: nowrap;
+      }
+
+      @media (max-width: 850px) {
+        header, footer {
+          gap: 6px;
+          padding-left: 6px;
+          padding-right: 6px;
+          font-size: 11px;
+        }
+        main {
+          gap: 5px;
+          padding: 5px;
+        }
+        .caption {
+          font-size: 10px;
+          padding: 0 3px;
+        }
+      }
+
+      @media (max-width: 700px) {
+        body {
+          grid-template-rows: 70px minmax(0, 1fr) auto;
+        }
+        header {
+          flex-wrap: wrap;
+        }
+        #title {
+          order: 1;
+          flex-basis: 100%;
+        }
+        footer {
+          flex-direction: column;
+          align-items: flex-start;
+          padding: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <button id="previous" aria-label="Previous page" title="Left arrow key">←</button>
+      <button id="next" aria-label="Confirm page and continue" title="Right arrow key">→</button>
+      <span id="title"></span>
+    </header>
+    <main id="frames" aria-label="Images in chronological order"></main>
+    <footer>
+      <span>Click any image = mark animal absent; click again = undo. → = confirm page. ← = back.</span>
+      <span id="saveState" aria-live="polite"></span>
+    </footer>
+    <script src="/review.js?v=4"></script>
+  </body>
+</html>

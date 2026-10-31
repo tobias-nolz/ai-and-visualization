@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width,initial-scale=1" name="viewport">
+    <title>Camera label audit / training and test</title>
+    <style>
+      :root {
+        --model: #806000;
+        --train: #004488;
+        --muted: #555;
+        --rule: #ccc;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font: 14px Arial, sans-serif;
+        color: #111;
+        background: white;
+      }
+
+      button, select {
+        font: inherit;
+        color: inherit;
+        background: white;
+        border: 1px solid var(--rule);
+        padding: 5px 8px;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #eee;
+      }
+
+      button:disabled {
+        opacity: .35;
+        cursor: default;
+      }
+
+      button:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+        outline: 2px solid #405fc9;
+        outline-offset: 2px;
+      }
+
+      h2, p {
+        margin: 0;
+      }
+
+      .app {
+        height: 100dvh;
+        padding: 0 18px 8px;
+        display: grid;
+        grid-template-rows: minmax(220px, 1fr) 78px 300px;
+        overflow: hidden;
+      }
+
+      .overview {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 18px;
+        min-height: 0;
+      }
+
+      .sequence-panel {
+        min-height: 0;
+        border-left: 1px solid var(--rule);
+        padding: 12px 0 8px 12px;
+      }
+
+      .sequence-panel svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .plot {
+        position: relative;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .map {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .node {
+        cursor: pointer;
+      }
+
+      .plottools {
+        position: absolute;
+        inset: 12px 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 10px;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .plottools>* {
+        pointer-events: auto;
+        background: white;
+      }
+
+      .legend {
+        gap: 22px;
+        font-size: 13px;
+      }
+
+      .legend b {
+        font-weight: normal;
+      }
+
+      .legend small {
+        font-size: 11px;
+        color: #555;
+      }
+
+      .legend svg {
+        width: 17px;
+        height: 20px;
+      }
+
+      .plotlegend p {
+        font-size: 11px;
+        color: #555;
+        margin-top: 6px;
+      }
+
+      .maptools {
+        font-size: 13px;
+      }
+
+      .maptools label {
+        white-space: nowrap;
+      }
+
+      .model-ink {
+        color: var(--model);
+      }
+
+      .dataset-ink {
+        color: #555;
+      }
+
+      .train-ink {
+        color: var(--train);
+      }
+
+      .tflag {
+        background: #e1eef7;
+        color: #004488;
+      }
+
+      .casebar {
+        border-top: 1px solid #aaa;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 520px;
+        gap: 25px;
+        align-items: center;
+      }
+
+      .caseintro h2 {
+        font-size: 18px;
+        font-weight: 600;
+      }
+
+      .caseintro p {
+        font-size: 12px;
+        line-height: 1.4;
+        margin-top: 6px;
+        color: #555;
+      }
+
+      .casecontrols {
+        display: grid;
+        grid-template-columns: 65px minmax(0, 1fr) 30px 30px;
+        gap: 4px;
+        align-items: center;
+      }
+
+      .casecontrols select {
+        font-size: 12px;
+        height: 30px;
+        min-width: 0;
+      }
+
+      .casecontrols button {
+        padding: 5px;
+        height: 30px;
+      }
+
+      .evidence {
+        display: grid;
+        grid-template-columns: 128px minmax(0, 1fr);
+        grid-template-rows: minmax(0, 1fr) 20px;
+        column-gap: 10px;
+        min-height: 0;
+        padding-top: 3px;
+      }
+
+      .rowlabels, .frame {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) 27px 27px;
+        min-height: 0;
+      }
+
+      .rowlabels {
+        font-size: 10px;
+      }
+
+      .rowlabels span {
+        display: flex;
+        align-items: center;
+        border-top: 1px solid #ccc;
+      }
+
+      .rowlabels span:first-child {
+        border: 0;
+        align-items: flex-end;
+        padding-bottom: 10px;
+        color: #555;
+      }
+
+      .frames {
+        display: flex;
+        gap: 7px;
+        min-width: 0;
+        min-height: 0;
+      }
+
+      .frame {
+        flex: 1;
+        min-width: 0;
+        max-width: 550px;
+        border: 0;
+        padding: 0;
+        text-align: center;
+        background: white;
+      }
+
+      .frame.selected .photo {
+        outline: 2px solid #111;
+        outline-offset: -2px;
+      }
+
+      .photo {
+        min-height: 0;
+        position: relative;
+        background: #222;
+        overflow: hidden;
+      }
+
+      .photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .frameindex {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        padding: 3px 5px;
+        background: #222b;
+        color: white;
+        font-size: 10px;
+      }
+
+      .track {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-top: 1px solid #ccc;
+        font-size: 12px;
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 0 3px;
+        gap: 3px;
+      }
+
+      .track span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .conf {
+        font-size: 9px;
+        opacity: .8;
+        flex-shrink: 0;
+      }
+
+      .mflag {
+        background: #fbf3db;
+        color: #806000;
+      }
+
+      .sequencefoot {
+        grid-column: 1/-1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px;
+        font-size: 11px;
+        color: #555;
+      }
+
+      .framepages {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .framepages button {
+        padding: 1px 7px;
+        font-size: 12px;
+      }
+
+      .tooltip {
+        position: fixed;
+        display: none;
+        z-index: 20;
+        background: white;
+        border: 1px solid #111;
+        padding: 10px 12px;
+        font-size: 11px;
+        line-height: 1.7;
+        pointer-events: none;
+        max-width: 280px;
+      }
+
+      .close {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        font-size: 11px;
+      }
+
+      @media (max-height: 850px) {
+        .app {
+          grid-template-rows: minmax(190px, 1fr) 78px 230px;
+        }
+        .frame, .rowlabels {
+          grid-template-rows: minmax(0, 1fr) 24px 24px;
+        }
+      }
+
+      @media (max-width: 1200px) {
+        .plottools {
+          flex-wrap: wrap;
+        }
+        .maptools {
+          margin-left: auto;
+        }
+        .legend {
+          font-size: 11px;
+          gap: 14px;
+        }
+        .plotlegend p {
+          font-size: 10px;
+        }
+        .casebar {
+          grid-template-columns: minmax(0, 1fr) 420px;
+          gap: 15px;
+        }
+        .caseintro h2 {
+          font-size: 16px;
+        }
+        .caseintro p {
+          font-size: 11px;
+        }
+        .evidence {
+          grid-template-columns: 96px minmax(0, 1fr);
+        }
+        .track {
+          font-size: 10px;
+        }
+        .conf {
+          display: none;
+        }
+        .sequencefoot {
+          font-size: 9px;
+        }
+      }
+
+      .casecontrols label {
+        font-size: 12px;
+      }
+
+      .allcameras {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .allcameras input {
+        margin: 0;
+      }
+
+      .image-dialog {
+        width: min(1100px, 94vw);
+        height: 93vh;
+        border: 0;
+        padding: 16px;
+      }
+
+      .image-dialog[open] {
+        display: grid;
+        grid-template-rows: 35px minmax(0, 1fr) auto;
+      }
+
+      .image-dialog::backdrop {
+        background: #000b;
+      }
+
+      .image-dialog img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #222;
+      }
+
+      .image-dialog .close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+      }
+
+      .image-dialog p {
+        font-size: 12px;
+        margin-top: 10px;
+      }
+
+      @media (max-width: 900px) {
+        .overview {
+          grid-template-columns: 1fr;
+        }
+        .sequence-panel {
+          border-left: 0;
+          border-top: 1px solid var(--rule);
+          padding: 8px 0;
+        }
+        .sequence-panel svg {
+          height: 360px;
+        }
+
+        html, body {
+          overflow: auto;
+        }
+        .app {
+          height: auto;
+          min-height: 100dvh;
+          grid-template-rows: auto auto auto;
+          gap: 12px;
+          overflow: visible;
+        }
+        .plottools {
+          position: static;
+          margin-top: 12px;
+        }
+        .map {
+          height: 220px;
+        }
+        .casebar {
+          grid-template-columns: 1fr;
+          gap: 10px;
+          padding-top: 12px;
+        }
+        .evidence {
+          grid-template-columns: 80px minmax(0, 1fr);
+          grid-template-rows: 260px auto;
+          row-gap: 8px;
+        }
+        .frames {
+          overflow-x: auto;
+        }
+        .frame {
+          flex: 0 0 140px;
+        }
+        .sequencefoot {
+          flex-wrap: wrap;
+          gap: 6px;
+          font-size: 10px;
+          padding-bottom: 8px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="overview">
+        <main aria-label="Camera clear-background share and species diversity with model hallucinations and label issues" class="plot">
+          <div class="plottools">
+            <div class="plotlegend">
+              <div aria-label="Marker legend and reviewed frame totals" class="legend">
+                <span class="model-ink" title="Cameras with model hallucinations on ID-test or unseen-camera test images">
+                  <svg aria-hidden="true" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" fill="#DDAA33" stroke="#876400" stroke-width="1"></circle>
+                  </svg>
+                  <b id="modelTotal"></b>
+                  cameras: model hallucinations on test images
+                </span>
+                <span class="train-ink" title="Cameras with at least one training-label issue">
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12Z" fill="#004488"></path></svg>
+                  <b id="trainingTotal"></b>
+                  cameras: train-label issues
+                </span>
+              </div>
+              <p>Point size: flagged images / all images of that camera. Gray: no recorded flags, including unassessed training cameras.</p>
+              <p>Diversity: 1 = one species; higher = a more even mix. Training flags cover selected reviews.</p>
+            </div>
+            <div class="maptools">
+              <label class="allcameras">
+                <input id="showAllCameras" type="checkbox">
+                Show all mapped cameras
+              </label>
+            </div>
+          </div>
+          <svg aria-label="Camera clear-background share and species diversity: gold model findings and navy training-label findings" class="map" id="cameraMap" role="group" tabindex="0" viewBox="0 0 1400 500">
+          </svg>
+        </main>
+        <aside class="sequence-panel" aria-label="First and last frame flags by training camera">
+          <svg id="sequenceChart" aria-label="First and last frame flag rates; select a training camera" role="group"></svg>
+        </aside>
+      </div>
+      <section aria-label="Selected evidence story" class="casebar">
+        <div class="caseintro">
+          <h2 id="caseTitle"></h2>
+          <p id="caseExplanation"></p>
+        </div>
+        <div class="casecontrols">
+          <label for="caseSelect">Sequence</label>
+          <select aria-label="Sequence from selected camera" id="caseSelect"></select>
+          <button aria-label="Previous evidence sequence" id="previousCase">←</button>
+          <button aria-label="Next evidence sequence" id="nextCase">→</button>
+        </div>
+      </section>
+      <section aria-label="Sequence comparison of model outputs or training reviews with dataset labels" class="evidence">
+        <div class="rowlabels">
+          <span>SEQUENCE →</span>
+          <span class="model-ink" id="predictionRowLabel">MODEL SAYS</span>
+          <span class="dataset-ink" id="datasetRowLabel">DATASET SAYS</span>
+        </div>
+        <div class="frames" id="frames"></div>
+        <div class="sequencefoot">
+          <span id="sequenceMeta"></span>
+          <span class="framepages">
+            <button aria-label="Previous ten frames" id="previousFrames">←</button>
+            <span id="framePage"></span>
+            <button aria-label="Next ten frames" id="nextFrames">→</button>
+            · click an image to inspect
+          </span>
+        </div>
+      </section>
+    </div>
+    <div class="tooltip" id="tooltip"></div>
+    <dialog class="image-dialog" id="frameOverlay" aria-label="Frame evidence">
+      <button class="close" id="closeFrame">Close ×</button>
+      <div id="zoomTitle"></div>
+      <img alt="Selected original camera-trap image" id="largeImage">
+      <p id="largeCaption"></p>
+    </dialog>
+    <script src="atlas.js?v=15"></script>
+  </body>
+</html>

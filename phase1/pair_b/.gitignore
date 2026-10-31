@@ -1,0 +1,11 @@
+__pycache__/
+.cache/
+.ipynb_checkpoints/
+*.py[cod]
+.env
+results/*.tmp
+results/training_camera_links.csv
+results/training_review_candidates.csv
+results/selected_annotations.csv
+results/training_sequence_findings.csv
+results/training_summary.json
