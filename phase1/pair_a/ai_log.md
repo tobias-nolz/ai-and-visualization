@@ -892,3 +892,18 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 - **Time spent verifying:** 6
 
 ---
+
+### 2026-10-31: Combining ID and OOD into Unified Dataset Splits
+
+- **Who:** Lisa
+- **Goal:** Summarize in-distribution (ID) and out-of-distribution (OOD) data into unified test and validation splits so there is one training set, one validation set and one test set.
+- **Prompt (important ones):**
+  ```
+  please summarise ID and OOD into one dataset each. so, there should be one test set, one validation set and one training set
+  ```
+- **AI output summary:** Updated `read_predictions` and `create_app` in `species_confusion_network.py` to remap `id_test` into `test` and `id_val` into `val`. Updated `SPLIT_DESCRIPTIONS` and the dataset selector dropdown to present three unified splits: "Test Set", "Validation Set", and "Training Set".
+- **Decision:** accepted
+- **Why:** Provides a cleaner, unified overview of model performance across the three core dataset splits without having to navigate ID and OOD camera locations separately.
+- **Problems caused:** The remapping was initially applied only in `read_predictions()`. During live hot-reloads, the running Dash app re-executed `create_app()` with the existing in-memory DataFrame containing the old split names, causing `id_val` and `id_test` to still appear as raw string fallbacks at the bottom of the dropdown list. Resolved by applying the consolidation inside `create_app()` as well and explicitly filtering the dropdown options against `SPLIT_DESCRIPTIONS`.
+- **Time spent verifying:** 10 minutes
+---

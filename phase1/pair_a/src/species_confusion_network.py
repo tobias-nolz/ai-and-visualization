@@ -32,11 +32,9 @@ COLUMNS = [
     "prediction_name", "confidence", "location", "filename",
 ]
 SPLIT_DESCRIPTIONS = {
-    "test": "OOD test (unseen cameras)",
-    "id_test": "ID test (seen cameras)",
-    "val": "OOD validation (unseen cameras)",
-    "id_val": "ID validation (seen cameras)",
-    "train": "Training (seen cameras)",
+    "test": "Test Set",
+    "val": "Validation Set",
+    "train": "Training Set",
 }
 
 # Lighter, accessible red scale avoiding near-black burgundy so overlapping text remains legible
@@ -339,6 +337,11 @@ def read_predictions(path: Path) -> pd.DataFrame:
         raise ValueError("Prediction file contains no rows.")
     data = data.dropna(subset=["split", "label", "prediction"])
     data["split"] = data["split"].astype(str)
+    # Combine ID and OOD splits into unified test and validation datasets
+    data["split"] = data["split"].replace({
+        "id_test": "test",
+        "id_val": "val",
+    })
     data["label"] = data["label"].astype(int)
     data["prediction"] = data["prediction"].astype(int)
     data["location"] = data["location"].astype(str)
@@ -1677,6 +1680,13 @@ def build_kpis(subset: pd.DataFrame, stats: pd.DataFrame, edges: pd.DataFrame, f
 
 
 def create_app(data: pd.DataFrame):
+    data = data.copy()
+    if "split" in data.columns:
+        data["split"] = data["split"].astype(str).replace({
+            "id_test": "test",
+            "id_val": "val",
+        })
+
     global CAMERA_IMAGE_MAP, CLASS_MULTI_IMAGE_MAP, CAMERA_MULTI_IMAGE_MAP
     global MISTAKE_SPEC_CAM_MAP, MISTAKE_PAIR_CAM_MAP, MISTAKE_SINK_CAM_MAP
     if "location" in data.columns and "filename" in data.columns:
@@ -1716,10 +1726,10 @@ def create_app(data: pd.DataFrame):
     CLASS_MULTI_IMAGE_MAP = class_map
 
     names = class_names(data)
-    splits = sorted(
-        data["split"].unique(),
-        key=lambda v: list(SPLIT_DESCRIPTIONS).index(v) if v in SPLIT_DESCRIPTIONS else 999,
-    )
+    unique_splits = set(data["split"].unique())
+    splits = [s for s in SPLIT_DESCRIPTIONS if s in unique_splits]
+    if not splits:
+        splits = sorted(unique_splits)
     default_split = "test" if "test" in splits else splits[0]
 
     # Pre-index actual misclassified images with model predictions for each confounding camera context
