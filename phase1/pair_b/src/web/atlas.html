@@ -68,7 +68,7 @@
 
       .overview {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 320px;
+        grid-template-columns: minmax(0, 1fr) 320px 300px;
         gap: 18px;
         min-height: 0;
       }
@@ -86,6 +86,99 @@
         width: 320px;
         max-width: 100%;
         height: auto;
+      }
+
+      .species-panel {
+        min-height: 0;
+        overflow-y: auto;
+        border-left: 1px solid var(--rule);
+        padding: 16px 0 8px 12px;
+      }
+
+      .species-panel h2 {
+        font-size: 16px;
+        font-weight: normal;
+      }
+
+      .species-panel p, .species-key {
+        font-size: 11px;
+        line-height: 1.4;
+        margin-top: 6px;
+      }
+
+      .species-panel p, .species-scale {
+        color: #666;
+      }
+
+      .species-key {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+      }
+
+      .species-scale {
+        display: flex;
+        justify-content: space-between;
+        margin: 10px 46px 0 0;
+        font-size: 10px;
+      }
+
+      .species-row {
+        display: block;
+        width: 100%;
+        margin: 8px 0 10px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        text-align: left;
+      }
+
+      .species-row[aria-pressed="true"] .species-name {
+        color: #b33;
+      }
+
+      .species-name {
+        font-size: 12px;
+        margin-bottom: 3px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .species-bar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 40px;
+        gap: 6px;
+        align-items: center;
+        font-size: 10px;
+        line-height: 13px;
+        text-align: right;
+      }
+
+      .bar-track {
+        height: 7px;
+        background: #f3f3f3;
+      }
+
+      .bar-track span {
+        display: block;
+        height: 100%;
+      }
+
+      @media (min-width: 901px) and (max-width: 1500px) {
+        .overview {
+          grid-template-columns: minmax(0, 1fr) 320px;
+          grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+        }
+        .plot {
+          grid-row: 1 / 3;
+        }
+        .sequence-panel, .species-panel {
+          grid-column: 2;
+        }
+        .species-panel {
+          border-top: 1px solid var(--rule);
+        }
       }
 
       .sequence-axis {
@@ -436,7 +529,7 @@
         .overview {
           grid-template-columns: 1fr;
         }
-        .sequence-panel {
+        .sequence-panel, .species-panel {
           border-left: 0;
           border-top: 1px solid var(--rule);
           padding: 8px 0 0;
@@ -514,6 +607,17 @@
         <aside class="sequence-panel" aria-label="First and last training-label hallucinations" tabindex="0">
           <svg id="sequenceChart" aria-label="First and last training-label hallucination rates, select a camera" role="group"></svg>
           <svg id="sequenceAxis" class="sequence-axis" viewBox="0 0 320 28" aria-label="Hallucinated training labels (%)" role="img"></svg>
+        </aside>
+        <aside class="species-panel" aria-label="Animals in hallucinated labels and predictions" tabindex="0">
+          <h2>Most hallucinated animals</h2>
+          <p>Share of hallucinated images (%)</p>
+          <div class="species-key">
+            <span class="train-ink">◆ Train labels (<b id="trainSpeciesTotal"></b>)</span>
+            <span class="model-ink">● Test predictions (<b id="testSpeciesTotal"></b>)</span>
+          </div>
+          <div class="species-scale"><span>0%</span><span>100%</span></div>
+          <div id="speciesChart"></div>
+          <p>Top 10 by share in either set. Training: reviewed frames. Test: both test splits.</p>
         </aside>
       </div>
       <section aria-label="Selected evidence story" class="casebar">

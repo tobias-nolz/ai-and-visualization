@@ -122,6 +122,8 @@ X shows the estimated share of outdoor background without trees or shrubs, measu
 
 Y shows species diversity as `exp(Shannon entropy)`. Each species counts once per sequence, across all splits at the same camera. Empty and motorcycle labels are excluded. Orange circles show hallucinated test predictions. Blue diamonds show hallucinated training labels. Gray means none found in the images checked, with circles for test cameras and diamonds for training cameras. Point area follows the number of hallucinated images divided by all images at that camera and split. Training counts come from sampled frames. First/last comparisons need unique endpoint timestamps.
 
+Hover an English animal name to see the scientific label. The species panel compares each animal’s share of hallucinated training labels and test predictions.
+
 The additional review sample uses up to 20 random sequences per camera. The labels were provided manually and are saved in `human_review.json`. `phantom_label` marks an animal-labeled frame judged empty. `not_flagged` means no such case was recorded.
 
 The [WCS source dataset](https://lila.science/datasets/wcscameratraps) confirms it includes some sequence-level annotations, so an empty frame can inherit an animal label from its sequence. But the description pretends it would be a mixture of image- and sequence-labels. However, we discover that there is no such distinction in the dataset and most labels were either only on the sequence-level or sloppy (as seen in the visualization).

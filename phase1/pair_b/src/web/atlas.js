@@ -2,37 +2,15 @@
 
 let atlas;
 const get = id => document.getElementById(id);
-const names = {
-  'empty': 'empty',
-  'urocyon cinereoargenteus': 'gray fox',
-  'dasyprocta punctata': 'agouti',
-  'madoqua guentheri': 'dik-dik',
-  'hystrix brachyura': 'porcupine',
-  'crax rubra': 'curassow',
-  'macaca sp': 'macaque',
-  'tapirus terrestris': 'tapir',
-  'giraffa camelopardalis': 'giraffe',
-  'panthera onca': 'jaguar',
-  'neofelis diardi': 'clouded leopard',
-  'syncerus caffer': 'buffalo',
-  'argusianus argus': 'great argus',
-  'meleagris ocellata': 'ocellated turkey',
-  'cephalophus nigrifrons': 'duiker',
-  'sus scrofa': 'wild boar',
-  'phacochoerus africanus': 'warthog',
-  'crocuta crocuta': 'hyena',
-  'leopardus pardalis': 'ocelot',
-  'equus quagga': 'plains zebra',
-  'lycaon pictus': 'African wild dog',
-  'bos taurus': 'cattle',
-  'loxodonta africana': 'African elephant'
-};
+let names = {};
 
 let cameras = [];
 let sequences = [];
 let selectedSequence = null;
 let selectedFrame = 0;
 let framePage = 0;
+let selectedSpecies = null;
+let highlightedCameras = new Set();
 
 function escapeHtml(value) {
   const entities = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
@@ -135,6 +113,53 @@ function drawSequenceChart() {
   });
 }
 
+function drawSpeciesChart() {
+  const counts = new Map();
+  const totals = {train: 0, test: 0};
+  for (const sequence of sequences) {
+    const train = sequence.split === 'train';
+    const split = train ? 'train' : 'test';
+    for (const frame of sequence.frames) {
+      if (!(train ? frame.training_phantom : frame.model_phantom)) continue;
+      const label = train ? frame.label : frame.pred;
+      const name = speciesName(label);
+      // Dataset synonyms share a common name, such as the two paca labels.
+      if (!counts.has(name)) counts.set(name, {name, labels: new Set(), cameras: new Set(), train: 0, test: 0});
+      const row = counts.get(name);
+      row[split]++;
+      row.labels.add(label);
+      row.cameras.add(`${sequence.split}:${sequence.camera}`);
+      totals[split]++;
+    }
+  }
+  const share = (row, split) => totals[split] ? row[split] / totals[split] : 0;
+  const largestShare = row => Math.max(share(row, 'train'), share(row, 'test'));
+  const rows = [...counts.values()].sort((a, b) => largestShare(b) - largestShare(a) || a.name.localeCompare(b.name)).slice(0, 10);
+  get('trainSpeciesTotal').textContent = totals.train.toLocaleString();
+  get('testSpeciesTotal').textContent = totals.test.toLocaleString();
+  get('speciesChart').innerHTML = rows.map(row => {
+    const bars = ['train', 'test'].map(split => {
+      const value = share(row, split);
+      const percent = value > 0 && value < 0.001 ? '<0.1' : (value * 100).toFixed(1);
+      const title = `${split === 'train' ? 'Training labels' : 'Test predictions'}: ${row[split]} of ${totals[split]} hallucinated images`;
+      return `<div class="species-bar" title="${title}">
+        <div class="bar-track"><span style="width:${value * 100}%;background:${split === 'train' ? '#004488' : '#DDAA33'}"></span></div>
+        <span>${escapeHtml(percent)}%</span></div>`;
+    }).join('');
+    return `<button class="species-row" aria-pressed="false" aria-label="${escapeHtml(row.name)}: highlight affected cameras"><div class="species-name" title="${escapeHtml([...row.labels].join(' / '))}">${escapeHtml(row.name)}</div>${bars}</button>`;
+  }).join('');
+  const buttons = get('speciesChart').querySelectorAll('button');
+  buttons.forEach((button, index) => {
+    button.onclick = () => {
+      const row = rows[index];
+      selectedSpecies = selectedSpecies === row.name ? null : row.name;
+      highlightedCameras = selectedSpecies ? row.cameras : new Set();
+      buttons.forEach((item, i) => item.setAttribute('aria-pressed', rows[i].name === selectedSpecies));
+      drawMap();
+    };
+  });
+}
+
 function drawMap() {
   const svg = get('cameraMap');
   svg.replaceChildren();
@@ -162,7 +187,8 @@ function drawMap() {
   svg.append(svgElement('text', {x: 710, y: 450, 'text-anchor': 'middle', 'font-size': 12}, 'openness of the camera = share of background without trees →'));
   svg.append(svgElement('text', {transform: 'translate(30 255) rotate(-90)', 'text-anchor': 'middle', 'font-size': 12}, 'Species diversity (effective species)'));
 
-  shown.sort((a, b) => cameraIssueRate(a) - cameraIssueRate(b));
+  const highlighted = camera => highlightedCameras.has(`${camera.split}:${camera.camera}`);
+  shown.sort((a, b) => Number(highlighted(a)) - Number(highlighted(b)) || cameraIssueRate(a) - cameraIssueRate(b));
   for (const camera of shown) {
     const train = camera.split === 'train';
     const count = cameraIssues(camera);
@@ -186,6 +212,12 @@ function drawMap() {
       let fill = '#ccc';
       if (count) fill = '#DDAA33';
       node.append(svgElement('circle', {r: radius, fill}));
+    }
+    if (highlighted(camera)) {
+      const marker = node.lastChild;
+      marker.setAttribute('stroke', '#b33');
+      marker.setAttribute('stroke-width', 1.5);
+      marker.setAttribute('vector-effect', 'non-scaling-stroke');
     }
     bindSelection(node, () => selectCamera(camera));
     node.onpointermove = event => {
@@ -275,10 +307,10 @@ function renderSequence() {
           <span class="frameindex">${index + 1} / ${escapeHtml((frame.t.split(' ')[1] || frame.t).slice(0, 8))}</span>
         </div>
         <div class="track ${frame.model_phantom ? 'mflag' : ''}">
-          <span>${escapeHtml(prediction)}</span><small class="conf">${confidence}</small>
+          <span title="${train ? '' : escapeHtml(frame.pred)}">${escapeHtml(prediction)}</span><small class="conf">${confidence}</small>
         </div>
         <div class="track ${labelClass}">
-          <span>${escapeHtml(speciesName(frame.label))}</span>
+          <span title="${escapeHtml(frame.label)}">${escapeHtml(speciesName(frame.label))}</span>
         </div>
       </button>`;
   }).join('');
@@ -300,6 +332,7 @@ function openFrame(index) {
   get('zoomTitle').textContent = `C${selectedSequence.camera} / frame ${index + 1} of ${selectedSequence.frames.length}`;
   const result = train ? trainingReview(frame) : `Model: ${speciesName(frame.pred)}`;
   get('largeCaption').textContent = `${result} · Dataset: ${speciesName(frame.label)}`;
+  get('largeCaption').title = train ? frame.label : `${frame.pred} / ${frame.label}`;
   renderSequence();
   get('frameOverlay').showModal();
 }
@@ -317,9 +350,14 @@ function render() {
 }
 
 async function start() {
-  const response = await fetch('/results/atlas_data.json', {cache: 'no-store'});
-  if (!response.ok) throw new Error('Could not load atlas data.');
+  const [response, nameResponse] = await Promise.all([
+    fetch('/results/atlas_data.json', {cache: 'no-store'}),
+    fetch('/api/species-names')
+  ]);
+  if (!response.ok || !nameResponse.ok) throw new Error('Could not load atlas data or species names.');
   atlas = await response.json();
+  names = await nameResponse.json();
+  names['sylvilagus brasiliensis'] = 'Brazilian rabbit';
   if (atlas.training) {
     atlas.cameras.push(...atlas.training.cameras);
     atlas.sequences.push(...atlas.training.sequences);
@@ -333,6 +371,7 @@ async function start() {
   get('previousFrames').onclick = () => { framePage--; renderSequence(); };
   get('nextFrames').onclick = () => { framePage++; renderSequence(); };
   get('closeFrame').onclick = () => get('frameOverlay').close();
+  drawSpeciesChart();
   render();
 }
 

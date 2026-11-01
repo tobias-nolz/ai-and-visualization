@@ -87,6 +87,10 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_bytes((WEB / 'review.html').read_bytes(), 'text/html; charset=utf-8')
         elif path == '/results/atlas_data.json':
             self.send_bytes((APP / 'results/atlas_data.json').read_bytes(), 'application/json')
+        elif path == '/api/species-names':
+            with (APP.parents[1] / 'data/species_groups.csv').open(newline='', encoding='utf-8') as file:
+                names = {row['name']: row['common_name'] for row in csv.DictReader(file)}
+            self.send_json(names)
         elif path == '/api/images':
             self.send_json(self.server.images)
         elif path == '/api/manual-review':
