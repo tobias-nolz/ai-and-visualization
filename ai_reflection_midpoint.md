@@ -25,7 +25,7 @@ Because the AI handled most of the repetitive Dash code and callbacks, we didn't
 
 ### 2.1 The Two Tasks We Looked At
 Together with Pair B, we decided to investigate the model's behavior in two subtasks:
-1. **Confusions between animal species:** Which animals get mixed up with each other and how errors change when testing on familiar camera traps of the training set versus locations from the validation or test set.
+1. **Confusions between animal species:** Which animals get mixed up with each other and how error patterns look across the training, validation, and test splits.
 2. **Hallucinations (confusions with the class `empty`):** The dataset consists of many empty frames, so false alarms are a problem. We built a notebook to inspect cases where the model predicts an animal even though the picture is empty.
 
 While Pair B looked at these same two questions, they wrote all their code by hand with only very light AI assistance and kept their visualizations simpler. With AI help, we were able to build a much more interactive setup.
@@ -39,7 +39,7 @@ We built two interactive tools:
 Writing complex linked callbacks in Dash by hand is usually tedious and time-consuming, especially when you are not that familiar with the library yet. Having the AI help with callback structure let us add several interactive features:
 - **Connected views:** Clicking a species in the network graph immediately updates the rest of the dashboard: it zooms into that animal in the confusion matrix, filters the error bar charts, highlights the camera locations where it happened, and loads example pictures.
 - **Side-by-side photo comparison:** Looking at error numbers only tells you so much. We added an image viewer so you can compare the actual camera trap photo against what the model predicted, making it easier to spot why it failed.
-- **Quick filtering and sorting:** Sliders let you filter out rare species or small error counts, and a toggle lets you switch camera charts between absolute error count and error rate.
+- **Quick filtering and sorting:** Sliders let you filter out rare species or small error counts, a dropdown lets you rank network arrows by confusion rate versus total error count, and camera tooltips show local error rates alongside total photo counts.
 - **Label collision script (`confusion_labels.js`):** In dense parts of the network, labels constantly overlapped. We used the AI to help write a small JavaScript helper that checks label boxes in the browser and moves overlapping text out of the way when you zoom or pan.
 
 ---
@@ -64,7 +64,7 @@ Throughout the design and implementation process, we kept track of what worked a
 - **Adjusted:** 
   - The AI's single-circle layout was way too crowded and we turned it into clustered rings based on connected groups.
   - The AI's UI layout didn't always make sense. For example, it often put buttons far away from what they were actually controlling (like placing the "Reset Focus" button up in the global page header instead of right next to the network graph), so we had to tell it to reorganize controls so related buttons sit next to the charts they affect. Similarly, it added a toggle checkbox to include or exclude the `empty` class, suggesting that this would drastically change the visualization. In reality that wasn't the case, and empty frames are an important part of error analysis that hiding them made no sense anyway, so we told the AI to remove the toggle and always keep `empty` included.
-- **Our own ideas:** Deciding on the two core tasks together with Pair B, splitting them into two separate tools, designing the side panel layout, merging the different dataset splits into one view, adding English animal names, and measuring rendered elements in JavaScript so labels don't overlap.
+- **Our own ideas:** Deciding on the two core tasks together with Pair B, splitting them into two separate tools, designing the side panel layout, combining ID and OOD into unified dataset splits (Test Set, Validation Set, and Training Set) to keep the analysis clean, adding English animal names, and measuring rendered elements in JavaScript so labels don't overlap.
 
 ### 4.2 Suggestions We Rejected
 - **Calendar seasons:** Didn't make ecological sense since cameras are placed in totally different climate zones worldwide.

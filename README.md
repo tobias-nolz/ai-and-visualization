@@ -1,23 +1,31 @@
 # AI and Visualization Lab Project: Visualizing a ResNet-50 on WILDS iWildCam
 
-We analyze how a camera-trap species classifier behaves and why, using visualization.
+## Task
 
-- **Task:** species classification of camera-trap images (182 classes, incl. `empty`)
-- **Model:** ResNet-50 (torchvision), the [WILDS](https://wilds.stanford.edu) ERM baseline checkpoint (`iwildcam_erm_seed0`), used as released (no fine-tuning)
-- **Dataset:** WILDS iWildCam v2.0 (~12 GB; splits `train`, `val`/`test` = unseen camera locations, `id_val`/`id_test` = seen locations); [CodaLab dataset bundle](https://worksheets.codalab.org/bundles/0x6313da2b204647e79a14b468131fcd64)
-- **Compute:** local GPU
-- **Stack:** Python 3.14, PyTorch (CUDA 13.2 build)
+We investigate wildlife species classification using the WILDS iWildCam v2.0 dataset, which contains camera-trap images from different locations across 182 classes, including empty scenes.
 
-The group of four works in two pairs on the **same model and data**:
+Our goal is to explore and understand model behavior through visual analysis of its inputs and outputs, identifying interesting patterns and investigating them in depth. Building on these findings, we will examine the model's internal representations to better understand what it has learned and how this relates to its behavior.
 
-| Phase | Focus                                                                                                         | Pair A                 | Pair B                 |
-|-------|---------------------------------------------------------------------------------------------------------------|------------------------|------------------------|
-| I     | How does the model behave?                                                                      | **with** generative AI | without  generative AI              |
-| II    | What did the model learn? | without generative AI               | **with** generative AI |
+Dataset: https://wilds.stanford.edu/datasets/
 
-The AI-aided pair logs every important interaction in `ai-interactions/` (e.g. `ai-interactions/ai_log_pair_a.md`).
+Paper: https://arxiv.org/abs/2012.07421
+
+
+## Model
+
+We use a ResNet-50 (PyTorch), pretrained on ImageNet and fine-tuned on WILDS iWildCam using Empirical Risk Minimization (ERM).
+
+Depending on our findings, we may also compare it with an ImageNet-pretrained ResNet-50 without full fine-tuning, using a linear classifier for the iWildCam classes, particularly in Phase II to investigate differences in learned representations.
+
+Repository: https://github.com/p-lambda/wilds
+
+Model checkpoints: https://worksheets.codalab.org/worksheets/0x52cea64d1d3f4fa89de326b4e31aa50a
+
+---
 
 ## Team
+
+Group: Lost in latent space
 
 | Pair | Member |
 |------|--------|
@@ -25,19 +33,6 @@ The AI-aided pair logs every important interaction in `ai-interactions/` (e.g. `
 | A    | Lisa   |
 | B    | Martin |
 | B    | Tobias |
-
-## Deadlines
-
-| Date           | Deliverable                                                                                                               |
-|----------------|---------------------------------------------------------------------------------------------------------------------------|
-| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `ai-interactions/ai_log_pair_a.md`, `ai_reflection_midpoint.md` |
-| **09.12.2026** | Final submission (Phase II): code of both pairs, `ai-interactions/ai_log_pair_b.md` |
-
-## Task, Dataset, and Model
-
-- **Task:** Species classification of motion-triggered camera-trap photos across diverse wildlife classes (including empty frames and vehicles). We use visualization to analyze model behavior.
-- **Dataset:** [WILDS iWildCam v2.0](https://wilds.stanford.edu), consisting of camera-trap photos collected across global locations. We evaluate on both in-distribution splits (seen camera locations) and out-of-distribution splits (unseen camera locations).
-- **Model:** ResNet-50 fine-tuned on iWildCam (the official WILDS checkpoint `iwildcam_erm_seed0`).
 
 ## Folder map
 
@@ -54,10 +49,8 @@ scripts/
   evaluate_baselines.py   writes outputs/baselines.csv + linear-probe predictions
 notebooks/
   00_quickstart.ipynb     shared demo: data, models and outputs (start here; no analysis; outputs committed)
-ai-interactions/          documented GenAI interactions (e.g. ai_log_pair_a.md)
-ai_reflection_midpoint.md reflection on Phase I GenAI experience (Pair A)
 phase1/, phase2/
-  pair_a/, pair_b/        notebooks/, src/, figures/
+  pair_a/, pair_b/        notebooks/, src/, figures/ (+ ai_log.md for the AI-aided pair)
   comparison.md           Pair A vs. Pair B
 data/, checkpoints/, outputs/   gitignored, created by the scripts
 ```
@@ -99,43 +92,10 @@ make baselines        # writes outputs/baselines.csv (see "Baseline performance"
 make strip-notebooks  # strip outputs from all notebooks (also done automatically on commit)
 ```
 
-**3. Explore:** open `notebooks/00_quickstart.ipynb` for a tour of the data, multiple models and all outputs.
+**3. Explore:** open `notebooks/00_quickstart.ipynb` for a tour of the data, both models and all outputs.
 
 **Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet` (~230 MB each), `outputs/baselines.csv`, `checkpoints/linear_probe.pt` and, for embedding analyses, `outputs/embeddings.npy` and `outputs/embeddings_imagenet.npy` (~1.7 GB each). Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/*.npy outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
 
-
-### Pair A: Species Confusion Network
-
-Interactive Dash dashboard analyzing species misclassifications, error rates, and confusion clusters.
-
-#### Quick Start (Default Paths)
-
-1. Ensure your environment is active and predictions exist (`make inference` or copy from a teammate):
-   ```bash
-   conda activate ai-and-vis
-   python phase1/pair_a/src/species_confusion_network.py
-   ```
-2. Open **http://127.0.0.1:8050/** in your browser.
-
-> **Note on Photos:** The dashboard runs fully without images (displaying placeholders), but downloading photos via `make data` is strongly recommended for side-by-side species comparisons and mistake slideshows.
-
-#### Custom Paths & CLI Options
-
-To run with predictions or photos stored in custom locations (e.g., external drives or WSL):
-
-```bash
-python phase1/pair_a/src/species_confusion_network.py --predictions "/path/to/predictions.parquet" --images-dir "/path/to/iwildcam_v2.0/train"
-```
-
-- **`--predictions <PATH>`**: Path to predictions file (default: `outputs/predictions.parquet`).
-- **`--images-dir <PATH>`**: Folder containing JPG photos (default: `data/iwildcam_v2.0/train/`). Alternatively, use `--data-dir` for the dataset root.
-- **`--check-data`**: Checks if prediction filenames exist on disk and exits without starting the server.
-- **`--port <PORT>`**: Web server port (default: `8050`).
-- **Windows / WSL:** Supports Windows paths (e.g., `D:\datasets\iwildcam_v2.0\train`) and WSL mounts (e.g., `/mnt/d/...`). Quote paths containing spaces.
-
-#### English Species Names
-- English common names are bundled offline for all 182 classes (derived from [WiSE-FT](https://github.com/mlfoundations/wise-ft/blob/4639a3919b51b20beae5814bc6722b962d93ae47/src/datasets/iwildcam_metadata/labels.csv), MIT licensed).
-- Scientific Latin names are always visible on hover and in detail panels.
 
 ### Predictions files
 
@@ -175,10 +135,3 @@ Shared reference for both pairs, using the official WILDS metrics (accuracy and 
 On the evaluation splits, our fine-tuned numbers match the WILDS-reported ones within 0.003 (newer library versions). On `train`, both models reach over 99% accuracy (the probe also near-perfect macro F1): they were trained on these images, so this row measures fit to the training data, not generalization. Regenerate all rows with `make inference && make baselines`; the raw numbers incl. macro recall are in `outputs/baselines.csv`.
 
 ¹ WILDS logs `train` metrics during training epoch 8, while the weights are still being updated; our row evaluates the final model afterwards, so the values differ slightly.
-
-## Working rules
-
-- **Pipelines stay separate.** Each pair works only in its own `phaseX/pair_Y/` folder and on its own branch (`phase1-pair-a`, `phase1-pair-b`). Pairs share **only** `common/` and the shared outputs (predictions files, embeddings, checkpoints). Changes to `common/` need agreement from both pairs.
-- **No data, checkpoints, or secrets in git.** Large artifacts come from `scripts/download_data.sh`; secrets go in `.env` (gitignored).
-- **Notebook outputs are not committed** (except the shared `notebooks/00_quickstart.ipynb`, which sets `keep_output: true`). The nbstripout filter strips them on `git add`; run `make setup` or `nbstripout --install` once per clone to activate it.
-- **Log AI use** (AI-aided pair only): one entry per interaction in `ai-interactions/` (e.g. `ai-interactions/ai_log_pair_a.md`), including rejected suggestions and time spent verifying.
