@@ -99,69 +99,43 @@ make baselines        # writes outputs/baselines.csv (see "Baseline performance"
 make strip-notebooks  # strip outputs from all notebooks (also done automatically on commit)
 ```
 
-**3. Explore:** open `notebooks/00_quickstart.ipynb` for a tour of the data, both models and all outputs.
+**3. Explore:** open `notebooks/00_quickstart.ipynb` for a tour of the data, multiple models and all outputs.
 
 **Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet` (~230 MB each), `outputs/baselines.csv`, `checkpoints/linear_probe.pt` and, for embedding analyses, `outputs/embeddings.npy` and `outputs/embeddings_imagenet.npy` (~1.7 GB each). Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/*.npy outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
 
 
-### Pair A species explorer: Species Confusion Network
+### Pair A: Species Confusion Network
 
-An interactive Dash dashboard analyzing species misclassifications, error rates, and community confusion clusters.
+Interactive Dash dashboard analyzing species misclassifications, error rates, and confusion clusters.
 
-**1. Quick start (with default paths):**
+#### Quick Start (Default Paths)
 
-Ensure your environment is active and `outputs/predictions.parquet` exists (via `make inference` or from a teammate):
+1. Ensure your environment is active and predictions exist (`make inference` or copy from a teammate):
+   ```bash
+   conda activate ai-and-vis
+   python phase1/pair_a/src/species_confusion_network.py
+   ```
+2. Open **http://127.0.0.1:8050/** in your browser.
 
-```bash
-conda activate ai-and-vis
-python phase1/pair_a/src/species_confusion_network.py
-```
+> **Note on Photos:** The dashboard runs fully without images (displaying placeholders), but downloading photos via `make data` is strongly recommended for side-by-side species comparisons and mistake slideshows.
 
-Then open **http://127.0.0.1:8050/** in your browser. (Use `--port 8051` if port 8050 is in use).
+#### Custom Paths & CLI Options
 
-*Note: The explorer runs fully even if the ~12 GB image folder is not downloaded yet—network graphs, error rates, and the confusion matrix work immediately, with photo slots displaying placeholders until images are present.*
-
-**2. Photos and custom local paths:**
-
-A fresh clone contains the code; predictions and dataset images are gitignored.
-The explorer's standard defaults are:
-
-- Predictions: `outputs/predictions.parquet`
-- Photos: `data/iwildcam_v2.0/train/`
-
-Existing predictions and images can be reused from another location:
+To run with predictions or photos stored in custom locations (e.g., external drives or WSL):
 
 ```bash
 python phase1/pair_a/src/species_confusion_network.py --predictions "/path/to/predictions.parquet" --images-dir "/path/to/iwildcam_v2.0/train"
 ```
 
-Use the same prediction file and matching images as an already working viewer.
-The viewer itself does not run inference or require a GPU. Only generate new
-predictions when a suitable predictions file is unavailable. Keep machine-specific
-paths local by passing arguments rather than hardcoding them in the source.
-Append `--check-data` to check filename matches without starting the server.
-`--data-dir "/path/to/iwildcam_v2.0"` is an alternative that selects the dataset
-root containing `train/`; `--images-dir` selects the JPG folder directly.
-Use Windows paths such as `D:\datasets\iwildcam_v2.0\train` with Windows Python,
-and `/mnt/d/datasets/iwildcam_v2.0/train` with WSL Python. Quote paths containing
-spaces. Defaults resolve from the repository root; explicit relative arguments
-resolve from the current directory. Optional `--metadata` and `--representatives`
-arguments override the metadata CSV and representative-image filename map.
-Restart after changing paths or adding files.
+- **`--predictions <PATH>`**: Path to predictions file (default: `outputs/predictions.parquet`).
+- **`--images-dir <PATH>`**: Folder containing JPG photos (default: `data/iwildcam_v2.0/train/`). Alternatively, use `--data-dir` for the dataset root.
+- **`--check-data`**: Checks if prediction filenames exist on disk and exits without starting the server.
+- **`--port <PORT>`**: Web server port (default: `8050`).
+- **Windows / WSL:** Supports Windows paths (e.g., `D:\datasets\iwildcam_v2.0\train`) and WSL mounts (e.g., `/mnt/d/...`). Quote paths containing spaces.
 
-The viewer can load photos directly from prediction filenames without a metadata
-CSV. The predictions and matching JPGs must exist locally; source code alone
-contains neither. `--check-data` checks every unique filename and exits with code
-0 when all exist, or 1 when files are missing. It never runs inference.
-
-English labels are bundled locally for all 182 classes, with full English and
-scientific names on hover. Name data comes from the
-[WiSE-FT iWildCam table](https://github.com/mlfoundations/wise-ft/blob/4639a3919b51b20beae5814bc6722b962d93ae47/src/datasets/iwildcam_metadata/labels.csv);
-its [MIT license](phase1/pair_a/data/iwildcam_english_names.LICENSE) is included.
-Genus-only labels remain generic. Two additional supported names are documented
-by [Animal Diversity Web](https://animaldiversity.org/accounts/Cercopithecus_ascanius/)
-(red-tailed monkey) and the [US Geological Survey](https://www.usgs.gov/publications/potamochoerus-porcus-artiodactyla-suidae)
-(red river hog).
+#### English Species Names
+- English common names are bundled offline for all 182 classes (derived from [WiSE-FT](https://github.com/mlfoundations/wise-ft/blob/4639a3919b51b20beae5814bc6722b962d93ae47/src/datasets/iwildcam_metadata/labels.csv), MIT licensed).
+- Scientific Latin names are always visible on hover and in detail panels.
 
 ### Predictions files
 
