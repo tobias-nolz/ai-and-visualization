@@ -96,6 +96,48 @@ make strip-notebooks  # strip outputs from all notebooks (also done automaticall
 **Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet` (~230 MB each), `outputs/baselines.csv`, `checkpoints/linear_probe.pt` and, for embedding analyses, `outputs/embeddings.npy` and `outputs/embeddings_imagenet.npy` (~1.7 GB each). Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/*.npy outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
 
 
+### Pair A species explorer: photos and local paths
+
+A fresh clone contains the code; predictions and dataset images are gitignored.
+The explorer's standard defaults are:
+
+- Predictions: `outputs/predictions.parquet`
+- Photos: `data/iwildcam_v2.0/train/`
+
+Existing predictions and images can be reused from another location:
+
+```bash
+python phase1/pair_a/src/species_confusion_network.py --predictions "/path/to/predictions.parquet" --images-dir "/path/to/iwildcam_v2.0/train"
+```
+
+Use the same prediction file and matching images as an already working viewer.
+The viewer itself does not run inference or require a GPU. Only generate new
+predictions when a suitable predictions file is unavailable. Keep machine-specific
+paths local by passing arguments rather than hardcoding them in the source.
+Append `--check-data` to check filename matches without starting the server.
+`--data-dir "/path/to/iwildcam_v2.0"` is an alternative that selects the dataset
+root containing `train/`; `--images-dir` selects the JPG folder directly.
+Use Windows paths such as `D:\datasets\iwildcam_v2.0\train` with Windows Python,
+and `/mnt/d/datasets/iwildcam_v2.0/train` with WSL Python. Quote paths containing
+spaces. Defaults resolve from the repository root; explicit relative arguments
+resolve from the current directory. Optional `--metadata` and `--representatives`
+arguments override the metadata CSV and representative-image filename map.
+Restart after changing paths or adding files.
+
+The viewer can load photos directly from prediction filenames without a metadata
+CSV. The predictions and matching JPGs must exist locally; source code alone
+contains neither. `--check-data` checks every unique filename and exits with code
+0 when all exist, or 1 when files are missing. It never runs inference.
+
+English labels are bundled locally for all 182 classes, with full English and
+scientific names on hover. Name data comes from the
+[WiSE-FT iWildCam table](https://github.com/mlfoundations/wise-ft/blob/4639a3919b51b20beae5814bc6722b962d93ae47/src/datasets/iwildcam_metadata/labels.csv);
+its [MIT license](phase1/pair_a/data/iwildcam_english_names.LICENSE) is included.
+Genus-only labels remain generic. Two additional supported names are documented
+by [Animal Diversity Web](https://animaldiversity.org/accounts/Cercopithecus_ascanius/)
+(red-tailed monkey) and the [US Geological Survey](https://www.usgs.gov/publications/potamochoerus-porcus-artiodactyla-suidae)
+(red river hog).
+
 ### Predictions files
 
 `outputs/predictions.parquet` (fine-tuned model, `make inference`) and `outputs/predictions_probe.parquet` (linear probe, `make baselines`) have the same columns and rows, one row per image of every split in `dataset.splits`: the evaluation splits first, then `train` (filter with the `split` column):

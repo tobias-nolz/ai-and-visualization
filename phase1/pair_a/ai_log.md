@@ -907,3 +907,69 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 - **Problems caused:** The remapping was initially applied only in `read_predictions()`. During live hot-reloads, the running Dash app re-executed `create_app()` with the existing in-memory DataFrame containing the old split names, causing `id_val` and `id_test` to still appear as raw string fallbacks at the bottom of the dropdown list. Resolved by applying the consolidation inside `create_app()` as well and explicitly filtering the dropdown options against `SPLIT_DESCRIPTIONS`.
 - **Time spent verifying:** 10 minutes
 ---
+
+
+### 2026-11-01: Integrating English Species Names and Bilingual Headings
+
+- **Who:** Lisa
+- **Goal:** Display readable English common names across the network visualization alongside scientific taxonomy, with compact labels on nodes and full names on hover.
+- **Prompt (important ones):**
+  ```
+  Can we add English common names for the species so they are easier to recognize in the network, tooltips, and side panel? Keep the scientific names accessible too.
+  Also add compact readable abbreviations for node labels so they fit nicely around clusters without losing the full name on hover.
+  ```
+- **AI output summary:**
+  1. Bundled an offline vocabulary mapping table (`phase1/pair_a/data/iwildcam_english_names.csv` from WiSE-FT with MIT license) and created `phase1/pair_a/src/species_names.py` with normalization and caching.
+  2. Implemented `species_heading()` to display English common names with italicized scientific names underneath across tooltips, popups, and the inspection side panel.
+  3. Added `short_species_label()` to produce compact English labels (e.g., abbreviations like "W. peccary" or "B. duiker") on network nodes while preserving full names in hover tooltips.
+  4. Updated species selector dropdowns and KPI summaries to sort and display bilingual species names.
+- **Decision:** accepted
+- **Why:** Makes species immediately recognizable to non-biologists without cluttering node labels, while strictly preserving exact scientific names on hover and in detail panels.
+- **Problems caused:** none
+- **Time spent verifying:** 15 minutes
+
+---
+
+### 2026-11-01: Client-Side Dynamic Collision Avoidance for Network Labels
+
+- **Who:** Lisa
+- **Goal:** Prevent species text labels from colliding with node circles, directed arrowheads, or neighboring labels at any zoom level or card width.
+- **Prompt (important ones):**
+  ```
+  The species names sometimes still collide with nodes, arrows, or each other in dense clusters.
+  Can we add dynamic label collision avoidance that measures the rendered text and moves labels into clear slots?
+  Also make sure the canvas scrolls horizontally on narrow screens instead of squishing the network.
+  ```
+- **AI output summary:**
+  1. Created client-side asset `phase1/pair_a/src/assets/confusion_labels.js` that hooks into Plotly's `plotly_afterplot` and resize events.
+  2. Measured actual rendered DOM bounding boxes (`getBoundingClientRect`) of node circles, species text annotations, and confusion arrow splines.
+  3. Implemented multi-pass angular candidate scoring (evaluating 16 angles and radial offsets) to position labels into open space pointing outward from cluster centers, applying CSS transforms without triggering expensive server-side re-renders.
+  4. Configured `NETWORK_MIN_WIDTH = 700` with horizontal scrolling in Dash and passed dynamic bounding layout metadata (`meta={"confusion_labels": ..., "minimum_width": ...}`) from Python.
+- **Decision:** accepted
+- **Why:** Eliminates text overlap and arrow occlusion dynamically at any screen resolution and zoom level without needing fixed server-side pixel offsets.
+- **Problems caused:** none
+- **Time spent verifying:** 20 minutes
+
+---
+
+### 2026-11-01: Configurable Dataset Paths and Filename Diagnostics CLI
+
+- **Who:** Lisa
+- **Goal:** Allow the confusion network viewer to run against custom prediction files and image directory locations across different machines (including Windows and WSL) without modifying code.
+- **Prompt (important ones):**
+  ```
+  Make image and prediction paths configurable via command line arguments so the viewer can run when images are stored in a different folder or drive.
+  Add a flag to quickly verify whether prediction filenames match images on disk without having to start the server.
+  Document path usage and Windows/WSL examples in the README.
+  ```
+- **AI output summary:**
+  1. Added CLI flags to `species_confusion_network.py`: `--predictions`, `--data-dir`, `--images-dir`, `--metadata`, `--representatives`, and `--check-data`.
+  2. Implemented `configure_image_paths()`, `image_path()`, `image_exists()`, and `image_diagnostics()` with LRU caching to safely resolve paths and check file existence directly from prediction filenames.
+  3. Enabled `--check-data` diagnostic mode to validate image filename coverage and exit with standard return codes (0 for success, 1 for missing files) without starting the Dash server.
+  4. Documented path options, sharing predictions, and Windows/WSL commands in `README.md`.
+- **Decision:** accepted
+- **Why:** Allows team members to easily run the explorer with local dataset paths or external drives without altering repository source files.
+- **Problems caused:** none
+- **Time spent verifying:** 10 minutes
+
+---

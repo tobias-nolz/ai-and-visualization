@@ -9,7 +9,14 @@ It reads outputs/predictions.parquet. To use a different file:
 
     python phase1/pair_a/src/species_confusion_network.py --predictions path/to/file.parquet
 
-Requirements: dash, plotly, pandas, pyarrow, networkx, numpy.
+Photos may live outside this checkout:
+
+    python phase1/pair_a/src/species_confusion_network.py --predictions /path/predictions.parquet --data-dir /path/iwildcam_v2.0
+
+Append --check-data to validate image filenames without running the server.
+See the repository README for Windows/WSL paths and reusable inference outputs.
+
+Requirements: dash, plotly, pandas, pyarrow, networkx, numpy, scikit-learn.
 """
 
 from __future__ import annotations
@@ -25,6 +32,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Dash, Input, Output, State, ctx, dcc, html, no_update
 from sklearn.metrics import f1_score
+
+from species_names import english_name, format_species_name
 
 
 COLUMNS = [
@@ -47,11 +56,85 @@ ERROR_RATE_COLORSCALE = [
     [1.0, "#e53e3e"],
 ]
 
+# Keep the familiar circular composition readable in narrow cards. The card
+# scrolls horizontally below this canvas width; desktop geometry is unchanged.
+NETWORK_MIN_WIDTH = 700
+
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
-DATA_DIR = (REPO_ROOT / "data/iwildcam_v2.0/train").resolve() if (REPO_ROOT / "data/iwildcam_v2.0/train").is_dir() else Path("data/iwildcam_v2.0/train").resolve()
-META_CSV = (REPO_ROOT / "data/iwildcam_v2.0/metadata.csv").resolve() if (REPO_ROOT / "data/iwildcam_v2.0/metadata.csv").is_file() else Path("data/iwildcam_v2.0/metadata.csv").resolve()
-REPR_JSON = (REPO_ROOT / "phase1/pair_a/data/representative_images.json").resolve() if (REPO_ROOT / "phase1/pair_a/data/representative_images.json").is_file() else Path("phase1/pair_a/data/representative_images.json").resolve()
+DATA_DIR = REPO_ROOT / "data/iwildcam_v2.0/train"
+META_CSV = REPO_ROOT / "data/iwildcam_v2.0/metadata.csv"
+REPR_JSON = REPO_ROOT / "phase1/pair_a/data/representative_images.json"
+
+
+def configure_image_paths(
+    data_dir: Path | None = None, images_dir: Path | None = None,
+    metadata: Path | None = None, representatives: Path | None = None,
+) -> None:
+    """Select local dataset paths without depending on the launch directory."""
+    global DATA_DIR, META_CSV, REPR_JSON
+    dataset = (Path(data_dir).expanduser() if data_dir is not None
+               else REPO_ROOT / "data/iwildcam_v2.0").resolve()
+    DATA_DIR = (Path(images_dir).expanduser() if images_dir is not None else dataset / "train").resolve()
+    META_CSV = (Path(metadata).expanduser() if metadata is not None
+                else (DATA_DIR.parent if images_dir is not None and data_dir is None else dataset) / "metadata.csv").resolve()
+    REPR_JSON = (Path(representatives).expanduser() if representatives is not None
+                 else REPO_ROOT / "phase1/pair_a/data/representative_images.json").resolve()
+    for cached in (image_path, _load_fallback_map, load_image_map, _read_image_base64):
+        cached.cache_clear()
+
+
+@lru_cache(maxsize=65536)
+def image_path(filename: str) -> Path | None:
+    """Resolve filename formats within the explicitly selected image directory."""
+    if not isinstance(filename, str) or not filename.strip():
+        return None
+    relative = Path(filename.strip().replace("\\", "/"))
+    if not relative.is_absolute():
+        if relative.parts and relative.parts[0] == DATA_DIR.name:
+            relative = Path(*relative.parts[1:])
+        relative = DATA_DIR / relative
+    candidate = relative.resolve()
+    return candidate if candidate.is_relative_to(DATA_DIR.resolve()) else None
+
+
+def image_exists(filename: str) -> bool:
+    path = image_path(filename)
+    return path is not None and path.is_file()
+
+
+def image_diagnostics(data: pd.DataFrame, sample_limit: int | None = 100) -> dict:
+    """Check filename matches only; this never runs inference or reads other datasets."""
+    filenames = list(dict.fromkeys(str(fn) for fn in data["filename"].dropna() if str(fn).strip()))
+    if sample_limit is not None and len(filenames) > sample_limit:
+        indices = np.linspace(0, len(filenames) - 1, sample_limit, dtype=int)
+        checked = [filenames[i] for i in indices]
+    else:
+        checked = filenames
+    directory_exists = DATA_DIR.is_dir()
+    missing = [fn for fn in checked if not image_exists(fn)] if directory_exists else checked
+    return {"images_dir": str(DATA_DIR), "directory_exists": directory_exists,
+            "unique_filenames": len(filenames), "checked": len(checked),
+            "found": len(checked) - len(missing), "missing_examples": missing[:3]}
+
+
+def print_image_diagnostics(status: dict) -> None:
+    print(f"Images directory: {status['images_dir']}")
+    print(f"Matching image files: {status['found']}/{status['checked']} checked "
+          f"({status['unique_filenames']} unique prediction filenames)")
+    print(f"Metadata fallback (optional): {META_CSV} "
+          f"({'found' if META_CSV.is_file() else 'not present'})")
+    print(f"Representative-image map (optional): {REPR_JSON}")
+    if status["found"] != status["checked"] or status["checked"] == 0:
+        if not status["directory_exists"]:
+            print("Image directory is missing. Set --data-dir DATASET_ROOT or --images-dir JPG_FOLDER.")
+        elif status["checked"] == 0:
+            print("The predictions contain no usable image filenames.")
+        else:
+            print("Some prediction filenames do not match files in the image directory.")
+        for filename in status["missing_examples"]:
+            print(f"  Missing: {filename}")
+        print("Existing predictions can be reused. Rerunning inference does not supply missing JPG files.")
 
 
 @lru_cache(maxsize=1)
@@ -67,7 +150,7 @@ def _load_fallback_map() -> dict[int, str]:
                 y = int(row["y"])
                 if y not in mapping:
                     fn = row["filename"]
-                    if (DATA_DIR / fn).is_file():
+                    if image_exists(fn):
                         mapping[y] = fn
                 if len(mapping) >= 182:
                     break
@@ -85,7 +168,7 @@ def load_image_map() -> dict[int, str]:
             with open(REPR_JSON, mode="r") as f:
                 saved = json.load(f)
                 for k, v in saved.items():
-                    if (DATA_DIR / v).is_file():
+                    if image_exists(v):
                         mapping[int(k)] = v
         except Exception:
             pass
@@ -99,8 +182,8 @@ def load_image_map() -> dict[int, str]:
 
 @lru_cache(maxsize=800)
 def _read_image_base64(filename: str) -> str | None:
-    p = DATA_DIR / filename
-    if not p.is_file():
+    p = image_path(filename)
+    if p is None or not p.is_file():
         return None
     try:
         import base64
@@ -192,7 +275,7 @@ def get_mistake_images_for_species_cam(
         b64 = _read_image_base64(fn)
         if b64:
             results.append(b64)
-            p_name = it.get("pred_name", "Unknown")
+            p_name = format_species_name(it.get("pred_name", "Unknown"))
             caption = f"Model predicted: <strong style='color: #0284c7;'>{p_name}</strong>"
             captions.append(caption)
     if not results:
@@ -247,7 +330,7 @@ def make_diashow(
             empty_style["height"] = height
         else:
             empty_style["height"] = "135px"
-        return html.Div("No photo", style=empty_style)
+        return html.Div("Image dataset not loaded" if not DATA_DIR.is_dir() else "No photo available", style=empty_style)
 
     first_img = images[0]
     img_style = {
@@ -329,8 +412,8 @@ def read_predictions(path: Path) -> pd.DataFrame:
     if not actual_path.is_file():
         raise FileNotFoundError(
             f"Prediction file not found: {path}\n"
-            "Run `make inference` from your repository root first, "
-            "or provide --predictions PATH."
+            "Provide an existing predictions.parquet with --predictions PATH "
+            "(a teammate can share it), or run make inference once if no predictions exist."
         )
     data = pd.read_parquet(actual_path, columns=COLUMNS)
     if data.empty:
@@ -550,13 +633,14 @@ def compute_layout(
         return {}, [], {}
 
     G = nx.Graph()
+    G.add_nodes_from(all_nodes)
     for row in edges.itertuples(index=False):
         G.add_edge(int(row.source), int(row.target), weight=float(row.count))
     for n in all_nodes:
         if not G.has_node(n):
             G.add_node(n)
 
-    components = sorted(list(nx.connected_components(G)), key=len, reverse=True)
+    components = sorted(nx.connected_components(G), key=lambda comp: (-len(comp), min(comp)))
     positions: dict[int, tuple[float, float]] = {}
     node_centers: dict[int, tuple[float, float]] = {}
     ordered_nodes: list[int] = []
@@ -577,29 +661,24 @@ def compute_layout(
     comp_centers: dict[int, tuple[float, float]] = {}
     if num_comp == 1:
         comp_centers[0] = (0.0, 0.0)
-    elif num_comp > 1 and len(components[0]) >= 6:
-        # Dominant cluster sits at center (0, 0); smaller satellite clusters orbit around it with guaranteed clearance
+    else:
+        # Preserve the original center-and-satellites composition even when
+        # aggregation/filtering leaves the largest component below six nodes.
+        # The old size switch put *every* small component on an empty ring.
         comp_centers[0] = (0.0, 0.0)
         r_center = comp_radii[0]
         num_sat = num_comp - 1
         max_sat_r = max(comp_radii[1:]) if num_sat > 0 else 0.6
-        orbit_r = r_center + max_sat_r + 5.4
-        min_orbit_for_sat = (num_sat * (max_sat_r * 2 + 3.6)) / (2 * np.pi)
+        orbit_r = r_center + max_sat_r + 6.8
+        min_orbit_for_sat = (num_sat * (max_sat_r * 2 + 4.8)) / (2 * np.pi)
         orbit_r = max(orbit_r, min_orbit_for_sat)
         # Offset starting angle by 45 degrees so satellites never sit on the 3 o'clock axis
         phi = np.linspace(np.pi / 4, 2 * np.pi + np.pi / 4, num_sat, endpoint=False)
         for i in range(num_sat):
             comp_centers[i + 1] = (orbit_r * np.cos(phi[i]), orbit_r * np.sin(phi[i]))
-    else:
-        # Multiple smaller clusters distributed on a ring with generous spacing
-        max_r = max(comp_radii) if comp_radii else 0.8
-        ring_r = max(3.8, (num_comp * (max_r * 2 + 3.4)) / (2 * np.pi))
-        phi = np.linspace(np.pi / 4, 2 * np.pi + np.pi / 4, num_comp, endpoint=False)
-        for idx in range(num_comp):
-            comp_centers[idx] = (ring_r * np.cos(phi[idx]), ring_r * np.sin(phi[idx]))
 
     for idx, comp in enumerate(components):
-        comp_nodes = sorted(list(comp), key=lambda n: stats.loc[n, "support"] if n in stats.index else 0, reverse=True)
+        comp_nodes = sorted(comp, key=lambda n: (-(stats.loc[n, "support"] if n in stats.index else 0), n))
         ordered_nodes.extend(comp_nodes)
         cx, cy = comp_centers[idx]
         m = len(comp_nodes)
@@ -692,6 +771,28 @@ def route_edge(src, dst, positions, clearance, mutual=False):
 # -----------------------------------------------------------------------------
 # PLOTLY FIGURES
 # -----------------------------------------------------------------------------
+
+def short_species_label(name: str, max_chars: int = 12) -> str:
+    """Compact English label; hover retains both full English and science names."""
+    common = english_name(name)
+    text = " ".join(str(common or name).split())
+    if common:
+        # Remove explanatory qualifiers from the tiny label, retaining them on hover.
+        text = text.split("(", 1)[0].split(" / ", 1)[0].strip()
+    if len(text) > max_chars:
+        words = text.split()
+        if len(words) >= 2:
+            if common:
+                # Keep the animal noun readable: e.g. W. peccary / B. duiker.
+                text = " ".join(word[0] + "." for word in words[:-1]) + " " + words[-1]
+                if len(text) > max_chars:
+                    text = words[0][0] + ". " + words[-1]
+                if len(text) > max_chars and len(words[-1]) >= max_chars:
+                    text = words[-1]
+            else:
+                text = f"{words[0][0]}. {' '.join(words[1:])}"
+    return text if len(text) <= max_chars else text[:max_chars - 1] + "…"
+
 
 def network_figure(
     edges: pd.DataFrame,
@@ -850,10 +951,12 @@ def network_figure(
                     "family": "Inter, Arial, sans-serif",
                     "color": "#64748b",
                 },
-                "len": 0.38,
+                "len": 220,
+                "lenmode": "pixels",
                 "thickness": 16,
                 "outlinewidth": 0,
-                "y": 0.76,
+                "y": 0.98,
+                "yanchor": "top",
                 "x": 1.0,
             },
             "line": {"width": node_borders, "color": node_border_colors},
@@ -864,52 +967,54 @@ def network_figure(
         showlegend=False,
     ))
 
-    # 3. Community Cluster Labels (projected outward from cluster center)
-    for idx, class_id in enumerate(ordered_nodes):
+    # Initial labels have pixel clearance from their node. The browser refines
+    # them using measured text, markers and paths on every draw/zoom/resize.
+    for class_id in ordered_nodes:
         x, y = positions[class_id]
-        cx, cy = node_centers.get(class_id, (0.0, 0.0))
-        dist_from_c = np.hypot(x - cx, y - cy)
         raw_name = names.get(class_id, str(class_id))
-        display_name = raw_name if len(raw_name) <= 16 else raw_name[:14] + "…"
-
-        node_r_data = (diameters.get(class_id, 16.0) / 2.0) * (units_per_pixel / 1.2)
-
-        if dist_from_c < 1e-3:
-            # Hub node placed at center of cluster: position label directly below node with clearance
-            lx = x
-            ly = y - (node_r_data + 0.22)
-            x_anchor = "center"
-            y_anchor = "top"
-        else:
-            angle = np.arctan2(y - cy, x - cx)
-            # Alternate label offset distance to prevent adjacent text collisions in dense clusters
-            label_dist = node_r_data + (0.16 if idx % 2 == 0 else 0.28)
-            lx = x + label_dist * np.cos(angle)
-            ly = y + label_dist * np.sin(angle)
-            x_anchor = "left" if np.cos(angle) > 0.08 else ("right" if np.cos(angle) < -0.08 else "center")
-            y_anchor = "bottom" if np.sin(angle) > 0.08 else ("top" if np.sin(angle) < -0.08 else "middle")
-        is_focused = (class_id == focused_class)
-
+        display_name = short_species_label(raw_name)
+        is_focused = class_id == focused_class
         fig.add_annotation(
-            x=lx, y=ly, text=display_name,
-            showarrow=False,
-            xanchor=x_anchor, yanchor=y_anchor,
+            name=f"species-{class_id}", x=x, y=y, text=display_name,
+            showarrow=False, xanchor="center", yanchor="middle",
+            xshift=0, yshift=-(diameters[class_id] / 2 + 13),
+            captureevents=False,
             font={
-                "size": 12.5 if is_focused else 11,
+                "size": 10.5 if is_focused else 9.5,
                 "color": "#1d4ed8" if is_focused else "#1e293b",
-                "weight": 700 if is_focused else 600,
+                "weight": 400,
                 "family": "Inter, Arial, sans-serif",
             },
         )
 
+    xy = np.asarray(list(positions.values()))
+    low = xy.min(axis=0) - [2.0, 1.1]
+    high = xy.max(axis=0) + [2.0, 1.1]
+
+    # Keep the original geometry and support encoding at dense settings too.
+    # Minimum canvas dimensions follow actual marker clearance, rather than
+    # shrinking or rearranging clusters to fit a fixed-size card.
+    pixel_scale = 0.0
+    for i, first in enumerate(ordered_nodes):
+        for second in ordered_nodes[i + 1:]:
+            distance = np.linalg.norm(np.asarray(positions[first]) - positions[second])
+            if distance > 1e-9:
+                pixel_scale = max(pixel_scale, (diameters[first] / 2 + diameters[second] / 2 + 8) / distance)
+    minimum_width = max(NETWORK_MIN_WIDTH, int(np.ceil((high[0] - low[0]) * pixel_scale + 215)))
+    minimum_height = max(640, int(np.ceil((high[1] - low[1]) * pixel_scale + 50)))
+
     fig.update_layout(
-        height=640,
-        margin={"l": 35, "r": 130, "t": 25, "b": 25},
-        xaxis={"visible": False, "showgrid": False, "zeroline": False},
-        yaxis={"visible": False, "showgrid": False, "zeroline": False, "scaleanchor": "x", "scaleratio": 1},
+        height=minimum_height,
+        margin={"l": 35, "r": 180, "t": 25, "b": 25, "autoexpand": False},
+        xaxis={"visible": False, "showgrid": False, "zeroline": False, "automargin": False, "title": {"text": ""}, "range": [float(low[0]), float(high[0])]},
+        yaxis={"visible": False, "showgrid": False, "zeroline": False, "automargin": False, "title": {"text": ""}, "range": [float(low[1]), float(high[1])],
+               **{"scaleanchor": "x", "scaleratio": 1}},
         hovermode="closest", clickmode="event+select",
         paper_bgcolor="#ffffff", plot_bgcolor="#ffffff",
         font={"family": "Inter, Arial, sans-serif", "size": 11},
+        meta={"minimum_width": minimum_width, "minimum_height": minimum_height, "initial_ranges": [low.tolist(), high.tolist()], "confusion_labels": [
+            {"id": int(n), "center": list(node_centers[n])} for n in ordered_nodes
+        ]},
         showlegend=False,
     )
     return fig
@@ -949,7 +1054,7 @@ def confusion_matrix_figure(
             matrix[spec_map[s], spec_map[t]] = cnt
 
     labels = [names.get(sid, str(sid)) for sid in unique_species]
-    labels_short = [l if len(l) <= 16 else l[:14] + "…" for l in labels]
+    labels_short = [short_species_label(label) for label in labels]
 
     customdata = []
     for r in range(len(unique_species)):
@@ -1039,6 +1144,21 @@ def horizontal_bar(
     return fig
 
 
+def species_heading(scientific_name: str, prefix: str = "", size: float = 12,
+                    color: str = "#0f172a") -> html.Div:
+    """Readable English heading with its original scientific label underneath."""
+    common = english_name(scientific_name)
+    show_scientific = common and common.casefold() != scientific_name.casefold()
+    return html.Div([
+        html.Div(f"{prefix}{common or scientific_name}",
+                 style={"fontSize": f"{size}px", "fontWeight": "600", "color": color}),
+        html.Div(scientific_name, style={"fontSize": f"{max(9, size - 2)}px",
+                 "fontStyle": "italic", "fontWeight": "400", "color": "#64748b"})
+        if show_scientific else None,
+    ], style={"whiteSpace": "normal", "overflowWrap": "anywhere", "lineHeight": "1.3",
+              "marginBottom": "4px"})
+
+
 def make_pair_tooltip_content(
     src_id: int, dst_id: int, count: int, rate: float, names: dict[int, str],
     top_loc: str = "", top_loc_pct: float = 0.0, top_loc_cnt: int = 0, num_cams: int = 1,
@@ -1083,12 +1203,12 @@ def make_pair_tooltip_content(
     return html.Div([
         html.Div([
             html.Div([
-                html.Div(f"True: {src_name}", style={"fontSize": "10px", "fontWeight": "700", "color": "#ea580c", "whiteSpace": "normal", "wordBreak": "break-word", "lineHeight": "1.25", "marginBottom": "3px"}),
+                species_heading(src_name, "True: ", size=10, color="#ea580c"),
                 make_diashow(get_class_images(src_id, max_images=1), border_color="#fed7aa"),
             ], style={"flex": "1", "minWidth": "0"}),
             html.Div("→", style={"alignSelf": "center", "fontSize": "16px", "fontWeight": "bold", "color": "#64748b", "padding": "0 6px"}),
             html.Div([
-                html.Div(f"Pred: {dst_name}", style={"fontSize": "10px", "fontWeight": "700", "color": "#0284c7", "whiteSpace": "normal", "wordBreak": "break-word", "lineHeight": "1.25", "marginBottom": "3px"}),
+                species_heading(dst_name, "Predicted: ", size=10, color="#0284c7"),
                 make_diashow(get_class_images(dst_id, max_images=1), border_color="#bfdbfe"),
             ], style={"flex": "1", "minWidth": "0"}),
         ], style={"display": "flex", "gap": "6px", "marginBottom": "6px"}),
@@ -1122,7 +1242,7 @@ def make_sink_tooltip_content(
         ], style={"marginTop": "6px", "paddingTop": "6px", "borderTop": "1px solid #f1f5f9"})
 
     return html.Div([
-        html.Div(name, style={"fontWeight": "bold", "fontSize": "12px", "color": "#0284c7", "marginBottom": "4px", "whiteSpace": "normal", "wordBreak": "break-word"}),
+        species_heading(name, size=12, color="#0284c7"),
         make_diashow(get_class_images(class_id, max_images=1), border_color="#bfdbfe"),
         html.Div(f"Falsely predicted for other classes: {fp_count:,} times", style={"fontSize": "11px", "fontWeight": "600", "color": "#0f172a", "marginTop": "6px", "marginBottom": "2px", "whiteSpace": "normal", "wordBreak": "break-word"}),
         html.Div(f"Ground-truth support: {support:,} true {name} images in split", style={"fontSize": "10px", "color": "#64748b", "whiteSpace": "normal", "wordBreak": "break-word"}),
@@ -1159,12 +1279,12 @@ def make_cam_tooltip_content(
             html.Div(f"Top Confusion at Camera #{cam_id}:", style={"fontSize": "11px", "fontWeight": "600", "color": "#0f172a", "marginBottom": "4px", "marginTop": "6px"}),
             html.Div([
                 html.Div([
-                    html.Div(f"True: {focus_name}", style={"fontSize": "10px", "fontWeight": "700", "color": "#ea580c", "whiteSpace": "normal", "wordBreak": "break-word", "lineHeight": "1.25", "marginBottom": "3px"}),
+                    species_heading(focus_name, "True: ", size=10, color="#ea580c"),
                     make_diashow(get_class_images(focus_id, max_images=1), border_color="#fed7aa"),
                 ], style={"flex": "1", "minWidth": "0"}),
                 html.Div("→", style={"alignSelf": "center", "fontSize": "16px", "fontWeight": "bold", "color": "#64748b", "padding": "0 6px"}),
                 html.Div([
-                    html.Div(f"Pred: {pred_name}", style={"fontSize": "10px", "fontWeight": "700", "color": "#0284c7", "whiteSpace": "normal", "wordBreak": "break-word", "lineHeight": "1.25", "marginBottom": "3px"}),
+                    species_heading(pred_name, "Predicted: ", size=10, color="#0284c7"),
                     make_diashow(get_class_images(top_pred_id, max_images=1), border_color="#bfdbfe"),
                 ], style={"flex": "1", "minWidth": "0"}),
             ], style={"display": "flex", "gap": "6px", "marginBottom": "4px"}),
@@ -1386,7 +1506,7 @@ def build_side_panel(
         for r in top_pairs.itertuples():
             src_name = names.get(int(r.source), str(r.source))
             dst_name = names.get(int(r.target), str(r.target))
-            label = f"{src_name} → {dst_name}"
+            label = f"{english_name(src_name) or src_name} → {english_name(dst_name) or dst_name}"
             cnt = int(r.count)
             rate = float(r.rate)
             top_loc = str(getattr(r, "top_loc", "Unknown"))
@@ -1402,7 +1522,7 @@ def build_side_panel(
         sinks = stats.nlargest(6, "falsely_predicted_count")
         sink_items = []
         for idx in sinks.index:
-            label = names.get(int(idx), str(idx))
+            label = format_species_name(names.get(int(idx), str(idx)))
             cnt = int(sinks.loc[idx, "falsely_predicted_count"])
             supp = int(sinks.loc[idx, "support"] if "support" in sinks.columns else 0)
             top_cam = str(sinks.loc[idx, "top_sink_cam"]) if "top_sink_cam" in sinks.columns else ""
@@ -1445,7 +1565,7 @@ def build_side_panel(
             loc_src_supp = int(getattr(r, "top_loc_src_supp", 0))
             loc_cam_total = int(getattr(r, "top_loc_cam_total", 0))
             popup = make_pair_tooltip_content(int(focus), int(r.target), cnt, rate, names, top_loc, top_loc_pct, top_loc_cnt, num_cams, loc_src_supp=loc_src_supp, loc_cam_total=loc_cam_total, include_cam=True)
-            out_items.append((dst_name, cnt, popup))
+            out_items.append((format_species_name(dst_name), cnt, popup))
         chart_out = make_html_bar_chart(out_items, "#ea580c", "Outgoing Errors")
 
         in_edges = edges.loc[edges["target"] == focus].nlargest(6, "count")
@@ -1461,7 +1581,7 @@ def build_side_panel(
             loc_src_supp = int(getattr(r, "top_loc_src_supp", 0))
             loc_cam_total = int(getattr(r, "top_loc_cam_total", 0))
             popup = make_pair_tooltip_content(int(r.source), int(focus), cnt, rate, names, top_loc, top_loc_pct, top_loc_cnt, num_cams, loc_src_supp=loc_src_supp, loc_cam_total=loc_cam_total, include_cam=True)
-            in_items.append((src_name, cnt, popup))
+            in_items.append((format_species_name(src_name), cnt, popup))
         chart_in = make_html_bar_chart(in_items, "#0284c7", "Incoming False Predictions")
 
         focus_mistakes = mistakes.loc[mistakes["label"] == focus]
@@ -1499,7 +1619,7 @@ def build_side_panel(
         )
 
         header_block = html.Div([
-            html.H3(focus_name, style={"margin": "0 0 4px 0", "fontSize": "18px", "color": "#0f172a", "wordBreak": "break-word"}),
+            species_heading(focus_name, size=18),
             html.Div(
                 f"{focus_supp:,} true images | {focus_errs:,} errors | {focus_rate:.1%} error rate",
                 style={
@@ -1604,19 +1724,19 @@ def build_kpis(subset: pd.DataFrame, stats: pd.DataFrame, edges: pd.DataFrame, f
         src_supp = int(stats.loc[src_id, "support"]) if (not stats.empty and src_id in stats.index and "support" in stats.columns) else int(top_p.get("source_support", 0))
         dst_supp = int(stats.loc[dst_id, "support"]) if (not stats.empty and dst_id in stats.index and "support" in stats.columns) else 0
         rate_val = float(top_p["rate"]) if "rate" in top_p else (cnt_val / src_supp if src_supp else 0.0)
-        top_pair_text = f"{src_name} → {dst_name} ({cnt_val:,} errors)"
+        top_pair_text = f"{english_name(src_name) or src_name} → {english_name(dst_name) or dst_name} ({cnt_val:,} errors)"
 
         top_pair_popup = html.Div([
             html.Div("Visual Comparison (Split's #1 Misclassification):", style={"fontWeight": "700", "fontSize": "11px", "color": "#0f172a", "marginBottom": "6px"}),
             html.Div([
                 html.Div([
-                    html.Div(f"True: {src_name}", style={"fontSize": "10px", "fontWeight": "700", "color": "#ea580c", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis"}),
+                    species_heading(src_name, "True: ", size=10, color="#ea580c"),
                     html.Div(f"{src_supp:,} true images in split", style={"fontSize": "9.5px", "color": "#64748b", "marginBottom": "3px"}),
                     make_diashow(get_class_images(src_id, max_images=1), border_color="#fed7aa"),
                 ], style={"flex": "1", "minWidth": "0"}),
                 html.Div("→", style={"alignSelf": "center", "fontSize": "16px", "fontWeight": "bold", "color": "#64748b", "padding": "0 6px"}),
                 html.Div([
-                    html.Div(f"Mistaken for: {dst_name}", style={"fontSize": "10px", "fontWeight": "700", "color": "#0284c7", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis"}),
+                    species_heading(dst_name, "Mistaken for: ", size=10, color="#0284c7"),
                     html.Div(f"{dst_supp:,} true images in split" if dst_supp else "Predicted class", style={"fontSize": "9.5px", "color": "#64748b", "marginBottom": "3px"}),
                     make_diashow(get_class_images(dst_id, max_images=1), border_color="#bfdbfe"),
                 ], style={"flex": "1", "minWidth": "0"}),
@@ -1634,11 +1754,11 @@ def build_kpis(subset: pd.DataFrame, stats: pd.DataFrame, edges: pd.DataFrame, f
         sink_cnt = int(stats.loc[sink_id, "falsely_predicted_count"])
         sink_supp = int(stats.loc[sink_id, "support"]) if "support" in stats.columns else 0
         sink_name = names.get(sink_id, str(sink_id))
-        top_sink_text = f"{sink_name} ({sink_cnt:,} times)"
+        top_sink_text = f"{english_name(sink_name) or sink_name} ({sink_cnt:,} times)"
 
         top_sink_popup = html.Div([
             html.Div("Most Falsely Over-Predicted Species:", style={"fontWeight": "700", "fontSize": "11px", "color": "#0f172a", "marginBottom": "4px"}),
-            html.Div(sink_name, style={"fontSize": "11px", "fontWeight": "700", "color": "#0284c7", "marginBottom": "4px", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis"}),
+            species_heading(sink_name, size=11, color="#0284c7"),
             make_diashow(get_class_images(sink_id, max_images=1), border_color="#bfdbfe"),
             html.Div(f"Falsely predicted {sink_cnt:,} times for other classes ({sink_supp:,} true {sink_name} images in split).", style={"fontSize": "10px", "color": "#64748b", "lineHeight": "1.35", "marginTop": "6px"}),
         ], className="kpi-popup", style={"width": "240px", "maxWidth": "100%", "boxSizing": "border-box"})
@@ -1679,7 +1799,11 @@ def build_kpis(subset: pd.DataFrame, stats: pd.DataFrame, edges: pd.DataFrame, f
     ]
 
 
-def create_app(data: pd.DataFrame):
+def create_app(data: pd.DataFrame, *, data_dir: Path | None = None,
+               images_dir: Path | None = None, metadata: Path | None = None,
+               representatives: Path | None = None):
+    if any(path is not None for path in (data_dir, images_dir, metadata, representatives)):
+        configure_image_paths(data_dir, images_dir, metadata, representatives)
     data = data.copy()
     if "split" in data.columns:
         data["split"] = data["split"].astype(str).replace({
@@ -1698,9 +1822,9 @@ def create_app(data: pd.DataFrame):
         for loc, grp in cam_grp.groupby("location"):
             loc_str = str(loc)
             primary = CAMERA_IMAGE_MAP.get(loc_str)
-            fns = [primary] if (primary and (DATA_DIR / primary).is_file()) else []
+            fns = [primary] if (primary and image_exists(primary)) else []
             for fn in grp["filename"]:
-                if fn not in fns and (DATA_DIR / fn).is_file():
+                if fn not in fns and image_exists(fn):
                     fns.append(fn)
                 if len(fns) >= 5:
                     break
@@ -1716,9 +1840,9 @@ def create_app(data: pd.DataFrame):
         for cid, grp in class_grp.groupby("label"):
             cid_int = int(cid)
             primary = rep_map.get(cid_int)
-            fns = [primary] if (primary and (DATA_DIR / primary).is_file()) else []
+            fns = [primary] if (primary and image_exists(primary)) else []
             for fn in grp["filename"]:
-                if fn not in fns and (DATA_DIR / fn).is_file():
+                if fn not in fns and image_exists(fn):
                     fns.append(fn)
                 if len(fns) >= 5:
                     break
@@ -1740,7 +1864,7 @@ def create_app(data: pd.DataFrame):
             items = []
             for r in grp.itertuples():
                 fn = r.filename
-                if (DATA_DIR / fn).is_file():
+                if image_exists(fn):
                     pred_id = int(r.prediction)
                     pred_name = names.get(pred_id, getattr(r, "prediction_name", str(pred_id)))
                     conf = float(getattr(r, "confidence", 0.0))
@@ -1761,7 +1885,7 @@ def create_app(data: pd.DataFrame):
             items = []
             for r in grp.itertuples():
                 fn = r.filename
-                if (DATA_DIR / fn).is_file():
+                if image_exists(fn):
                     pred_id = int(r.prediction)
                     pred_name = names.get(pred_id, getattr(r, "prediction_name", str(pred_id)))
                     conf = float(getattr(r, "confidence", 0.0))
@@ -1782,7 +1906,7 @@ def create_app(data: pd.DataFrame):
             items = []
             for r in grp.itertuples():
                 fn = r.filename
-                if (DATA_DIR / fn).is_file():
+                if image_exists(fn):
                     pred_id = int(r.prediction)
                     pred_name = names.get(pred_id, getattr(r, "prediction_name", str(pred_id)))
                     conf = float(getattr(r, "confidence", 0.0))
@@ -1815,14 +1939,14 @@ def create_app(data: pd.DataFrame):
 
     init_active_species = sorted(
         list(set(init_edges["source"]).union(set(init_edges["target"]))),
-        key=lambda sid: names.get(sid, str(sid)).lower(),
+        key=lambda sid: (english_name(names.get(sid, str(sid))) or names.get(sid, str(sid))).casefold(),
     )
     init_focus_options = [
-        {"label": f"{names.get(sid, str(sid))} [{sid}]", "value": sid}
+        {"label": f"{format_species_name(names.get(sid, str(sid)))} [{sid}]", "value": sid}
         for sid in init_active_species
     ]
 
-    app = Dash(__name__, suppress_callback_exceptions=True)
+    app = Dash(__name__, assets_folder=str(Path(__file__).parent / "assets"), suppress_callback_exceptions=True)
     app.title = "iWildCam | Species Confusion Explorer"
     app.index_string = app.index_string.replace(
         "</head>",
@@ -2390,7 +2514,7 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
                         html.H3(id="main-graph-title", children=f"Species Confusion Network ({default_split}) - Community Clusters", style={"margin": "0 0 4px 0", "fontSize": "17px", "fontWeight": "700", "color": "#0f172a"}),
                         html.Div(id="main-graph-subtitle", children=[
                             html.Div("Directed arrows point True Species → Misclassified Species."),
-                            html.Div("Click any node to inspect details.", style={"color": "#64748b", "fontSize": "11.5px", "marginTop": "2px"}),
+                            html.Div("Hover for full names. Click a node to inspect details.", style={"color": "#64748b", "fontSize": "11.5px", "marginTop": "2px"}),
                         ], style={"margin": "0", "fontSize": "12px", "color": "#475569", "lineHeight": "1.45"}),
                     ], style={"flex": "1", "minWidth": "0", "marginRight": "12px"}),
                     html.Button(
@@ -2400,7 +2524,7 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
                         style={"height": "32px"},
                     ),
                 ], style={"display": "flex", "alignItems": "flex-start", "justifyContent": "space-between", "marginBottom": "8px"}),
-                html.Div([
+                html.Div(html.Div([
                     dcc.Loading(
                         dcc.Graph(id="network", figure=init_fig, clear_on_unhover=True, config={"displaylogo": False, "responsive": True}),
                         type="dot",
@@ -2414,7 +2538,8 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
                         zindex=9999,
                         style={"padding": "0px", "borderRadius": "10px", "boxShadow": "0 8px 24px rgba(0,0,0,0.15)", "whiteSpace": "normal", "pointerEvents": "none", "maxHeight": "85vh", "overflowY": "auto", "overflowX": "hidden", "boxSizing": "border-box"},
                     ),
-                ], style={"position": "relative"}),
+                ], id="network-canvas", style={"position": "relative", "height": f"{init_fig.layout.height}px", "minWidth": f"{init_fig.layout.meta.get('minimum_width', NETWORK_MIN_WIDTH) if init_fig.layout.meta else NETWORK_MIN_WIDTH}px"}),
+                    style={"overflowX": "auto"}),
 
                 # Visual Encodings Guide (integrated directly beneath the network graph)
                 html.Div([
@@ -2497,10 +2622,10 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
         _, _, edges, _ = get_split(split)
         active_species = sorted(
             list(set(edges["source"]).union(set(edges["target"]))),
-            key=lambda sid: names.get(sid, str(sid)).lower(),
+            key=lambda sid: (english_name(names.get(sid, str(sid))) or names.get(sid, str(sid))).casefold(),
         )
         options = [
-            {"label": f"{names.get(sid, str(sid))} [{sid}]", "value": sid}
+            {"label": f"{format_species_name(names.get(sid, str(sid)))} [{sid}]", "value": sid}
             for sid in active_species
         ]
 
@@ -2694,7 +2819,7 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
             leg_children = build_support_legend(stats, vis_nodes)
             leg_style = SUPPORT_LEGEND_STYLE
             if focus is not None:
-                focus_name = names.get(focus, str(focus))
+                focus_name = format_species_name(names.get(focus, str(focus)))
                 title = f"Species Confusion Network ({split}) — Focused on {focus_name}"
                 sub = html.Div([
                     html.Div([
@@ -2706,7 +2831,7 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
                         html.Span(f" = Incoming false predictions (... mistaken as {focus_name})"),
                     ]),
                     html.Div(
-                        "Click any node to inspect details.",
+                        "Hover for full names. Click a node to inspect details.",
                         style={"color": "#64748b", "fontSize": "11.5px", "marginTop": "2px"}
                     ),
                 ], style={"fontSize": "12px", "color": "#475569", "marginTop": "4px", "lineHeight": "1.45"})
@@ -2714,7 +2839,7 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
                 title = f"Species Confusion Network ({split}) - Community Clusters"
                 sub = html.Div([
                     html.Div("Directed arrows point True Species → Misclassified Species."),
-                    html.Div("Click any node to inspect details.", style={"color": "#64748b", "fontSize": "11.5px", "marginTop": "2px"}),
+                    html.Div("Hover for full names. Click a node to inspect details.", style={"color": "#64748b", "fontSize": "11.5px", "marginTop": "2px"}),
                 ], style={"fontSize": "12px", "color": "#475569", "marginTop": "4px", "lineHeight": "1.45"})
         return fig, title, sub, leg_children, leg_style
 
@@ -2791,7 +2916,7 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
             content = html.Div([
                 img_block,
                 html.Div([
-                    html.Div(name, style={"fontWeight": "bold", "fontSize": "13px", "color": "#0f172a", "margin": "6px 0 4px 0", "whiteSpace": "normal", "wordBreak": "break-word"}),
+                    species_heading(name, size=13),
                     html.Div(f"Class ID: {class_id} | Support: {supp:,} true images", style={"fontSize": "11px", "color": "#64748b", "marginBottom": "3px", "whiteSpace": "normal"}),
                     html.Div(f"Error Rate: {rate:.1%} ({errs:,} errors / {supp:,} true images)", style={"fontSize": "11px", "fontWeight": "600", "color": "#dc2626" if rate > 0.4 else "#16a34a", "marginBottom": "3px", "whiteSpace": "normal", "wordBreak": "break-word"}),
                     html.Div(f"Falsely predicted for other classes: {fp:,} times", style={"fontSize": "10px", "color": "#64748b", "marginBottom": "4px", "whiteSpace": "normal", "wordBreak": "break-word"}),
@@ -2834,19 +2959,32 @@ new MutationObserver(connectConfusionEdges).observe(document.documentElement, {
     return app
 
 
-def main() -> None:
+def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--predictions", type=Path,
-        default=Path("outputs/predictions.parquet"),
-        help="Path to the model predictions parquet (relative to current directory)",
+        "--predictions", type=Path, default=REPO_ROOT / "outputs/predictions.parquet",
+        help="Existing model predictions parquet; no inference runs in this viewer",
     )
+    parser.add_argument("--data-dir", type=Path, help="iWildCam dataset root containing train/ and metadata.csv")
+    parser.add_argument("--images-dir", type=Path, help="Directory containing JPGs; overrides DATASET_ROOT/train")
+    parser.add_argument("--metadata", type=Path, help="Optional metadata.csv for representative-image fallback")
+    parser.add_argument("--representatives", type=Path, help="Optional representative_images.json override")
+    parser.add_argument("--check-data", action="store_true", help="Check all prediction filenames and exit without starting a server")
     parser.add_argument("--port", type=int, default=8050)
     args = parser.parse_args()
-    data = read_predictions(args.predictions)
-    print(f"Loaded {len(data):,} iWildCam predictions from {args.predictions}")
+    configure_image_paths(args.data_dir, args.images_dir, args.metadata, args.representatives)
+    predictions = args.predictions.expanduser()
+    if not predictions.is_file() and (REPO_ROOT / predictions).is_file():
+        predictions = REPO_ROOT / predictions
+    data = read_predictions(predictions)
+    print(f"Loaded {len(data):,} iWildCam predictions from {predictions.resolve()}")
+    status = image_diagnostics(data, sample_limit=None if args.check_data else 100)
+    print_image_diagnostics(status)
+    if args.check_data:
+        return 0 if status["checked"] > 0 and status["found"] == status["checked"] else 1
     create_app(data).run(debug=True, port=args.port)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
