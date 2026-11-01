@@ -30,7 +30,7 @@ The AI-aided pair logs every important interaction in `ai-interactions/` (e.g. `
 
 | Date           | Deliverable                                                                                                               |
 |----------------|---------------------------------------------------------------------------------------------------------------------------|
-| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `ai-interactions/ai_log_pair_a.md`, `phase1/comparison.md`                      |
+| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `ai-interactions/ai_log_pair_a.md`, `ai_reflection_midpoint.md`, `phase1/comparison.md` |
 | **09.12.2026** | Final submission (Phase II): code of both pairs, `ai-interactions/ai_log_pair_b.md`, `phase2/comparison.md`                        |
 
 ## Project Overview: Task, Dataset, and Models
@@ -71,6 +71,7 @@ scripts/
 notebooks/
   00_quickstart.ipynb     shared demo: data, models and outputs (start here; no analysis; outputs committed)
 ai-interactions/          documented GenAI interactions (e.g. ai_log_pair_a.md)
+ai_reflection_midpoint.md reflection on Phase I GenAI experience (Pair A)
 phase1/, phase2/
   pair_a/, pair_b/        notebooks/, src/, figures/
   comparison.md           Pair A vs. Pair B

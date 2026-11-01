@@ -1,4 +1,4 @@
-# AI Interaction Log - Phase 1
+# AI Interaction Log - Phase 1 (Pair A)
 
 This log tracks all AI interactions and reflections during Phase 1: Error Analysis.
 
