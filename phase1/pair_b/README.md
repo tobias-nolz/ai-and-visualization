@@ -71,7 +71,7 @@ teammate) and the dataset.
 
 ## Hallucination atlas and label review
 
-We use the atlas to inspect cases where the model predicts an animal in an image labeled empty. The notebook looks for possible label errors in related training sequences. This can suggest an explanation for the prediction errors, but does not show what caused them.
+We use the atlas to inspect cases where the model predicts an animal in an image labeled empty. The notebook compares animal visibility with labels in training sequences. This can suggest an explanation for the prediction errors, but does not show what caused them.
 
 ### Run and label
 
@@ -102,11 +102,12 @@ Paths in this table are relative to `phase1/pair_b`.
 | `src/annotations.py`, `src/analyze_sequences.py`, `src/build_training_atlas.py` | Read saved labels, compare first and last frames, and update the atlas. |
 | `results/viewer_images.csv`, `results/human_review.json` | Images available for labeling and their saved labels. |
 | `results/atlas_data.json` | Camera summaries and image sequences shown in the atlas. |
+| `results/decisions_*/manifest.csv` | Additional images selected for review. |
 | `src/measure_background.py`, `src/build_camera_map.py`, `results/camera_openness.csv` | Measure background cover and build the camera map. The CSV records scores and sampled image IDs. |
 
 ### Rerun the analysis
 
-Run the audit notebook with `phase1/pair_b` as its working directory. It uses the shared `common` package, dataset metadata and classifier weights configured in `common/config.yaml`. Camera matching also needs `maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth` in `~/.cache/torch/hub/checkpoints/`. Generated analysis tables are ignored by Git.
+Run the audit notebook with `phase1/pair_b` as its working directory. It uses the shared `common` package, dataset metadata and classifier weights configured in `common/config.yaml`. Camera matching also needs `maskrcnn_resnet50_fpn_coco-bf2d0c1e.pth` in `~/.cache/torch/hub/checkpoints/`. The saved camera matches are ignored by Git.
 
 Keep `results/atlas_data.json` when using the saved results. The update script changes the training labels and counts in this file, but does not recreate the test-image galleries.
 
@@ -117,8 +118,10 @@ python phase1/pair_b/src/measure_background.py
 python phase1/pair_b/src/build_camera_map.py
 ```
 
-X shows the estimated share of the outdoor background without trees or shrubs, measured with SegFormer-B2. Each camera score uses up to 12 daytime images from at least three sequences, taking medians within and across sequences. The scorer needs PyTorch >=2.6 and `transformers==4.57.6`. It downloads a fixed version of the model to `.cache/` on the first run. The server and atlas-update script only need Python's standard library.
+X shows the estimated share of outdoor background without trees or shrubs, measured with SegFormer-B2. Each camera uses up to 12 images, preferably daytime frames from at least three sequences. Scores are medians within and across sequences. If there are too few daytime images, available frames are used, including night images. The scorer needs PyTorch >=2.6 and `transformers==4.57.6` and downloads the model on the first run. For a single image, call `image_openness(path_or_pil_image)` from `src/measure_background.py`.
 
-Y shows species diversity as `exp(Shannon entropy)`. We count each species once per sequence and combine all splits from the same physical camera, excluding empty and motorcycle labels. Point area is based on the fraction of images flagged at that camera and split. Training flags come from the selected review candidates. Gray means no recorded flags. We skip first/last comparisons where timestamps do not identify a unique first or last frame.
+Y shows species diversity as `exp(Shannon entropy)`. Each species counts once per sequence, across all splits at the same camera. Empty and motorcycle labels are excluded. Orange circles show hallucinated test predictions. Blue diamonds show hallucinated training labels. Gray means none found in the images checked, with circles for test cameras and diamonds for training cameras. Point area follows the number of hallucinated images divided by all images at that camera and split. Training counts come from sampled frames. First/last comparisons need unique endpoint timestamps.
 
-The label file combines API labels, automatic `not_flagged` defaults and edits made in the viewer. It does not record the source of each label, so the total does not tell us how many images were checked manually. The viewer writes `phantom_label` when an animal-labeled image is marked absent. A `not_flagged` value can also be a default, so it does not prove that the animal is present or that the dataset label is correct.
+The additional review sample uses up to 20 random sequences per camera. The labels were provided manually and are saved in `human_review.json`. `phantom_label` marks an animal-labeled frame judged empty. `not_flagged` means no such case was recorded.
+
+The [WCS source dataset](https://lila.science/datasets/wcscameratraps) confirms it includes some sequence-level annotations, so an empty frame can inherit an animal label from its sequence. But the description pretends it would be a mixture of image- and sequence-labels. However, we discover that there is no such distinction in the dataset and most labels were either only on the sequence-level or sloppy (as seen in the visualization).

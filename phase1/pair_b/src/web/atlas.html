@@ -54,7 +54,7 @@
         outline-offset: 2px;
       }
 
-      h2, p {
+      h1, h2, p {
         margin: 0;
       }
 
@@ -75,18 +75,28 @@
 
       .sequence-panel {
         min-height: 0;
+        max-width: 334px;
+        overflow-y: auto;
         border-left: 1px solid var(--rule);
-        padding: 12px 0 8px 12px;
+        padding: 12px 0 0 12px;
       }
 
       .sequence-panel svg {
         display: block;
-        width: 100%;
-        height: 100%;
+        width: 320px;
+        max-width: 100%;
+        height: auto;
+      }
+
+      .sequence-axis {
+        position: sticky;
+        bottom: 0;
+        background: white;
       }
 
       .plot {
-        position: relative;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
         min-height: 0;
         overflow: hidden;
       }
@@ -101,53 +111,44 @@
         cursor: pointer;
       }
 
-      .plottools {
-        position: absolute;
-        inset: 12px 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 10px;
-        z-index: 1;
-        pointer-events: none;
+      .plotlegend {
+        padding-top: 12px;
       }
 
-      .plottools>* {
-        pointer-events: auto;
-        background: white;
+      .plotlegend h1 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 10px;
       }
 
       .legend {
-        gap: 22px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, max-content));
+        gap: 8px 20px;
         font-size: 13px;
+      }
+
+      .legend > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
       }
 
       .legend b {
         font-weight: normal;
       }
 
-      .legend small {
-        font-size: 11px;
-        color: #555;
-      }
-
       .legend svg {
         width: 17px;
-        height: 20px;
+        height: 17px;
+        flex-shrink: 0;
       }
 
       .plotlegend p {
         font-size: 11px;
+        line-height: 1.4;
         color: #555;
         margin-top: 6px;
-      }
-
-      .maptools {
-        font-size: 13px;
-      }
-
-      .maptools label {
-        white-space: nowrap;
       }
 
       .model-ink {
@@ -362,12 +363,6 @@
       }
 
       @media (max-width: 1200px) {
-        .plottools {
-          flex-wrap: wrap;
-        }
-        .maptools {
-          margin-left: auto;
-        }
         .legend {
           font-size: 11px;
           gap: 14px;
@@ -401,18 +396,6 @@
 
       .casecontrols label {
         font-size: 12px;
-      }
-
-      .allcameras {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        white-space: nowrap;
-      }
-
-      .allcameras input {
-        margin: 0;
       }
 
       .image-dialog {
@@ -456,10 +439,8 @@
         .sequence-panel {
           border-left: 0;
           border-top: 1px solid var(--rule);
-          padding: 8px 0;
-        }
-        .sequence-panel svg {
-          height: 360px;
+          padding: 8px 0 0;
+          max-height: 360px;
         }
 
         html, body {
@@ -472,12 +453,8 @@
           gap: 12px;
           overflow: visible;
         }
-        .plottools {
-          position: static;
-          margin-top: 12px;
-        }
         .map {
-          height: 220px;
+          height: auto;
         }
         .casebar {
           grid-template-columns: 1fr;
@@ -507,38 +484,36 @@
   <body>
     <div class="app">
       <div class="overview">
-        <main aria-label="Camera clear-background share and species diversity with model hallucinations and label issues" class="plot">
-          <div class="plottools">
-            <div class="plotlegend">
-              <div aria-label="Marker legend and reviewed frame totals" class="legend">
-                <span class="model-ink" title="Cameras with model hallucinations on ID-test or unseen-camera test images">
-                  <svg aria-hidden="true" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="9" fill="#DDAA33" stroke="#876400" stroke-width="1"></circle>
-                  </svg>
-                  <b id="modelTotal"></b>
-                  cameras: model hallucinations on test images
-                </span>
-                <span class="train-ink" title="Cameras with at least one training-label issue">
-                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12Z" fill="#004488"></path></svg>
-                  <b id="trainingTotal"></b>
-                  cameras: train-label issues
-                </span>
-              </div>
-              <p>Point size: flagged images / all images of that camera. Gray: no recorded flags, including unassessed training cameras.</p>
-              <p>Diversity: 1 = one species; higher = a more even mix. Training flags cover selected reviews.</p>
+        <main aria-label="Camera clear-background share and species diversity with model hallucinations and hallucinated training labels" class="plot">
+          <header class="plotlegend">
+            <h1>Hallucinations in predictions and training labels</h1>
+            <div aria-label="Camera marker legend" class="legend">
+              <span class="model-ink">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#DDAA33"></circle></svg>
+                <span>Test cameras: hallucinated predictions (<b id="modelTotal"></b>)</span>
+              </span>
+              <span class="dataset-ink">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#ccc"></circle></svg>
+                <span>Test: no hallucinations found (<b id="clearTestTotal"></b>)</span>
+              </span>
+              <span class="train-ink">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12Z" fill="#004488"></path></svg>
+                <span>Training cameras: hallucinated labels (<b id="trainingTotal"></b>)</span>
+              </span>
+              <span class="dataset-ink">
+                <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2 L22 12 L12 22 L2 12Z" fill="#ccc"></path></svg>
+                <span>Training: no hallucinations found (<b id="clearTrainTotal"></b>)</span>
+              </span>
             </div>
-            <div class="maptools">
-              <label class="allcameras">
-                <input id="showAllCameras" type="checkbox">
-                Show all mapped cameras
-              </label>
-            </div>
-          </div>
-          <svg aria-label="Camera clear-background share and species diversity: gold model findings and navy training-label findings" class="map" id="cameraMap" role="group" tabindex="0" viewBox="0 0 1400 500">
+            <p>Size: hallucinated test images or hallucinated training labels / all images at that camera.</p>
+            <p>Diversity: 1 = one species, higher = a more even mix of species. Select a camera to inspect its images below.</p>
+          </header>
+          <svg aria-label="Camera clear-background share and species diversity: gold model findings and navy hallucinated training labels" class="map" id="cameraMap" role="group" tabindex="0" viewBox="0 0 1400 500">
           </svg>
         </main>
-        <aside class="sequence-panel" aria-label="First and last frame flags by training camera">
-          <svg id="sequenceChart" aria-label="First and last frame flag rates; select a training camera" role="group"></svg>
+        <aside class="sequence-panel" aria-label="First and last training-label hallucinations" tabindex="0">
+          <svg id="sequenceChart" aria-label="First and last training-label hallucination rates, select a camera" role="group"></svg>
+          <svg id="sequenceAxis" class="sequence-axis" viewBox="0 0 320 28" aria-label="Hallucinated training labels (%)" role="img"></svg>
         </aside>
       </div>
       <section aria-label="Selected evidence story" class="casebar">
@@ -578,6 +553,6 @@
       <img alt="Selected original camera-trap image" id="largeImage">
       <p id="largeCaption"></p>
     </dialog>
-    <script src="atlas.js?v=15"></script>
+    <script src="atlas.js?v=19"></script>
   </body>
 </html>

@@ -38,6 +38,7 @@
       }
 
       button {
+        cursor: pointer;
         font: inherit;
         color: inherit;
       }
@@ -46,10 +47,6 @@
         padding: 4px 9px;
         border: 1px solid #bbb;
         background: white;
-      }
-
-      button {
-        cursor: pointer;
       }
 
       button:disabled {
@@ -172,9 +169,9 @@
     </header>
     <main id="frames" aria-label="Images in chronological order"></main>
     <footer>
-      <span>Click any image = mark animal absent; click again = undo. → = confirm page. ← = back.</span>
+      <span>Click an image to mark the animal absent. Click again to undo. → = confirm page. ← = back.</span>
       <span id="saveState" aria-live="polite"></span>
     </footer>
-    <script src="/review.js?v=4"></script>
+    <script src="/review.js?v=5"></script>
   </body>
 </html>

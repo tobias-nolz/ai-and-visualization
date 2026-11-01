@@ -91,6 +91,7 @@ function bindSelection(node, select) {
 
 function drawSequenceChart() {
   const svg = get('sequenceChart');
+  const axis = get('sequenceAxis');
   const selected = selectedSequence?.split === 'train' ? selectedSequence.camera : null;
   const rows = atlas.cameras.filter(camera => camera.split === 'train' && camera.sequence_ends?.pairs &&
     (camera.sequence_ends.pairs >= 10 || camera.camera === selected)
@@ -98,22 +99,28 @@ function drawSequenceChart() {
     return b.sequence_ends.last / b.sequence_ends.pairs
       - a.sequence_ends.last / a.sequence_ends.pairs || a.camera - b.camera;
   });
-  const bottom = 80 + rows.length * 22;
-  svg.setAttribute('viewBox', `0 0 320 ${bottom + 38}`);
+  const bottom = 102 + rows.length * 22;
+  svg.setAttribute('viewBox', `0 0 320 ${bottom + 8}`);
   svg.replaceChildren();
-  svg.append(svgElement('text', {x: 0, y: 20, 'font-size': 16}, 'First vs. last frame flags'));
-  svg.append(svgElement('text', {x: 0, y: 42, fill: '#666', 'font-size': 11}, 'First (gray) / last (blue) · flagged frames (%)'));
-  svg.append(svgElement('text', {x: 0, y: 60, fill: '#666', 'font-size': 10}, 'Sorted by last-frame rate · ≥10 pairs, plus selected'));
+  axis.replaceChildren();
+  svg.append(svgElement('text', {x: 0, y: 20, 'font-size': 16}, 'First vs. last training frame'));
+  svg.append(svgElement('text', {x: 0, y: 42, fill: '#666', 'font-size': 11}, 'Hallucinated training labels (%)'));
+  svg.append(svgElement('text', {x: 0, y: 60, fill: '#666', 'font-size': 10}, 'First'));
+  svg.append(svgElement('circle', {cx: 30, cy: 57, r: 3, fill: '#888'}));
+  svg.append(svgElement('text', {x: 39, y: 60, fill: '#666', 'font-size': 10}, '/ Last'));
+  svg.append(svgElement('circle', {cx: 75, cy: 57, r: 4, fill: 'none', stroke: '#004488', 'stroke-width': 1.5}));
+  svg.append(svgElement('text', {x: 86, y: 60, fill: '#666', 'font-size': 10}, '· n = sequence/species pairs'));
+  svg.append(svgElement('text', {x: 0, y: 78, fill: '#666', 'font-size': 10}, 'Sorted by last-frame rate · ≥10 pairs, plus selected'));
   const x = percent => 106 + percent * 2;
   for (const tick of [0, 25, 50, 75, 100]) {
-    svg.append(svgElement('path', {d: `M${x(tick)} 72 V${bottom}`, stroke: '#eee'}));
-    svg.append(svgElement('text', {x: x(tick), y: bottom + 20, 'text-anchor': 'middle', 'font-size': 10}, tick));
+    svg.append(svgElement('path', {d: `M${x(tick)} 94 V${bottom}`, stroke: '#eee'}));
+    axis.append(svgElement('text', {x: x(tick), y: 18, 'text-anchor': 'middle', 'font-size': 10}, tick));
   }
   rows.forEach((camera, index) => {
     const counts = camera.sequence_ends;
     const first = counts.first / counts.pairs * 100;
     const last = counts.last / counts.pairs * 100;
-    const y = 83 + index * 22;
+    const y = 105 + index * 22;
     const active = camera.camera === selected;
     const row = svgElement('g', {class: 'node', tabindex: 0, role: 'button', 'aria-pressed': active,
       'aria-label': `Training C${camera.camera}: first ${first.toFixed(1)}%, last ${last.toFixed(1)}%, ${counts.pairs} pairs`});
@@ -121,7 +128,7 @@ function drawSequenceChart() {
     row.append(svgElement('text', {x: 2, y: y + 4, 'font-size': 11}, `C${camera.camera} · n=${counts.pairs}`));
     row.append(svgElement('path', {d: `M${x(first)} ${y} H${x(last)}`, stroke: '#ccc', 'stroke-width': 2}));
     row.append(svgElement('circle', {cx: x(first), cy: y, r: 4, fill: '#888'}));
-    row.append(svgElement('circle', {cx: x(last), cy: y, r: 4, fill: '#004488'}));
+    row.append(svgElement('circle', {cx: x(last), cy: y, r: 5.5, fill: 'none', stroke: '#004488', 'stroke-width': 1.5}));
     row.append(svgElement('title', {}, row.getAttribute('aria-label')));
     bindSelection(row, () => selectCamera(camera));
     svg.append(row);
@@ -131,28 +138,28 @@ function drawSequenceChart() {
 function drawMap() {
   const svg = get('cameraMap');
   svg.replaceChildren();
-  const positioned = cameras.filter(camera => Number.isFinite(camera.openness) && Number.isFinite(camera.effective_species));
-  const shown = positioned.filter(camera =>
-    get('showAllCameras').checked || cameraIssues(camera) || sameCamera(camera, selectedSequence)
-  );
-  const unscoredFindings = cameras.filter(camera => camera.openness == null && cameraIssues(camera)).length;
-  get('modelTotal').textContent = cameras.filter(camera => camera.model_phantoms > 0).length;
-  get('trainingTotal').textContent = cameras.filter(camera => camera.training_phantoms > 0).length;
+  const shown = cameras.filter(camera => Number.isFinite(camera.openness) && Number.isFinite(camera.effective_species) &&
+    (camera.split !== 'train' || camera.decision_count > 0));
+  svg.setAttribute('viewBox', '0 0 1400 500');
+  get('modelTotal').textContent = shown.filter(camera => camera.model_phantoms > 0).length;
+  get('trainingTotal').textContent = shown.filter(camera => camera.training_phantoms > 0).length;
+  get('clearTrainTotal').textContent = shown.filter(camera => camera.split === 'train' && !cameraIssues(camera)).length;
+  get('clearTestTotal').textContent = shown.filter(camera => camera.split !== 'train' && !cameraIssues(camera)).length;
 
   const xmin = 0, xmax = 1;
-  const ymin = 0, ymax = Math.max(...shown.map(camera => camera.effective_species));
-  const x = value => 100 + (value - xmin) / (xmax - xmin || 1) * 1220;
-  const y = value => 410 - (value - ymin) / (ymax - ymin || 1) * 310;
+  const ymin = 0, ymax = Math.max(1, ...shown.map(camera => camera.effective_species || 0));
+  const x = value => 75 + (value - xmin) / (xmax - xmin) * 1255;
+  const y = value => 420 - (value - ymin) / (ymax - ymin) * 320;
 
   for (let i = 0; i <= 4; i++) {
     const xv = xmin + (xmax - xmin) * i / 4;
     const yv = ymin + (ymax - ymin) * i / 4;
-    svg.append(svgElement('path', {d: `M${x(xv)} 100 V410 M100 ${y(yv)} H1320`, fill: 'none', stroke: '#e8e8e8'}));
+    svg.append(svgElement('path', {d: `M${x(xv)} 100 V420 M75 ${y(yv)} H1330`, fill: 'none', stroke: '#e8e8e8'}));
     svg.append(svgElement('text', {x: x(xv), y: 430, 'text-anchor': 'middle', 'font-size': 10}, `${Math.round(xv * 100)}%`));
-    svg.append(svgElement('text', {x: 89, y: y(yv) + 3, 'text-anchor': 'end', 'font-size': 10}, yv.toFixed(1)));
+    svg.append(svgElement('text', {x: 65, y: y(yv) + 3, 'text-anchor': 'end', 'font-size': 10}, yv.toFixed(1)));
   }
-  svg.append(svgElement('path', {d: 'M100 90 V410 H1330', fill: 'none', stroke: '#999'}));
-  svg.append(svgElement('text', {x: 710, y: 450, 'text-anchor': 'middle', 'font-size': 12}, 'Estimated background free of trees/shrubs (%)'));
+  svg.append(svgElement('path', {d: 'M75 90 V420 H1330', fill: 'none', stroke: '#999'}));
+  svg.append(svgElement('text', {x: 710, y: 450, 'text-anchor': 'middle', 'font-size': 12}, 'openness of the camera = share of background without trees →'));
   svg.append(svgElement('text', {transform: 'translate(30 255) rotate(-90)', 'text-anchor': 'middle', 'font-size': 12}, 'Species diversity (effective species)'));
 
   shown.sort((a, b) => cameraIssueRate(a) - cameraIssueRate(b));
@@ -160,12 +167,13 @@ function drawMap() {
     const train = camera.split === 'train';
     const count = cameraIssues(camera);
     const rate = cameraIssueRate(camera);
+    const finding = train ? 'images with hallucinated labels' : 'images hallucinated';
     const radius = Math.max(3.5, 16 * Math.sqrt(rate));
     const extent = train ? radius * Math.sqrt(Math.PI / 2) : radius;
     const node = svgElement('g', {
       class: 'node', transform: `translate(${x(camera.openness)},${y(camera.effective_species)})`, tabindex: 0, role: 'button',
       'aria-pressed': Boolean(sameCamera(camera, selectedSequence)),
-      'aria-label': `Camera ${camera.camera}, ${splitName(camera.split)}: ${count}/${camera.n_images} images flagged (${(rate * 100).toFixed(1)}%)`
+      'aria-label': `Camera ${camera.camera}, ${splitName(camera.split)}: ${count}/${camera.n_images} ${finding} (${(rate * 100).toFixed(1)}%)`
     });
     node.append(svgElement('circle', {r: Math.max(5, extent), fill: 'transparent'}));
     if (sameCamera(camera, selectedSequence)) {
@@ -185,18 +193,20 @@ function drawMap() {
       tip.style.display = 'block';
       tip.style.left = Math.min(event.clientX + 13, innerWidth - 290) + 'px';
       tip.style.top = Math.min(event.clientY + 13, innerHeight - 160) + 'px';
-      tip.textContent = `${splitName(camera.split)} C${camera.camera}: ${count}/${camera.n_images} images flagged (${(rate * 100).toFixed(1)}%)`;
-      tip.textContent += `; clear background ${(camera.openness * 100).toFixed(1)}% (middle 50%: ${(camera.openness_q25 * 100).toFixed(0)}–${(camera.openness_q75 * 100).toFixed(0)}%; ${camera.openness_frames} ${camera.openness_basis} frames / ${camera.openness_sequences} sequences)`;
-      tip.textContent += `; diversity ${camera.effective_species.toFixed(1)} effective species (${camera.species_count} observed, ${camera.animal_sequences} animal-labeled sequences; all splits at this camera)`;
-      if (camera.animal_sequences < 10) tip.textContent += '; small sample';
+      tip.textContent = `${splitName(camera.split)} C${camera.camera}: ${count}/${camera.n_images} ${finding} (${(rate * 100).toFixed(1)}%)`;
+      tip.textContent += `. Clear background ${(camera.openness * 100).toFixed(1)}% (middle 50%: ${(camera.openness_q25 * 100).toFixed(0)}–${(camera.openness_q75 * 100).toFixed(0)}%; ${camera.openness_frames} ${camera.openness_basis} frames / ${camera.openness_sequences} sequences)`;
+      if (camera.openness_sample === 'available_frames') tip.textContent += '. Estimate from available frames, including night images';
+      tip.textContent += `. Diversity ${camera.effective_species.toFixed(1)} effective species (${camera.species_count} observed, ${camera.animal_sequences} animal-labeled sequences, all splits at this camera)`;
+      if (camera.animal_sequences < 10) tip.textContent += '. Small sample';
       if (train) tip.textContent += `, ${camera.decision_count} candidates with saved decisions`;
     };
     node.onpointerleave = () => get('tooltip').style.display = 'none';
     svg.append(node);
   }
+  const training = shown.filter(camera => camera.split === 'train');
+  const trainHallucinated = training.filter(camera => camera.training_phantoms > 0).length;
   svg.append(svgElement('text', {x: 20, y: 480, fill: '#666', 'font-size': 11},
-    `${shown.length} shown · ${positioned.length}/${cameras.length} have both axes · circle = test · diamond = train` +
-    (unscoredFindings ? ` · ${unscoredFindings} finding camera(s) lack a reliable daytime estimate` : '')));
+    `${trainHallucinated}/${training.length} training cameras have at least one hallucinated image`));
 }
 
 function cameraSequences() {
@@ -214,7 +224,7 @@ function selectSequence(id) {
 
 function trainingReview(frame) {
   if (!frame.has_decision) return 'outside review set';
-  return frame.training_phantom ? 'flagged' : 'not flagged';
+  return frame.training_phantom ? 'hallucinated label' : 'no hallucination';
 }
 
 function renderSequence() {
@@ -224,7 +234,7 @@ function renderSequence() {
   for (const [index, sequence] of choices.entries()) {
     const option = document.createElement('option');
     option.value = sequence.id;
-    option.textContent = `${index + 1} of ${choices.length} · ${sequence.frames[0].t.slice(0, 16)} · ${sequenceIssues(sequence)} issues`;
+    option.textContent = `${index + 1} of ${choices.length} · ${sequence.frames[0].t.slice(0, 16)} · ${sequence.split === 'train' ? 'Hallucinated labels' : 'Hallucinated images'}: ${sequenceIssues(sequence)}`;
     menu.append(option);
   }
   menu.disabled = !choices.length;
@@ -243,10 +253,10 @@ function renderSequence() {
 
   const sequence = selectedSequence;
   const train = sequence.split === 'train';
-  get('caseTitle').textContent = `${splitName(sequence.split)} · C${sequence.camera} · ${sequenceIssues(sequence)} issues in this sequence`;
+  get('caseTitle').textContent = `${splitName(sequence.split)} · C${sequence.camera} · ${train ? 'Hallucinated labels' : 'Hallucinated images'}: ${sequenceIssues(sequence)}`;
   get('caseExplanation').textContent = train
-    ? 'A training-label issue is a frame marked empty in the review but labeled as an animal in the dataset.'
-    : 'Gold shows an animal prediction where the dataset says empty. Select a camera to inspect its sequences.';
+    ? 'A hallucinated training label names an animal in a frame judged empty. Sequence labels can carry over to empty frames.'
+    : 'A hallucinated prediction means the model predicts an animal where the dataset says empty. Select a camera to inspect its sequences.';
   get('predictionRowLabel').textContent = train ? 'REVIEW' : 'MODEL SAYS';
   get('predictionRowLabel').className = train ? 'train-ink' : 'model-ink';
   get('datasetRowLabel').className = train ? 'train-ink' : 'dataset-ink';
@@ -318,7 +328,6 @@ async function start() {
   sequences = atlas.sequences.sort((a, b) => sequenceIssues(b) - sequenceIssues(a) || a.camera - b.camera);
   selectedSequence = sequences.find(sequence => sequenceIssues(sequence) > 0) || null;
   get('caseSelect').onchange = () => selectSequence(get('caseSelect').value);
-  get('showAllCameras').onchange = drawMap;
   get('previousCase').onclick = () => moveSequence(-1);
   get('nextCase').onclick = () => moveSequence(1);
   get('previousFrames').onclick = () => { framePage--; renderSequence(); };

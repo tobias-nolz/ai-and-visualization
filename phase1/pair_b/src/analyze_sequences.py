@@ -45,9 +45,9 @@ def analyze_sequence_ends():
     last_rate = last_count / len(pairs)
     transitions = Counter((row['first_flag'], row['last_flag']) for row in pairs)
     print(f'{len(pairs):,} paired sequence/species groups')
-    print(f'First frame flagged: {first_count:,} ({first_rate:.1%})')
-    print(f'Last frame flagged: {last_count:,} ({last_rate:.1%})')
+    print(f'First frame with hallucinated label: {first_count:,} ({first_rate:.1%})')
+    print(f'Last frame with hallucinated label: {last_count:,} ({last_rate:.1%})')
     print(f'Last minus first: {(last_rate - first_rate) * 100:.1f} percentage points')
-    print(f'Only last flagged: {transitions[False, True]:,}; only first flagged: {transitions[True, False]:,}')
+    print(f'Only last hallucinated: {transitions[False, True]:,}, only first hallucinated: {transitions[True, False]:,}')
 
     return pairs

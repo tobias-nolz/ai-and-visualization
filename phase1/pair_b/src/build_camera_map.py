@@ -20,6 +20,7 @@ def main():
         names = {int(row['y']): row['name'] for row in csv.DictReader(file)}
 
     sequences = defaultdict(lambda: defaultdict(set))
+    animal_images = Counter()
     locations = {}
     with (DATA / 'metadata.csv').open(encoding='utf-8', newline='') as file:
         for row in csv.DictReader(file):
@@ -31,6 +32,7 @@ def main():
             species = names[int(row['y'])]
             if species not in ['empty', 'motorcycle']:
                 labels.add(species)
+                animal_images[key] += 1
 
     positioned = 0
     for camera in cameras:
@@ -45,11 +47,13 @@ def main():
         probabilities = [count / total for count in counts.values()]
         diversity = math.exp(-sum(p * math.log(p) for p in probabilities)) if total else None
         camera['location'] = location
+        camera['animal_labeled_images'] = animal_images[key]
         camera['openness'] = float(score) if score else None
         colour = int(measured['colour_frames'])
         grey = int(measured['greyscale_frames'])
         camera['openness_basis'] = 'mixed' if colour and grey else 'colour' if colour else 'greyscale' if grey else None
         camera['openness_frames'] = int(measured['frames'])
+        camera['openness_sample'] = measured.get('sample_policy', 'daytime')
         camera['openness_sequences'] = int(measured['sequences'])
         camera['openness_q25'] = float(measured['q25']) if measured['q25'] else None
         camera['openness_q75'] = float(measured['q75']) if measured['q75'] else None
@@ -59,7 +63,7 @@ def main():
         camera['effective_species'] = diversity
         positioned += score != '' and diversity is not None
     atlas['summary']['camera_map'] = {
-        'openness_source': 'camera_openness.csv; SegFormer-B2 ADE20K, revision de01bae28967510f9ddd496c60a969357195400c; median across sequence medians of non-tree/plant/palm outdoor background pixels; at least three sequences',
+        'openness_source': 'camera_openness.csv; SegFormer-B2 ADE20K, revision de01bae28967510f9ddd496c60a969357195400c; median across sequence medians of non-tree/plant/palm outdoor background pixels; prefer at least three daytime sequences, otherwise available frames with at least one usable sequence',
         'effective_species': 'exp(Shannon entropy) of species counts, each species counted once per sequence across all splits at the physical camera; excludes empty/motorcycle labels',
         'positioned_cameras': positioned,
         'unpositioned_cameras': len(cameras) - positioned,

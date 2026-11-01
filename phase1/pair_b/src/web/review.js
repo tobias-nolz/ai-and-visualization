@@ -5,18 +5,16 @@ async function start() {
   if (!response.ok) throw new Error('Could not load image manifest.');
   const data = await response.json();
   const get = id => document.getElementById(id);
-  const validIds = new Set();
-  for (const sequence of data.sequences) {
-    for (const frame of sequence.frames) validIds.add(frame.id);
-  }
   const saved = await fetch('/api/manual-review', {cache: 'no-store'});
   if (!saved.ok) throw new Error('Could not load the review file.');
   const state = await saved.json();
   const annotations = state.annotations || {};
   const cursor = state.cursor || {};
-  for (const id of validIds) {
-    if (id in annotations && !['phantom_label', 'not_flagged'].includes(annotations[id]?.status)) {
-      throw new Error('The review file contains an invalid decision.');
+  for (const sequence of data.sequences) {
+    for (const frame of sequence.frames) {
+      if (frame.id in annotations && !['phantom_label', 'not_flagged'].includes(annotations[frame.id]?.status)) {
+        throw new Error('The review file contains an invalid decision.');
+      }
     }
   }
   const pageSize = 6;
@@ -50,7 +48,7 @@ async function start() {
         });
         if (!result.ok) throw new Error('Save failed.');
       } catch {
-        message = 'SAVE FAILED — changes are only in this page; keep it open and check the server';
+        message = 'SAVE FAILED. Keep this page open and check the server.';
       }
       if (currentRevision === revision) get('saveState').textContent = `${progress} · ${message}`;
     });

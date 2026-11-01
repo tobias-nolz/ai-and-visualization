@@ -31,25 +31,33 @@ def read_image(image):
     return image.crop((0, round(.03 * height), width, round(.95 * height)))
 
 
-def sample_frames(meta):
-    meta = meta[pd.to_datetime(meta.datetime).dt.hour.between(8, 17)].copy()
+def sample_frames(meta, daytime_only=True):
+    meta = meta.copy()
+    meta['daytime'] = pd.to_datetime(meta.datetime).dt.hour.between(8, 17)
+    if daytime_only:
+        meta = meta[meta.daytime]
     names = pd.read_csv(DATA / 'categories.csv').drop_duplicates('y').set_index('y')['name']
     meta['empty'] = meta.y.map(names).isin(['empty', 'motorcycle'])
     rows = []
     for index, (location, group) in enumerate(meta.groupby('location'), 1):
         pool = group.sample(frac=1, random_state=42).sort_values('empty', ascending=False, kind='stable')
+        if not daytime_only:
+            pool = group.sample(frac=1, random_state=42).sort_values(['daytime', 'empty'], ascending=False, kind='stable')
         pool = pd.concat([pool.drop_duplicates('seq_id'), pool]).drop_duplicates('image_id').head(48)
         candidates = []
         for _, row in pool.iterrows():
             image = read_image(DATA / 'train' / row.filename)
             rgb = np.asarray(image.resize((128, 96))).astype(float) / 255
-            if rgb.mean() < .15 or rgb.mean(2).std() < .04:
+            usable = rgb.mean() >= .15 and rgb.mean(2).std() >= .04
+            if daytime_only and not usable:
                 continue
             gray = (abs(rgb[:, :, 0] - rgb[:, :, 1]).mean() + abs(rgb[:, :, 1] - rgb[:, :, 2]).mean()) * 255 < 6
             item = row.to_dict()
-            item.update(brightness=rgb.mean(), greyscale=gray)
+            item.update(brightness=rgb.mean(), contrast=rgb.mean(2).std(), usable=usable, greyscale=gray)
             candidates.append(item)
         candidates.sort(key=lambda row: (not row['empty'], row['greyscale']))
+        if not daytime_only:
+            candidates.sort(key=lambda row: (not row['usable'], not row['daytime'], not row['empty'], row['greyscale'], -row['contrast']))
         if candidates:
             choices = pd.DataFrame(candidates)
             choices = pd.concat([choices.drop_duplicates('seq_id'), choices]).drop_duplicates('image_id')
@@ -120,14 +128,14 @@ def infer(frames):
     return pd.DataFrame(rows)
 
 
-def aggregate(frames, locations):
+def aggregate(frames, locations, min_sequences=3):
     rows = []
     for location in locations:
         valid = frames[frames.location.eq(location)].dropna(subset=['openness'])
         per_sequence = valid.groupby('seq_id', sort=False).openness.median()
         rows.append({
             'location': location,
-            'openness': per_sequence.median() if len(per_sequence) >= 3 else np.nan,
+            'openness': per_sequence.median() if len(per_sequence) >= min_sequences else np.nan,
             'frames': len(valid), 'sequences': len(per_sequence),
             'colour_frames': int((~valid.greyscale).sum()), 'greyscale_frames': int(valid.greyscale.sum()),
             'q25': per_sequence.quantile(.25), 'q75': per_sequence.quantile(.75),
@@ -141,8 +149,17 @@ def main():
     locations = sorted(meta.loc[meta.split.isin(['train', 'id_test', 'test']), 'location'].unique())
     frames = sample_frames(meta[meta.location.isin(locations)])
     scores = aggregate(infer(frames), locations)
+    scores['sample_policy'] = 'daytime'
+    missing = scores.loc[scores.openness.isna(), 'location']
+    if len(missing):
+        fallback = infer(sample_frames(meta[meta.location.isin(missing)], daytime_only=False))
+        fallback.to_csv(APP / 'results/camera_openness_fallback_frames.csv', index=False)
+        scores = scores.set_index('location')
+        scores.update(aggregate(fallback, missing, min_sequences=1).set_index('location'))
+        scores.loc[missing, 'sample_policy'] = 'available_frames'
+        scores = scores.reset_index()
     scores.to_csv(APP / 'results/camera_openness.csv', index=False)
-    print(f'{scores.openness.notna().sum()}/{len(scores)} physical cameras have at least three usable sequences.')
+    print(f'{scores.openness.notna().sum()}/{len(scores)} physical cameras have an openness estimate.')
 
 
 if __name__ == '__main__':
