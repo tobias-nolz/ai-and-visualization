@@ -15,7 +15,7 @@ The group of four works in two pairs on the **same model and data**:
 | I     | Black-box behavior (inputs/outputs only)                                                                      | **with** generative AI | without                |
 | II    | Opening the model (representations, saliency/attention, SHAP/LIME, kNN, checkpoints; ≥ 2 techniques per pair) | without                | **with** generative AI |
 
-The AI-aided pair logs every important interaction in its `ai_log.md`.
+The AI-aided pair logs every important interaction in `ai-interactions/` (e.g. `ai-interactions/ai_log_pair_a.md`).
 
 ## Team
 
@@ -30,8 +30,30 @@ The AI-aided pair logs every important interaction in its `ai_log.md`.
 
 | Date           | Deliverable                                                                                                               |
 |----------------|---------------------------------------------------------------------------------------------------------------------------|
-| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `phase1/pair_a/ai_log.md`, `phase1/comparison.md`                      |
-| **09.12.2026** | Final submission (Phase II): code of both pairs, `phase2/pair_b/ai_log.md`, `phase2/comparison.md`                        |
+| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `ai-interactions/ai_log_pair_a.md`, `phase1/comparison.md`                      |
+| **09.12.2026** | Final submission (Phase II): code of both pairs, `ai-interactions/ai_log_pair_b.md`, `phase2/comparison.md`                        |
+
+## Project Overview: Task, Dataset, and Models
+
+### 1. Task: Camera-Trap Wildlife Species Classification
+* **Objective:** Automated multi-class species recognition from motion-activated camera-trap photographs across 182 distinct categories (including animal species, vehicles, and empty frames).
+* **Domain Challenges:** Extreme real-world distribution shift across camera locations (differences in background foliage, illumination, camera angles, day/night infrared flash), heavy class imbalance (empty background frames constitute ~37–40% of images), motion blur, and subtle inter-species visual distinctions.
+* **Visualization Goals:** Analyze model behavior without fine-tuning:
+  * **Black-box Error Analysis (Phase I):** Mapping confusion networks to identify which species clusters the model conflates (e.g., deer vs. peccaries, wild canines), checking whether mistakes concentrate at specific camera traps, and auditing false detections on empty background frames.
+  * **Model Introspection (Phase II):** Opening the network using feature embeddings, saliency/attribution maps, and probe representations.
+
+### 2. Dataset: WILDS iWildCam v2.0
+* **Source:** The [WILDS benchmark](https://wilds.stanford.edu) iWildCam v2.0 dataset (~12 GB; 203,029 total images collected across 414 camera locations worldwide).
+* **Taxonomy:** 182 classes with scientific names mapped to standardized English labels (via WiSE-FT).
+* **Evaluation Splits & Distribution Shifts:**
+  * `train` (129,809 images, 243 cameras): Training data used for the baseline model.
+  * `id_val` & `id_test` (seen cameras): In-distribution evaluation testing generalization to new timeframes at familiar camera sites.
+  * `val` & `test` (unseen cameras): Out-of-distribution evaluation testing generalization to entirely new geographic sites and camera hardware.
+
+### 3. Models Evaluated
+* **Primary Model:** Standard ResNet-50 backbone fine-tuned end-to-end with Empirical Risk Minimization (ERM) on the WILDS iWildCam training split (official released checkpoint `iwildcam_erm_seed0`).
+* **Comparison Baseline 1 (Linear Probe):** Frozen ImageNet-pretrained ResNet-50 feature extractor with a newly trained logistic regression head, assessing what end-to-end fine-tuning adds over general visual features.
+* **Comparison Baseline 2 (Majority Class):** Heuristic baseline predicting "empty" for all frames, contextualizing baseline accuracy under extreme class imbalance.
 
 ## Folder map
 
@@ -48,8 +70,9 @@ scripts/
   evaluate_baselines.py   writes outputs/baselines.csv + linear-probe predictions
 notebooks/
   00_quickstart.ipynb     shared demo: data, models and outputs (start here; no analysis; outputs committed)
+ai-interactions/          documented GenAI interactions (e.g. ai_log_pair_a.md)
 phase1/, phase2/
-  pair_a/, pair_b/        notebooks/, src/, figures/ (+ ai_log.md for the AI-aided pair)
+  pair_a/, pair_b/        notebooks/, src/, figures/
   comparison.md           Pair A vs. Pair B
 data/, checkpoints/, outputs/   gitignored, created by the scripts
 ```
@@ -96,7 +119,24 @@ make strip-notebooks  # strip outputs from all notebooks (also done automaticall
 **Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet` (~230 MB each), `outputs/baselines.csv`, `checkpoints/linear_probe.pt` and, for embedding analyses, `outputs/embeddings.npy` and `outputs/embeddings_imagenet.npy` (~1.7 GB each). Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/*.npy outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
 
 
-### Pair A species explorer: photos and local paths
+### Pair A species explorer: Species Confusion Network
+
+An interactive Dash dashboard analyzing species misclassifications, error rates, and community confusion clusters.
+
+**1. Quick start (with default paths):**
+
+Ensure your environment is active and `outputs/predictions.parquet` exists (via `make inference` or from a teammate):
+
+```bash
+conda activate ai-and-vis
+python phase1/pair_a/src/species_confusion_network.py
+```
+
+Then open **http://127.0.0.1:8050/** in your browser. (Use `--port 8051` if port 8050 is in use).
+
+*Note: The explorer runs fully even if the ~12 GB image folder is not downloaded yet—network graphs, error rates, and the confusion matrix work immediately, with photo slots displaying placeholders until images are present.*
+
+**2. Photos and custom local paths:**
 
 A fresh clone contains the code; predictions and dataset images are gitignored.
 The explorer's standard defaults are:
@@ -182,4 +222,4 @@ On the evaluation splits, our fine-tuned numbers match the WILDS-reported ones w
 - **Pipelines stay separate.** Each pair works only in its own `phaseX/pair_Y/` folder and on its own branch (`phase1-pair-a`, `phase1-pair-b`). Pairs share **only** `common/` and the shared outputs (predictions files, embeddings, checkpoints). Changes to `common/` need agreement from both pairs.
 - **No data, checkpoints, or secrets in git.** Large artifacts come from `scripts/download_data.sh`; secrets go in `.env` (gitignored).
 - **Notebook outputs are not committed** (except the shared `notebooks/00_quickstart.ipynb`, which sets `keep_output: true`). The nbstripout filter strips them on `git add`; run `make setup` or `nbstripout --install` once per clone to activate it.
-- **Log AI use** (AI-aided pair only): one entry per interaction in `ai_log.md`, including rejected suggestions and time spent verifying.
+- **Log AI use** (AI-aided pair only): one entry per interaction in `ai-interactions/` (e.g. `ai-interactions/ai_log_pair_a.md`), including rejected suggestions and time spent verifying.
