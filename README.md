@@ -52,6 +52,7 @@ notebooks/
 phase1/, phase2/
   pair_a/, pair_b/        notebooks/, src/, figures/ (+ ai_log.md for the AI-aided pair)
   comparison.md           Pair A vs. Pair B
+README_pair_a.md          Pair A interactive Species Confusion Network documentation
 data/, checkpoints/, outputs/   gitignored, created by the scripts
 ```
 
@@ -95,6 +96,15 @@ make strip-notebooks  # strip outputs from all notebooks (also done automaticall
 **3. Explore:** open `notebooks/00_quickstart.ipynb` for a tour of the data, both models and all outputs.
 
 **Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet` (~230 MB each), `outputs/baselines.csv`, `checkpoints/linear_probe.pt` and, for embedding analyses, `outputs/embeddings.npy` and `outputs/embeddings_imagenet.npy` (~1.7 GB each). Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/*.npy outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
+
+
+### Pair A: Species Confusion Network Dashboard
+
+Pair A developed an interactive Dash dashboard (`species_confusion_network.py`) to visually explore species confusion flows, empty-frame hallucinations, and camera trap error rates across splits. For full setup instructions, CLI options, and photo path configuration, see the dedicated [Pair A README](README_pair_a.md).
+
+```bash
+python phase1/pair_a/src/species_confusion_network.py
+```
 
 
 ### Predictions files
