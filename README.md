@@ -12,8 +12,8 @@ The group of four works in two pairs on the **same model and data**:
 
 | Phase | Focus                                                                                                         | Pair A                 | Pair B                 |
 |-------|---------------------------------------------------------------------------------------------------------------|------------------------|------------------------|
-| I     | Black-box behavior (inputs/outputs only)                                                                      | **with** generative AI | without                |
-| II    | Opening the model (representations, saliency/attention, SHAP/LIME, kNN, checkpoints; ≥ 2 techniques per pair) | without                | **with** generative AI |
+| I     | How does the model behave?                                                                      | **with** generative AI | without  generative AI              |
+| II    | What did the model learn? | without generative AI               | **with** generative AI |
 
 The AI-aided pair logs every important interaction in `ai-interactions/` (e.g. `ai-interactions/ai_log_pair_a.md`).
 
@@ -30,30 +30,14 @@ The AI-aided pair logs every important interaction in `ai-interactions/` (e.g. `
 
 | Date           | Deliverable                                                                                                               |
 |----------------|---------------------------------------------------------------------------------------------------------------------------|
-| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `ai-interactions/ai_log_pair_a.md`, `ai_reflection_midpoint.md`, `phase1/comparison.md` |
-| **09.12.2026** | Final submission (Phase II): code of both pairs, `ai-interactions/ai_log_pair_b.md`, `phase2/comparison.md`                        |
+| **11.11.2026** | Midpoint submission (Phase I): code of both pairs, `ai-interactions/ai_log_pair_a.md`, `ai_reflection_midpoint.md` |
+| **09.12.2026** | Final submission (Phase II): code of both pairs, `ai-interactions/ai_log_pair_b.md` |
 
-## Project Overview: Task, Dataset, and Models
+## Task, Dataset, and Model
 
-### 1. Task: Camera-Trap Wildlife Species Classification
-* **Objective:** Automated multi-class species recognition from motion-activated camera-trap photographs across 182 distinct categories (including animal species, vehicles, and empty frames).
-* **Domain Challenges:** Extreme real-world distribution shift across camera locations (differences in background foliage, illumination, camera angles, day/night infrared flash), heavy class imbalance (empty background frames constitute ~37–40% of images), motion blur, and subtle inter-species visual distinctions.
-* **Visualization Goals:** Analyze model behavior without fine-tuning:
-  * **Black-box Error Analysis (Phase I):** Mapping confusion networks to identify which species clusters the model conflates (e.g., deer vs. peccaries, wild canines), checking whether mistakes concentrate at specific camera traps, and auditing false detections on empty background frames.
-  * **Model Introspection (Phase II):** Opening the network using feature embeddings, saliency/attribution maps, and probe representations.
-
-### 2. Dataset: WILDS iWildCam v2.0
-* **Source:** The [WILDS benchmark](https://wilds.stanford.edu) iWildCam v2.0 dataset (~12 GB; 203,029 total images collected across 414 camera locations worldwide).
-* **Taxonomy:** 182 classes with scientific names mapped to standardized English labels (via WiSE-FT).
-* **Evaluation Splits & Distribution Shifts:**
-  * `train` (129,809 images, 243 cameras): Training data used for the baseline model.
-  * `id_val` & `id_test` (seen cameras): In-distribution evaluation testing generalization to new timeframes at familiar camera sites.
-  * `val` & `test` (unseen cameras): Out-of-distribution evaluation testing generalization to entirely new geographic sites and camera hardware.
-
-### 3. Models Evaluated
-* **Primary Model:** Standard ResNet-50 backbone fine-tuned end-to-end with Empirical Risk Minimization (ERM) on the WILDS iWildCam training split (official released checkpoint `iwildcam_erm_seed0`).
-* **Comparison Baseline 1 (Linear Probe):** Frozen ImageNet-pretrained ResNet-50 feature extractor with a newly trained logistic regression head, assessing what end-to-end fine-tuning adds over general visual features.
-* **Comparison Baseline 2 (Majority Class):** Heuristic baseline predicting "empty" for all frames, contextualizing baseline accuracy under extreme class imbalance.
+- **Task:** Species classification of motion-triggered camera-trap photos across diverse wildlife classes (including empty frames and vehicles). We use visualization to analyze model behavior.
+- **Dataset:** [WILDS iWildCam v2.0](https://wilds.stanford.edu), consisting of camera-trap photos collected across global locations. We evaluate on both in-distribution splits (seen camera locations) and out-of-distribution splits (unseen camera locations).
+- **Model:** ResNet-50 fine-tuned on iWildCam (the official WILDS checkpoint `iwildcam_erm_seed0`).
 
 ## Folder map
 
