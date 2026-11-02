@@ -25,13 +25,10 @@ Because the AI handled most of the repetitive Dash code and callbacks, we didn't
 
 ### 2.1 The Two Tasks We Looked At
 Together with Pair B, we decided to investigate the model's behavior in two subtasks:
-1. **Confusions between animal species:** Which animals get mixed up with each other and how error patterns look across the training, validation, and test splits.
-2. **Hallucinations (confusions with the class `empty`):** The dataset consists of many empty frames, so false alarms are a problem. We built a notebook to inspect cases where the model predicts an animal even though the picture is empty.
+1. **Confusions between animal species** 
+2. **Hallucinations (confusions with the class `empty`)** 
 
-While Pair B looked at these same two questions, they wrote all their code by hand with only very light AI assistance and kept their visualizations simpler. With AI help, we were able to build a much more interactive setup.
-
-
-We built two interactive tools:
+For Phase I, Pair A used GenAI. We built two interactive tools:
 1. **Species Confusion Network:** An interactive Dash dashboard that shows which animal species get confused with each other, which camera traps produce the most of these errors, and how confusion patterns look across different dataset splits.
 2. **Hallucinations Gallery:** An interactive notebook to inspect empty images where the model still predicted an animal.
 
