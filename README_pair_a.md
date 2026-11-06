@@ -1,4 +1,4 @@
-# Pair A: Species Confusion Network
+# Pair A: Species Confusion Network and Hallucination Gallary 
 
 **Pair A (AI-aided pair in Phase I):**
 - **Lisa Krimbacher** (`k12209298`)
@@ -6,11 +6,13 @@
 
 In Phase I, our pair was assigned to use Generative AI to analyze where and why the fine-tuned ResNet-50 model makes mistakes on the WILDS iWildCam camera-trap dataset. 
 
-This README covers Pair A's interactive visualization tools: the **Species Confusion Network** (`phase1/pair_a/src/species_confusion_network.py`). It is an interactive Dash dashboard built to study which animal species get confused with each other, which camera traps produce the most errors, and how these misclassifications look across dataset splits.
-
-TODO: Add Hallucination Part!
+This README covers Pair A's interactive visualization tools: the **Species Confusion Network** (`phase1/pair_a/src/species_confusion_network.py`). It is an interactive Dash dashboard built to study which animal species get confused with each other, which camera traps produce the most errors, and how these misclassifications look across dataset splits. \
+Furthermore, the
+**Hallucinations Gallary** (`phase1/pair_a/src/hallucinations.py`), an interactive visual tool built to investigate why the model hallucinates wildlife on completely empty photos. In this setting, "hallucinations" (false alarms) refer to predictions where the model confidently classifies an animal species on a ground-truth empty image,
 
 ---
+
+# Tool 1: Species Confusion Network & Matrix
 
 ## What the Dashboard Shows
 
@@ -112,4 +114,66 @@ python phase1/pair_a/src/species_confusion_network.py --predictions "/path/to/pr
 1. **Switch Dataset Splits:** Use the dropdown at the top left to switch between the **Test Set**, **Validation Set**, and **Training Set**.
 2. **Click to Focus:** Click any node in the graph (or a row in the sidebar) to lock the dashboard onto that animal and see all its specific errors and photos. Click **"Reset Focus"** to zoom back out.
 3. **Compare Photos:** In the sidebar or hover tooltips, click the ‹ and › buttons on photo slideshows to flip through different camera trap shots of that species.
+
+---
+
+# Tool 2: Hallucination Gallary 
+
+
+## What the Gallery Shows
+
+- **Basic Statistics:** Basic statistical overview is provided at the top of the page
+- **Camera Hotspot Breakdown:** Shows that false alarms are not random across the forest. Over 64% of all false detections happen at just one camera traps. Clicking any bar in the chart instantly filters the gallery down to that specific camera.
+- **Phantom Species Breakdown:** Audits which wildlife species the model hallucinates most frequently, ranked by false alarm volume or average model certainty. On the test set, 62% of all false alarms are concentrated in just two species (*Sylvilagus brasiliensis* and *Cuniculus paca*). Clicking any species row instantly filters the gallery below to that animal.
+- **Environment & Lighting Matrix:** Groups false alarms by environmental condition (Night/ IR Flash, Dense Foliage, Open Clearings). Highlights that over 51% of false detections happen under night-time infrared flash, where monochrome contrast and lens glare trick the model into predicting species like forest rabbits or pacas.
+- **Burst Sequence Heatmap:** Tracks multi-frame burst sequences (rapid 3–10 shot bursts) frame-by-frame. It proves that in 58.2% of burst sequences, the model gets permanently locked across all 10 consecutive frames without ever recovering, rather than just having a temporary 1-frame wind glitch. Hovering over any cell previews that exact photo thumbnail.
+- **Adjustable Photo Gallery & Controls:** Located directly below the analytical charts, the full image gallery can be freely customized and filtered in real time. You can adjust the minimum confidence slider, filter by specific cameras or species, sort frames (by confidence, camera location, darkness/luminance, or vegetation density), and adjust page sizes. Every card displays the photo, predictions with certainty percentage, camera location, and environmental tags.
+- **Top-5 Prediction Breakdown:** Clicking any photo card opens a detailed inspection dialog with the photo, burst details, and the top 5 model class probabilities. It reveals that in the vast majority of false alarms, the true class "empty" is not even in the top 5—the model divides 100% of its confidence across animal classes with total misplaced certainty.
+
+---
+
+## Quick Start
+
+### 1. Requirements & Setup
+Make sure the environment is activated and the predictions file exists:
+
+```bash
+conda activate ai-and-vis
+```
+
+If you don't have `outputs/predictions.parquet` yet, you can generate it with:
+```bash
+make inference
+```
+*(or copy `outputs/predictions.parquet` from a teammate).*
+
+### 2. Launch the Gallery
+Run the Python script from the repository root:
+
+```bash
+python phase1/pair_a/src/hallucinations.py --split test
+```
+
+Then open the generated file **`phase1/pair_a/figures/false_detection_gallery.html`** in your browser.
+
+---
+
+## Important Note on Photos and Local Paths
+
+Like the confusion network, the script loads photos directly from the local dataset folder:
+- **Predictions:** `outputs/predictions.parquet`
+- **Photos:** `data/iwildcam_v2.0/train/`
+
+**Good to know:**
+- **No GPU required:** The script only processes existing prediction files and compiles the HTML dashboard; it never runs model inference.
+- **Embedded Thumbnails:** Photos are automatically scaled into lightweight base64 thumbnails inside the generated HTML, making the dashboard fast and responsive when filtering or sorting.
+
+---
+
+## Tips for Exploring the Gallery
+
+1. **Spot Location Shortcuts:** Click the tallest bar in the Camera Hotspots chart (**Camera 282**). You will immediately see that all 631 false alarms share the exact same rocky background texture, repeatedly misclassified as *Sylvilagus brasiliensis*.
+2. **Discover Dataset Label Noise:** Sort the gallery by **"Confidence (High to Low)"** and click the top cards at **Camera 218** (predicted *Puma concolor* at 100.0% confidence). In the modal, you will see a real cougar walking through the frame at night—revealing that this was not a model hallucination, but a human labeling error in the official dataset.
+3. **Inspect Burst Persistence:** In the Burst Heatmap, hover over solid purple rows to see how static background features fool the model across all consecutive frames.
+
 

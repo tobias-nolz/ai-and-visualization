@@ -966,3 +966,52 @@ This log tracks our AI interactions and reflections during Phase 1 (Error Analys
 - **Time spent verifying:** 10 minutes
 
 ---
+
+### 2026-11-01: Multi-Sequence Trajectory Chart
+
+- **Who:** Lara
+- **Goal:** Expand burst analysis beyond a static sequence into an interactive multi-sequence trajectory chart plotting confidence across consecutive frames.
+- **Prompt (important ones):**
+  ```
+  Expand the photo burst analysis: instead of a single static sequence, build an interactive multi-sequence trajectory chart plotting model confidence across consecutive frames (Frame 1 to 10) for all affected burst sequences in the validation split. Enable interactive hover popovers displaying the actual photo.
+  ```
+- **AI output summary:** Updated `hallucinations.py` to extract all 33 multi-frame burst sequences with persistence filtering and quick spotlights, added instant hover photos, and connected sequence clicks to an active filmstrip.
+- **Decision:** rejected
+- **Why:** the information presented was not easy to understand - visualizaiton was not good for the content 
+- **Problems caused:** none
+- **Time spent verifying:** 8 minutes
+
+---
+
+### 2026-11-02: Burst Sequence Heatmap Matrix
+
+- **Who:** Lara
+- **Goal:** Replace the messy, counter-intuitive line plot with an intuitive Heatmap Matrix 
+- **Prompt (important ones):**
+  ```
+  i think this is really really bad and counter intuitive - you cant really see anything on this plot need sth that is more intuitive and where you can see at one sight what this is about and if there is a clear trend or not
+  ```
+- **AI output summary:** Replaced the 33-line plot in `hallucinations.py` with a 2D Heatmap Matrix tracking multi-frame sequences, color-coded by prediction status, with hover image popups.
+- **Decision:** accepted
+- **Why:** the heatmap matrix makes it instantly obvious that in ovre 58% of burst sequences, the model is permanently locked in an error state across all 10 frames.
+- **Problems caused:** none
+- **Time spent verifying:** 15 minutes
+
+---
+
+### 2026-11-02: Focusing Error Audit on Test Set Domain Shift
+
+- **Who:** Lara
+- **Goal:** Shift the false detection audit from validation data to the out-of-distribution `test`
+- **Prompt (important ones):**
+  ```
+  We need to look at the test set. Does the model hallucinate differently when deployed at completely new, unseen camera locations?
+  ```
+- **AI output summary:** Recompiled the audit pipeline on the `test` split
+- **Decision:** accepted
+- **Why:** In-distribution error rates hide the real-world deployment problem. Auditing unseen camera traps exposes extreme site-specific failure shortcuts.
+- **Problems caused:** none
+- **Time spent verifying:** 18 minutes
+
+---
+
