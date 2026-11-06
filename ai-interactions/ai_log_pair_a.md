@@ -1,52 +1,57 @@
-# AI Interaction Log - Phase 1
+# AI Interaction Log - Phase 1 (Pair A)
 
-This log tracks all AI interactions and reflections during Phase 1: Error Analysis.
+This log tracks our AI interactions and reflections during Phase 1 (Error Analysis). It documents:
+- The important prompts we used
+- How AI suggestions influenced our decisions
+- Which suggestions were accepted, adjusted, or rejected, and why
+- Failure patterns we observed
+- Best practices we learned for using AI effectively
 
----
-
-## Reflection: Failure Patterns & Emerging Best Practices
-
-### 1. Failure Patterns Observed During AI-Assisted Analysis
-
-- **Lack of Inherent Visual Aesthetics and Ergonomic Layout:**
-  The LLM generated code that (almost alwalys) worked from a technical standpoint, but the resulting interface was not always visually pleasing or intuitive out of the box. The visualizations looked fine, but not perfect.
-- **Poor Spatial Proximity for Controls:**
-  The model frequently placed interactive controls far away from the actual components they manipulate. For instance, it initially placed the "Reset Focus" button up in the top global filter bar rather than directly next to the network graph and confusion matrix header. Similarly, threshold readouts were placed in separate rows rather than directly next to the slider tracks.
-- **Blindness to Visual Density and Overlap:**
-  The AI has no visual feedback loop, so it cannot "see" when rendered elements collide. In early confusion network iterations, species text labels severely overlapped, opaque white text boxes chopped into adjacent nodes and edges, and dense confusion arrows criss-crossed into an unreadable knot. The AI could not resolve these issues until explicitly instructed and given a screenshot.
-- **Silent Logical Mismatches in Views:**
-  The model initially plotted raw integer misclassification counts inside the Confusion Matrix even when the user had selected "Confusion Rate" ranking, creating inverted and misleading visual heatmaps. Such inconcistencies had to be manually found.
+*(For our full reflection, see [`ai_reflection_midpoint.md`](../ai_reflection_midpoint.md)).*
 
 ---
 
-### 2. Emerging Best Practices for Using AI in Visualization & Model Analysis
+## Summary: Failure Patterns & Best Practices
 
-- **Enforce UI Proximity Explicitly in Prompts:**
-  Do not let the AI decide where to place buttons and filters. Always specify spatial grouping explicitly (e.g., *"place the Reset Focus button in the top-right corner of the visualization card next to the title"*).
-- **Maintain Tight, Incremental Feedback Loops:**
-  Large prompts that request multiple layout and styling changes simultaneously can result in broken CSS, event listener conflicts, or unintended regressions (such as the stuck hover tooltip timer). Break visual refinement into small, isolated iterations (e.g., fixing aspect ratio, eliminating scrollbars, tuning font weights).
-- **Disambiguate Mathematical Notation in UI Text:**
-  When asking the AI to document formulas, ensure it separates functional argument notation from explanatory aliases. Leaving the AI to format formulas on its own often results in ambiguous expressions (like placing definitions directly inside a formula, thereby creating an ambiguous meaning for parentheses).
+### 1. Failure Patterns We Observed
+
+- **No visual awareness (blind to overlap):**
+  The AI writes code based on text, so it cannot "see" what the screen actually looks like. In early versions of the network, animal names overlapped badly, white text boxes cut into lines and circles, and arrows crossed over each other into a knot. The AI couldn't fix this on its own until we pointed it out with screenshots and clear layout instructions.
+- **Awkward UI placement:**
+  The AI often put buttons and sliders far away from the charts they belong to. For example, it put the "Reset Focus" button all the way up in the top page header instead of next to the confusion network. It also placed threshold readouts in separate rows rather than directly next to the sliders.
+- **Silent logic bugs:**
+  The AI sometimes wrote code that ran without throwing an error, but was logically wrong. For example, it plotted raw mistake counts in the confusion matrix heatmap even when we selected "Confusion Rate", which created misleading charts. We had to manually check the numbers to catch these mistakes.
 
 ---
 
-## Prompts & Interactions
+### 2. Best Practices We Learned
+
+- **Tell the AI exactly where to put UI elements:**
+  Don't leave button placement to the AI. Always specify where elements belong (e.g. "place the Reset button in the top-right corner next to the graph title").
+- **Work in small, step-by-step prompts:**
+  Asking for too many styling or callback changes at once often resulted in broken CSS or subtle bugs (like hover popups getting stuck). Asking for one specific change at a time worked much better.
+- **Double-check formulas and numbers:**
+  When asking the AI to document math or display formulas, check the output carefully. It often produced ambiguous notation (like putting explanatory words inside parentheses where they looked like multiplication).
+
+---
+
+## Chronological Log of AI Interactions
 
 ### 2026-10-19: Brainstorming Error Analysis Concepts
 
 - **Who:** Lisa (+ Lara)
-- **Goal:** Explore visualization strategies for diagnosing fine-tuned ResNet-50 failure modes on iWildCam.
+- **Goal:** Brainstorm visualization formats for our two chosen focus areas: species confusions and empty-frame hallucinations.
 - **Prompt (important ones):**
   ```
-  I'm part of the AI-aided pair for Phase I. We chose to use the iWildCam dataset (see README). Please brainstorm in detail what kind of patterns we could investigate. Note that the goal is to generate good visualizations, as this is the focus of this course. We'd love to do something interactive or very involved, as we want the best possible grade.
+  I'm part of the AI-aided pair for Phase I. We chose to use the iWildCam dataset (see README). Please brainstorm in detail what kind of patterns we could investigate. Note that the goal is to generate good visualizations, as this is the focus of this course. We'd love to do something interactive or very involved, as we want the best possible grade. Our topics are confusions and hallucinations.
 
   [README.md]
   [2026 AI & VIS Lab 02 Assignment Introduction.pdf]
   [Moodle Description of Phase I]
   ```
-- **AI output summary:** Suggested 10 ideas for interactive visualizations, highlighting class-level accuracy breakdowns, species confusion networks, confidence calibration, camera trap location error patterns, and temporal confusion shifts.
+- **AI output summary:** Gave 10 ideas for visualizations, including class accuracy breakdowns, a directed confusion network, confidence calibration, camera location errors, and seasonal shifts.
 - **Decision:** partially accepted
-- **Why:** Chose the directed species confusion network as our primary focus because it directly visualizes fine-grained misclassifications under domain shift, while keeping camera location breakdowns as a secondary dimension.
+- **Why:** We already knew we wanted to investigate species confusions and empty-frame hallucinations. From the AI's suggestions, we picked the directed confusion network concept for the species confusion task because showing mistakes as graph arrows is much clearer than a giant, crowded 182×182 matrix. Also, we focused on the empty-frame hallucinations in our second tool.
 - **Problems caused:** none
 - **Time spent verifying:** 105 minutes
 ---
@@ -54,14 +59,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-19: Selecting Dashboard Tech Stack
 
 - **Who:** Lisa
-- **Goal:** Choose an interactive Python dashboard framework suitable for graph manipulation and linked views.
+- **Goal:** Pick a Python dashboard framework that can handle interactive network graphs and linked side panels.
 - **Prompt (important ones):**
   ```
   Which Python dashboard framework is best suited for building this? I want an interactive web app where clicking nodes in a network graph updates side panels and filters other charts.
   ```
-- **AI output summary:** Evaluated Dash, Streamlit, and Panel. Recommended Dash + Plotly because Dash's callback graph natively supports bidirectional component interactions and clicking scatter nodes to update auxiliary panels.
+- **AI output summary:** Compared Dash, Streamlit, and Panel. Recommended Dash + Plotly because Dash makes it easy to click on graph nodes and update other panels without reloading the whole page.
 - **Decision:** accepted
-- **Why:** Dash provides flexible reactive state management required for coordinating linked views between the main network and side panels without reloading the entire page.
+- **Why:** Dash's callback system fits well with what we wanted to build (clicking on species to update side charts).
 - **Problems caused:** none
 - **Time spent verifying:** 5 minutes
 ---
@@ -69,7 +74,7 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-19: First Draft of Species Confusion Network
 
 - **Who:** Lisa
-- **Goal:** Implement the initial working prototype of the species confusion network dashboard.
+- **Goal:** Build a first working prototype of the species confusion dashboard in Dash.
 - **Prompt (important ones):**
   ```
   I want to create a Species Confusion Network in Dash. Nodes should be species and directed edges should indicate that species A is predicted as species B.
@@ -81,24 +86,24 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
   - Click-to-filter on nodes with a side panel showing top confused pairs
   - Raw data table at the bottom
   ```
-- **AI output summary:** Generated initial `species_confusion_network.py` using Dash and Plotly with circular NetworkX layout, threshold sliders, click callbacks, and a tabular confusion data view.
+- **AI output summary:** Generated a first version of `species_confusion_network.py` using Dash and Plotly with a circular layout, threshold sliders, click events, and a big data table at the bottom.
 - **Decision:** accepted
-- **Why:** Produced a functional interactive prototype that ran out of the box.
-- **Problems caused:** Plotly scatter traces did not natively render directional edge arrows; raw data table was clunky and took up too much vertical space.
+- **Why:** Gave us a working prototype right away that we could run and test.
+- **Problems caused:** Plotly scatter plots didn't draw arrowheads on lines by default, and the raw table at the bottom was clunky and took up way too much space.
 - **Time spent verifying:** 30 minutes
 ---
 
 ### 2026-10-19: Layout Restructuring and Visual Hierarchy
 
 - **Who:** Lisa
-- **Goal:** Establish clear visual hierarchy, remove tabular clutter, and add high-level KPI cards.
+- **Goal:** Clean up the layout, delete the giant data table, and add summary stat cards at the top.
 - **Prompt (important ones):**
   ```
-  The dashboard looks cluttered and the raw data table at the bottom takes up too much room without giving quick insights. Can we remove the table and reorganize the layout into top KPI summary cards, filter controls, a community-clustered network, and a side-by-side error breakdown panel?
+  The dashboard looks cluttered and the raw data table at the bottom takes up too much room without giving quick insights. Can we remove the table and reorganize the layout into top summary cards, filter controls, a community-clustered network, and a side-by-side error breakdown panel?
   ```
-- **AI output summary:** Restructured layout into top KPI summary cards, a clean horizontal filter bar, community-clustered network view, and a dedicated sidebar for inspecting confused pairs.
+- **AI output summary:** Reorganized the page with summary cards at the top, a horizontal filter bar, clustered network nodes, and an inspection sidebar on the right.
 - **Decision:** accepted
-- **Why:** Eliminates unnecessary raw data clutter and immediately directs attention to key error metrics and high-volume confusion clusters.
+- **Why:** Got rid of table clutter so you can immediately see key numbers and main confusion clusters.
 - **Problems caused:** none
 - **Time spent verifying:** 20 minutes
 ---
@@ -106,29 +111,29 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-19: Representative Species Photos and Review Notebook
 
 - **Who:** Lisa
-- **Goal:** Add representative camera-trap photos to hover cards and build an interactive widget to verify image quality across classes.
+- **Goal:** Add example animal photos to hover popups, and create a notebook to pick good, clear photos for each species.
 - **Prompt (important ones):**
   ```
-  Can you add representative pictures for each animal species to hover tooltips? Also, can you build a Jupyter notebook where I can easily review sample images for all classes and approve or select better images if any are blurry or occluded?
+  Can you please add representative pictures for each animal species to hover tooltips? Also, can you build a Jupyter notebook where I can easily review sample images for all classes and approve or select better images if any are blurry or occluded?
   ```
-- **AI output summary:** Added image hover tooltips to the dashboard and built `review_representative_images.ipynb` with an interactive IPython widget that cycles through candidates and writes approved paths to `representative_images.json`.
+- **AI output summary:** Added image tooltips to the dashboard and wrote `review_representative_images.ipynb` with a simple button widget to cycle through pictures and save the best ones into `representative_images.json`.
 - **Decision:** accepted
-- **Why:** Having authentic camera trap photos makes biological misclassifications immediately interpretable.
-- **Problems caused:** Tooltip initially jumped to the top-left of the browser window; resolved by setting relative positioning on the parent container.
+- **Why:** Seeing the actual animal photos makes it much easier to understand why the model got confused.
+- **Problems caused:** The popup initially jumped to the top-left corner of the browser window. Fixed it by setting relative positioning on the container.
 - **Time spent verifying:** 45 minutes
 ---
 
 ### 2026-10-19: Scientific Terminology and Metric Formula Clarification
 
 - **Who:** Lisa
-- **Goal:** Enforce scientific species taxonomy, fix layout to community clustering, and provide explicit mathematical definitions.
+- **Goal:** Stick to official scientific species names and write out metric formulas clearly over multiple lines.
 - **Prompt (important ones):**
   ```
   Please standardize the dashboard on scientific species names only, and remove informal notes or disclaimers. Also, could you display the mathematical formulas for error rate and confusion rate across multiple lines so they are clear and easy to read?
   ```
-- **AI output summary:** Standardized taxonomy across data loaders and UI components, locked community clustering as the layout algorithm, and added a multi-line formula legend.
+- **AI output summary:** Used scientific names everywhere across the app, kept community clustering as the layout, and added a multi-line formula explanation.
 - **Decision:** accepted
-- **Why:** Ensures academic rigor, consistency with biological literature, and clear documentation of evaluation metrics.
+- **Why:** Keeps the names consistent with the official dataset and makes formulas easier to read.
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
@@ -136,14 +141,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-19: Sidebar Previews, Tooltip Sizing, and Dynamic Slider Badges
 
 - **Who:** Lisa
-- **Goal:** Add hover previews to sidebar ranking charts, prevent tooltip overflow, and improve slider readability.
+- **Goal:** Add photo previews when hovering over sidebar bars, stop text from overflowing popups, and show current slider values clearly.
 - **Prompt (important ones):**
   ```
   In the sidebar, can you add image hovers to the bar charts so we can see what these confused animals look like? Also, the hover text sometimes overflows the rectangle, and on the threshold sliders the 1% mark is hard to read—can you add badges showing the current slider values?
   ```
-- **AI output summary:** Added photo hover tooltips to sidebar charts, added dynamic blue value badges above sliders, and applied CSS box-sizing and wrapping to prevent tooltip text overflow.
+- **AI output summary:** Added hover photo popups to the sidebar charts, put blue value badges above the sliders, and fixed CSS text wrapping so popup text doesn't spill over.
 - **Decision:** accepted
-- **Why:** Allows users to identify species directly from ranking lists without having to find them on the network first, and makes slider thresholds easy to read.
+- **Why:** You can see photos directly from the ranking list without searching the network, and slider numbers are easy to read.
 - **Problems caused:** none
 - **Time spent verifying:** 20 minutes
 ---
@@ -151,14 +156,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-19: Harmonizing Colorbar and Palette Styling
 
 - **Who:** Lisa
-- **Goal:** Align colorbar styling and palettes across the network graph and confusion matrix views.
+- **Goal:** Make the colorbars and color schemes look the same across the network and confusion matrix views.
 - **Prompt (important ones):**
   ```
   The error bars for the directed network and the confusion matrix look completely different. Can you style both in the modern, borderless look of the confusion matrix using the Reds palette?
   ```
-- **AI output summary:** Unified colorscale to `Reds` across both views, positioned colorbar titles horizontally at the top, and removed bounding borders.
+- **AI output summary:** Switched both views to the `Reds` color palette, centered the titles at the top, and removed outer borders.
 - **Decision:** accepted
-- **Why:** Delivers a consistent visual identity across visualization modes.
+- **Why:** Makes the two views look consistent and clean.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -166,14 +171,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-19: Professional Polish and Academic Styling
 
 - **Who:** Lisa
-- **Goal:** Replace misleading statistical terminology, remove informal emojis, and refine visual styling.
+- **Goal:** Fix imprecise wording, remove emojis, and give the UI a clean, simple look.
 - **Prompt (important ones):**
   ```
   "Distribution" is a bit misleading here since only the top cameras are listed. Can we change it to "Top Camera Locations by Error Count"? Also, please remove all emojis and make the UI look clean and professional for a scientific report.
   ```
-- **AI output summary:** Replaced "distribution" with accurate wording, removed all emojis across UI elements, refined button and card styling, and added subtle gridlines to charts.
+- **AI output summary:** Replaced "distribution" with more accurate wording, removed all emojis, cleaned up button and card styles, and added subtle grid lines.
 - **Decision:** accepted
-- **Why:** Produces a publication-ready academic appearance suitable for lab submission.
+- **Why:** Looks cleaner and more accurate for our lab submission.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -181,14 +186,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Macro F1 Benchmark Metric Integration
 
 - **Who:** Lisa
-- **Goal:** Add the official WILDS benchmark Macro F1 score alongside split accuracy in the top KPI banner.
+- **Goal:** Add Macro F1 to the accuracy card because iWildCam has huge class imbalance.
 - **Prompt (important ones):**
   ```
-  Can you please add Macro F1 to the accuracy KPI card? In the WILDS benchmark for iWildCam, Macro F1 is the official evaluation metric because class imbalance is so extreme.
+  Can you please add Macro F1 to the accuracy card? 
   ```
-- **AI output summary:** Integrated scikit-learn's `f1_score` (macro-averaged over present split classes) into KPI precomputations and displayed both accuracy and Macro F1 side-by-side in the primary KPI card.
+- **AI output summary:** Calculated scikit-learn's Macro F1 score across present classes and displayed it right next to accuracy in the top card.
 - **Decision:** accepted
-- **Why:** Directly aligns dashboard reporting with official WILDS evaluation benchmark standards.
+- **Why:** On iWildCam, simple accuracy is misleading because empty images make up so much of the dataset. Macro F1 is the official benchmark metric.
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
@@ -196,7 +201,7 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Dataset Split Navigation and Defaulting to OOD Test Set
 
 - **Who:** Lisa
-- **Goal:** Reposition the dataset split dropdown to the top-left, order test sets first, and default to the OOD test set.
+- **Goal:** Move the split selector to the top-left, put test sets first, and default to the test set on startup.
 - **Prompt (important ones):**
   ```
   Can we reorganize the dataset split selector?
@@ -204,9 +209,9 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
   - Reorder the options so test sets appear above validation sets, and default to the OOD test set on startup.
   - Clean up the split labels to be descriptive (like "OOD test (unseen cameras)") without technical abbreviations or nested parentheses.
   ```
-- **AI output summary:** Moved split selector to top left, reordered options with OOD test as initial default, and cleaned up label wording.
+- **AI output summary:** Moved the dropdown to the top left, made the test set default, and simplified the split labels.
 - **Decision:** accepted
-- **Why:** Places the primary experimental control in the natural top-left reading position and focuses analysis immediately on the unseen test distribution.
+- **Why:** Puts the main control right where you look first, and shows the unseen camera test set right away.
 - **Problems caused:** none
 - **Time spent verifying:** 25 minutes
 ---
@@ -214,14 +219,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Total Split Images KPI Card
 
 - **Who:** Lisa
-- **Goal:** Add a dedicated summary card showing total images, camera count, and present species count.
+- **Goal:** Add a card showing how many total pictures, cameras, and animal classes are in the selected split.
 - **Prompt (important ones):**
   ```
-  Could you add a summary card showing the total number of images in the selected split? It would also be great to show how many cameras and species classes are present in that split, and remove the redundant error count subtitle from the accuracy card.
+  Could you please add a summary card showing the total number of images in the selected split? It would also be great to show how many cameras and species classes are present in that split, and remove the redundant error count subtitle from the accuracy card.
   ```
-- **AI output summary:** Added a Total Split Images KPI card displaying formatted total images, camera count, and present species count, and removed redundant ratio subtitles from the accuracy card.
+- **AI output summary:** Added a card showing total image count, camera count, and present classes, and removed redundant text from the accuracy card.
 - **Decision:** accepted
-- **Why:** Provides immediate high-level context on split size and class representation while decluttering the accuracy card.
+- **Why:** Gives quick context on how big the split is without cluttering other cards.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -229,14 +234,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Visual Hover Comparison for Confusion Matrix and Directed Edges
 
 - **Who:** Lisa
-- **Goal:** Enable side-by-side true vs predicted photo comparisons when hovering over network edges and confusion matrix cells.
+- **Goal:** Show photos of the true animal and the predicted animal side by side when hovering over lines or matrix cells.
 - **Prompt (important ones):**
   ```
   When hovering over a directed edge in the network or a cell in the confusion matrix, can you display a popup showing side-by-side photos of the true species and the mistaken species, along with the misclassification count and error rate?
   ```
-- **AI output summary:** Wired 2D `customdata` into matrix heatmap cells and edge scatter traces, connecting them to hover callbacks that render side-by-side photos of the true and predicted animals.
+- **AI output summary:** Passed image paths into customdata and wired up hover tooltips to show both photos side by side with the mistake count.
 - **Decision:** accepted
-- **Why:** Comparing the physical appearance of the two confused animals side-by-side immediately reveals morphological similarities that caused the model error.
+- **Why:** Seeing both animals side by side makes it easy to see why the model got confused (e.g. similar body shape or fur).
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
@@ -244,16 +249,16 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Dynamic Threshold Sliders and Confusion Matrix Metric Guard
 
 - **Who:** Lisa
-- **Goal:** Toggle sliders based on ranking mode and enforce count-based sorting in the confusion matrix.
+- **Goal:** Only show relevant sliders (count vs. rate) and make sure the matrix view only sorts by count.
 - **Prompt (important ones):**
   ```
   I want to clean up the slider controls and confusion matrix view:
   - Only show the "Min Confusion Count" slider when sorting by count, and "Min Confusion Rate" when sorting by rate.
   - When switching to the Confusion Matrix view, automatically lock the metric to count and disable rate, because rate-based sorting produces misleading matrix views.
   ```
-- **AI output summary:** Added dynamic visibility callbacks for threshold sliders and enforced count-only mode when Confusion Matrix view is selected.
+- **AI output summary:** Hid the rate slider when sorting by count and vice versa, and locked sorting to count when looking at the confusion matrix.
 - **Decision:** accepted
-- **Why:** Prevents confusing slider states and ensures matrix heatmaps are always sorted by valid integer counts.
+- **Why:** Avoids confusing slider states and keeps the matrix heatmap legible.
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
@@ -261,7 +266,7 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Editable Direct-Input Slider Badges and Focus Reset Repositioning
 
 - **Who:** Lisa
-- **Goal:** Replace static slider badges with editable input fields and reposition reset controls.
+- **Goal:** Let users type exact numbers into slider badges instead of just dragging, and move the Reset buttons to better spots.
 - **Prompt (important ones):**
   ```
   A few usability improvements for controls:
@@ -269,24 +274,24 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
   - Remove the default white slider input boxes.
   - Move the "Reset Focus" button next to the main visualization title, and add a global "Reset Filters" button in the control panel.
   ```
-- **AI output summary:** Replaced slider badges with debounced numeric input fields, removed default slider boxes, moved Reset Focus next to the plot title, and added a global Reset Filters button.
+- **AI output summary:** Turned the blue slider badges into number inputs, moved "Reset Focus" next to the plot title, and added a "Reset Filters" button in the control panel.
 - **Decision:** accepted
-- **Why:** Allows precise threshold entry and places reset controls right where the user is looking.
-- **Problems caused:** Direct typing initially updated on each keystroke; resolved by adding debouncing to numeric inputs.
+- **Why:** Typing exact threshold numbers is much easier than dragging a small slider, and the reset buttons are placed right where you need them.
+- **Problems caused:** Typing each digit triggered an instant update. Fixed it by adding debouncing so it waits until you finish typing.
 - **Time spent verifying:** 20 minutes
 ---
 
 ### 2026-10-22: Filtering Focus Species Dropdown to Active Classes
 
 - **Who:** Lisa
-- **Goal:** Filter the focus dropdown to species present in the split and permanently include the empty class.
+- **Goal:** Remove species from the focus dropdown that aren't in the current split, and make sure empty frames are always included.
 - **Prompt (important ones):**
   ```
   In the focus species dropdown, can you remove all species that have no images or confusions in the current split? Also, please remove the "Empty Species" toggle checkbox and always include the empty class in the graph and matrix.
   ```
-- **AI output summary:** Filtered dropdown options to active species in the split, removed the empty toggle, and permanently included the empty class in calculations.
+- **AI output summary:** Filtered the dropdown to only active species in that split, removed the empty toggle, and kept the empty class always enabled.
 - **Decision:** accepted
-- **Why:** Removes inactive ghost options from the dropdown, and ensures empty-frame false alarms (a major failure mode in camera traps) are always visible.
+- **Why:** Removes useless empty options from the dropdown, and ensures empty frames (a huge source of errors) are always visible.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -294,16 +299,16 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Fixing Startup ValueError on OOD Test Split
 
 - **Who:** Lisa
-- **Goal:** Fix startup `ValueError` when initializing or switching the active split to OOD test.
+- **Goal:** Fix the crash when starting up on the test split (`ValueError: Length of values (98) does not match length of index (102)`).
 - **Prompt (important ones):**
   ```
   When switching the default split to test (OOD test set), the app crashes on startup with:
   ValueError: Length of values (98) does not match length of index (102) at stats["top_err_cam_supp"] in summarize_split.
-  Can you fix this?
+  Can you please fix this?
   ```
-- **AI output summary:** Identified that only 98 classes incur errors in the test split out of 102 species. Aligned camera aggregations to `stats.index` and added zero/NA defaults for classes with zero mistakes.
+- **AI output summary:** Found that 4 species had zero mistakes in the test set. Filled missing species with zeros so the data lengths matched.
 - **Decision:** accepted
-- **Why:** Critical bug fix ensuring crash-free initialization across all dataset splits.
+- **Why:** The app was crashing on launch, this fixed it.
 - **Problems caused:** none
 - **Time spent verifying:** 5 minutes
 ---
@@ -311,14 +316,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Collision-Free Graph Layout and Outward Label Placement
 
 - **Who:** Lisa
-- **Goal:** Resolve overlapping node text labels and improve label styling in the network graph.
+- **Goal:** Stop species names from overlapping in the network view and make labels easier to read.
 - **Prompt (important ones):**
   ```
   In the community network view, several node labels are overlapping. Can we remove the opaque white background boxes behind the text, make the font slightly larger and semi-bold, and position labels outward from cluster centers so they don't collide?
   ```
-- **AI output summary:** Removed white label backgrounds, increased font size to 11px semi-bold, and implemented outward radial label positioning to prevent collisions.
+- **AI output summary:** Removed white boxes behind text, bumped font size slightly, and pushed labels outward from cluster centers.
 - **Decision:** accepted
-- **Why:** Greatly improves graph readability and restores clean transparent text rendering.
+- **Why:** Text looks much cleaner and names don't overlap as badly.
 - **Problems caused:** none
 - **Time spent verifying:** 20 minutes
 ---
@@ -326,22 +331,22 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Starburst Hub Layout for Focused Species Inspection
 
 - **Who:** Lisa
-- **Goal:** Implement a starburst hub layout for focused species mode to eliminate arrow crossings.
+- **Goal:** Fix crossed-over arrow lines when focusing on a species.
 - **Prompt (important ones):**
   ```
   When a species is selected, the arrows get tangled and criss-cross each other. Can we use a starburst layout where the selected species is placed in the center, outgoing errors orbit on the right, and incoming false predictions orbit on the left?
   ```
-- **AI output summary:** Built a dual-orbit starburst layout for focused species mode, separating outgoing mistakes and incoming false predictions onto opposite sides.
+- **AI output summary:** Built a starburst layout that puts the selected animal in the center, outgoing mistakes on the right, and incoming mistakes on the left.
 - **Decision:** accepted
-- **Why:** Completely eliminates arrow crossings and makes directional error flow immediately clear at a glance.
+- **Why:** Completely untangles the arrows so you can see mistake directions right away.
 - **Problems caused:** none
 - **Time spent verifying:** 25 minutes
 ---
 
-### 2026-10-22: Dynamic Arrowhead Scaling and Legibility Balancing
+### 2026-10-22: Dynamic Arrowhead Scaling
 
 - **Who:** Lisa
-- **Goal:** Scale network arrowheads proportionally with line thickness and improve color contrast.
+- **Goal:** Make arrowheads scale with line thickness and brighten dark colors so text stays readable.
 - **Prompt (important ones):**
   ```
   A couple visual tweaks for the graph:
@@ -349,27 +354,27 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
   - The darkest red in the error rate colorscale is almost black, making dark text impossible to read. Can you lighten the top end of the colorscale?
   - Rename the visualization mode radio button from "Directed Network" to "Community Clusters".
   ```
-- **AI output summary:** Implemented proportional arrowhead scaling, lightened the high-end red colorscale to crimson, and renamed the mode to Community Clusters.
+- **AI output summary:** Scaled arrowheads proportionally, lightened the darkest red color, and renamed the mode to "Community Clusters".
 - **Decision:** accepted
-- **Why:** Maintains clear directional arrows across edge widths and ensures node labels remain readable over high-error nodes.
-- **Problems caused:** Initial arrowhead scaling formula caused excessive triangular expansion; rebalanced with moderate linear scaling.
+- **Why:** Direction arrows are clearly visible even on thick lines, and text stays readable on dark red nodes.
+- **Problems caused:** Arrowheads initially got way too big, fixed by toning down the scaling formula.
 - **Time spent verifying:** 15 minutes
 ---
 
 ### 2026-10-22: Visual Encodings Legend and HTML Size Legend
 
 - **Who:** Lisa
-- **Goal:** Add an accurate node size legend and move visual encoding cards directly beneath the graph.
+- **Goal:** Add an accurate circle size legend for image counts, and move encoding cards directly under the graph.
 - **Prompt (important ones):**
   ```
   The visual encodings need clear documentation:
-  - Add a visual circle size legend for Image Count (Support) below the error rate colorbar. Plotly's default legend clamps all markers to 19px, so please use a custom SVG/HTML legend that actually shows the different circle sizes.
+  - Add a visual circle size legend for Image Count (Support) below the error rate colorbar.
   - Move the visual encoding cards (Node Size, Node Color, Arrow Width) directly inside the Confusion Network box under the plot.
   - In the formula cards, clarify that (A -> B) is functional notation for the pair, and don't put "(1 - Recall)" inside the formula where it looks like multiplication.
   ```
-- **AI output summary:** Created a custom SVG node size legend, integrated visual encoding cards beneath the network, and cleaned up mathematical formula notations.
+- **AI output summary:** Created a custom HTML/SVG circle size legend, placed the encoding cards below the network, and cleaned up the formula text.
 - **Decision:** accepted
-- **Why:** Accurately communicates graphical mappings without relying on Plotly's clamped legend symbols.
+- **Why:** Plotly's default legend shrank all circles to the same size, the custom legend actually shows real relative sizes.
 - **Problems caused:** none
 - **Time spent verifying:** 20 minutes
 ---
@@ -377,18 +382,18 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Sidebar Ranking HTML Bar Charts and Photo Header
 
 - **Who:** Lisa
-- **Goal:** Replace sidebar Plotly bar charts with fast HTML bars and add a focused species photo header.
+- **Goal:** Swap Plotly bar charts in the sidebar with simple HTML bars, and add a representative photo to the header.
 - **Prompt (important ones):**
   ```
-  Can we refine the right-hand inspection sidebar?
-  - Replace the Plotly horizontal bar charts with lightweight HTML/CSS bars so that hover tooltips trigger directly on the species text names rather than the bars.
+  Can we please refine the right-hand inspection sidebar?
+  - Replace the Plotly horizontal bar charts with lightweight HTML/CSS bars so that hovers trigger directly on the species text names rather than the bars.
   - Remove redundant x-axis tick numbers at the bottom of the bars since each bar already has its exact count at the end.
-  - In the focus panel header, show a clean representative photo (240x180, 4:3 aspect ratio) alongside the species name and stats.
+  - In the focus panel header, show a clean representative photo alongside the species name and stats.
   - Fix section titles: use lowercase "mistaken for ..." and add symmetric ellipsis to "... mistaken as <species>".
   ```
-- **AI output summary:** Created `make_html_bar_chart` with text-attached hover tooltips, removed tick numbers, added a 4:3 representative photo in the header, and standardized section titles.
+- **AI output summary:** Wrote `make_html_bar_chart` with hover tooltips on text names, removed useless tick numbers, added a 4:3 photo in the header, and cleaned up section titles.
 - **Decision:** accepted
-- **Why:** Significantly improves sidebar rendering responsiveness, prevents tooltip clipping, and gives instant visual confirmation of the focused animal.
+- **Why:** The sidebar renders much faster, tooltips don't get cut off, and you can see the animal photo right at the top.
 - **Problems caused:** none
 - **Time spent verifying:** 20 minutes
 ---
@@ -396,7 +401,7 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Contextualizing Camera Confounding with Total Occurrences
 
 - **Who:** Lisa
-- **Goal:** Show species sightings and total camera captures alongside camera error counts.
+- **Goal:** Show total animal sightings and total camera shots alongside error counts so high-activity cameras don't look worse than they are.
 - **Prompt (important ones):**
   ```
   When showing camera trap confusions, showing just the raw error count can be misleading because 10 errors out of 10 images is very different from 10 errors out of 1,000 images.
@@ -404,9 +409,9 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
   1. How many true sightings of that species were captured at that camera trap.
   2. How many total photos the camera took in the current split.
   ```
-- **AI output summary:** Precomputed species-camera occurrence mappings and displayed true species sightings alongside total camera captures across all camera tooltips.
+- **AI output summary:** Precalculated animal sightings per camera and total camera pictures, showing both numbers in camera tooltips.
 - **Decision:** accepted
-- **Why:** Critical for distinguishing whether a camera trap has severe domain shift or simply high animal activity.
+- **Why:** 10 mistakes out of 10 pictures is a broken camera, but 10 mistakes out of 1,000 pictures is actually great. This shows the difference clearly.
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
@@ -414,32 +419,32 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Interactive Multi-Image Slideshow (Diashow) Component
 
 - **Who:** Lisa
-- **Goal:** Build a client-side slideshow component allowing users to browse diverse sample photos.
+- **Goal:** Let users click through sample pictures for an animal or camera using next/previous arrow buttons.
 - **Prompt (important ones):**
   ```
-  For all image hovers, can we add a diashow carousel? Users should be able to click arrow buttons (‹ and ›) to browse through different candidate photos for a species or camera, with a counter badge like 1/5.
-  Please keep the curated representative photo as the first image you see, and make sure navigation doesn't dismiss the popup.
+  For all image hovers, can we add a diashow carousel? Users should be able to click arrow buttons to browse through different candidate photos for a species or camera, with a counter badge like 1/5.
+  Please keep the curated representative photo as the first image you see.
   ```
-- **AI output summary:** Created `make_diashow` with client-side event listeners and keyboard navigation, preserving curated representative photos at index 0.
+- **AI output summary:** Built a slideshow carousel (`make_diashow`) with arrow buttons and a counter (e.g. 1/5), keeping the best photo first.
 - **Decision:** accepted
-- **Why:** Allows users to inspect variations in animal posture, lighting, and camera angles directly within the interface.
-- **Problems caused:** Button clicks initially caused popup dismissal due to event bubbling; resolved by stopping propagation on navigation buttons.
+- **Why:** Lets you flip through different photos to see different angles, lighting, and postures.
+- **Problems caused:** Clicking arrows initially closed the popup, fixed by stopping the click event from bubbling up.
 - **Time spent verifying:** 25 minutes
 ---
 
 ### 2026-10-22: Camera Misclassification Diashow and Dynamic Prediction Captions
 
 - **Who:** Lisa
-- **Goal:** Display actual misclassified photos in the sidebar and show what the model predicted.
+- **Goal:** Show the actual photos of misclassified animals at each camera trap, with captions showing what the model guessed.
 - **Prompt (important ones):**
   ```
   Two improvements for the camera trap view:
-  - Move the camera misclassification diashow into the persistent right sidebar and show the actual photos of that species misclassified at that camera trap.
+  - Move the camera misclassification diashow into the right sidebar and show the actual photos of that species misclassified at that camera trap.
   - Add dynamic caption text under each photo showing what the model predicted for that specific shot (e.g. "Model predicted: coyote"), updating synchronously as the user clicks through images.
   ```
-- **AI output summary:** Moved camera diashows into the sidebar, pre-indexed misclassified images by camera, and added dynamic prediction caption text.
+- **AI output summary:** Moved camera slideshows into the right sidebar and added dynamic captions showing what the model predicted for that specific photo.
 - **Decision:** accepted
-- **Why:** Provides deep qualitative error inspection by showing the exact images that confused the model alongside the model's prediction.
+- **Why:** You can see the exact photo that fooled the model and what it thought it saw.
 - **Problems caused:** none
 - **Time spent verifying:** 20 minutes
 ---
@@ -447,14 +452,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Standardizing Images to Native 4:3 Camera Trap Aspect Ratio
 
 - **Who:** Lisa
-- **Goal:** Standardize all animal and camera images to native 4:3 aspect ratio without letterboxing.
+- **Goal:** Make all photos use the camera's natural 4:3 shape so nothing gets stretched or cropped into narrow strips.
 - **Prompt (important ones):**
   ```
-  Camera trap images have a native 4:3 aspect ratio, but some of the camera views are being cropped into narrow strips. Can we standardize all photo containers to the natural 4:3 ratio so nothing gets cropped or letterboxed?
+  Some of the camera views are being cropped into narrow strips. Can we standardize all photo containers ratios so nothing gets cropped or letterboxed?
   ```
-- **AI output summary:** Standardized image containers and diashow viewports to 4:3 aspect ratio with responsive auto-height.
+- **AI output summary:** Set image containers and slideshows to 4:3 aspect ratio with auto height.
 - **Decision:** accepted
-- **Why:** Ensures authentic camera trap image presentation without awkward cropping or distortion.
+- **Why:** Keeps camera trap images looking natural without weird stretching or cropping.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -462,14 +467,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Restoring Native Hover Tooltips and Eliminating Timer Conflicts
 
 - **Who:** Lisa
-- **Goal:** Fix stuck hover tooltips and restore smooth tooltip appearance and dismissal.
+- **Goal:** Fix tooltips getting stuck on screen or not showing up when hovering.
 - **Prompt (important ones):**
   ```
   The hovering isn't working properly anymore—tooltips either get stuck on the screen or don't appear when hovering over nodes. Can you fix this?
   ```
-- **AI output summary:** Identified obsolete mouseover timer scripts overriding Dash tooltip display state. Removed timer scripts and set pointer-events to none on the tooltip container.
+- **AI output summary:** Found old mouseover timer scripts that interfered with Dash. Removed the timers and set `pointer-events: none` on the tooltip box.
 - **Decision:** accepted
-- **Why:** Restores instant, reliable hover tooltips that cleanly appear on hover and disappear on unhover.
+- **Why:** Tooltips now appear and disappear smoothly when hovering over nodes.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -477,14 +482,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Eliminating Popup Horizontal Scrollbar and Aspect Ratio Sizing
 
 - **Who:** Lisa
-- **Goal:** Remove horizontal scrollbar on hover popups and enforce strict overflow containment.
+- **Goal:** Get rid of the annoying horizontal scrollbar at the bottom of hover popups.
 - **Prompt (important ones):**
   ```
   I don't like the shifting horizontal scrollbar at the bottom of the hover popup. If needed, fix the width of the popup and let the height be automatic to preserve the correct aspect ratio.
   ```
-- **AI output summary:** Enforced `overflow-x: hidden !important` on popup containers, set responsive fixed width, and enabled automatic height to eliminate horizontal scrollbars.
+- **AI output summary:** Added `overflow-x: hidden`, set a fixed popup width, and let height adjust automatically.
 - **Decision:** accepted
-- **Why:** Eliminates annoying scrollbar jumping while preserving clean 4:3 image presentation.
+- **Why:** Stops scrollbars from jumping around and keeps the photos at a clean 4:3 aspect ratio.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -492,14 +497,14 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Simplifying Top KPI and Node Hover Popups
 
 - **Who:** Lisa
-- **Goal:** Remove camera breakdown text from top KPI popups and node hover tooltips to avoid redundancy.
+- **Goal:** Remove camera text from the top KPI cards and node hover popups so they stay short and focused.
 - **Prompt (important ones):**
   ```
-  For the Top Confusion Pair and Top Over-Predicted Sink KPI popups, please remove the sentence about the cameras. Also remove the camera section from the network node hover tooltip, keeping the photo, species metadata, and error rate.
+  For the Top Confusion Pair and Top Over-Predicted Sink popups, please remove the sentence about the cameras. Also remove the camera section from the network node hover tooltip, keeping the photo, species metadata, and error rate.
   ```
-- **AI output summary:** Removed camera text lines from KPI popups and node tooltips, keeping top-level previews concise and leaving in-depth camera analysis to the dedicated sidebar.
+- **AI output summary:** Removed camera lines from KPI popups and node tooltips, keeping just the photo, species info, and error rate.
 - **Decision:** accepted
-- **Why:** Prevents redundant camera metrics across multiple cards and keeps high-level hover cards focused on morphological comparisons.
+- **Why:** Keeps hover cards simple and avoids repeating camera details that are already in the sidebar.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -507,7 +512,7 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Final Popup and Typographic Polish
 
 - **Who:** Lisa
-- **Goal:** Remove slideshow buttons from the top pair card, remove confidence percentages, and correct minor typographic details.
+- **Goal:** Remove slideshow buttons from the top pair popup, drop confidence percentages from captions, and fix spacing typos.
 - **Prompt (important ones):**
   ```
   A few final polish items:
@@ -516,9 +521,9 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
   - Remove the bullet point before the camera sighting count in the sink tooltip.
   - Add a whitespace after "for" in "mistaken for ...".
   ```
-- **AI output summary:** Set max_images=1 for top pair popup, removed confidence percentages from diashow captions, removed bullet point prefixes, and corrected whitespace spacing.
+- **AI output summary:** Set top pair popup to single photos without slider buttons, removed confidence numbers from captions, and fixed minor whitespace and typo issues.
 - **Decision:** accepted
-- **Why:** Eliminates button clutter from static KPI previews, streamlines captions, and ensures clean typographic alignment.
+- **Why:** Cleans up the preview cards and fixes small visual details.
 - **Problems caused:** none
 - **Time spent verifying:** 10 minutes
 ---
@@ -526,17 +531,17 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-22: Dashboard Header Typography and Model Specification
 
 - **Who:** Lisa
-- **Goal:** Enlarge the dashboard title heading, improve typographic hierarchy, and specify model details.
+- **Goal:** Make the main dashboard title larger and bold, and state clearly that we are analyzing fine-tuned ResNet-50 on iWildCam.
 - **Prompt (important ones):**
   ```
   The header looks a bit small and understated for a full-screen dashboard:
-  - Can you enlarge the main heading to 35px, center it, and make it bold?
+  - Can you enlarge the main heading, center it, and make it bold?
   - Update the subtitle to clearly specify that we are analyzing fine-tuned ResNet-50 on iWildCam.
   - Adjust margins and padding so the header commands the top of the screen nicely.
   ```
-- **AI output summary:** Scaled dashboard title to 35px bold, centered header elements, updated subtitle description, and refined container padding.
+- **AI output summary:** Increased title to 35px bold, centered header items, and updated the subtitle text.
 - **Decision:** accepted
-- **Why:** Establishes strong typographic hierarchy and immediately clarifies the model and task context for viewers.
+- **Why:** The header was way too small before, now it clearly introduces the project at the top of the page.
 - **Problems caused:** none
 - **Time spent verifying:** 5 minutes
 ---
@@ -544,35 +549,35 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-24: Restoring Network Edge Arrowheads & Hub Spoke Clearance
 
 - **Who:** Lisa
-- **Goal:** Ensure all confusion connections show directed arrowheads without collapsing on short edges or colliding with central hub nodes.
+- **Goal:** Make sure all confusion lines have arrowheads, and stop arrows from drawing directly over the middle node in hub clusters.
 - **Prompt (important ones):**
   ```
   A few issues with directed arrowheads in the confusion network:
   - Can you check why there are no arrowheads for some connections here?
   - On the central hub cluster, the arrows are overlapping and occluding the middle node.
-  - Make sure all connections consistently display directed arrows with adequate clearance.
+  - Make sure all connections consistently display directed arrows?.
   ```
-- **AI output summary:** Diagnosed that Plotly suppressed arrowheads on short connections because the vector length between index points fell below ~8–10 px. Enforced a minimum tangent vector length of 0.35 data units (~16 px) so every connection renders an arrowhead. Resolved hub node overlap by offsetting spoke midpoint boundaries (inward spokes stop at 50%, outward spokes start at 50%) and expanding radial clearance for dense hub components ($m \ge 6$).
+- **AI output summary:** Found that Plotly hid arrowheads on short lines under 10px, set a minimum line length so every line gets an arrow. Shifted spoke lines so they stop before overlapping the central node.
 - **Decision:** accepted
-- **Why:** Restores complete directional readability across all confusion connections while keeping central hub nodes unobstructed.
-- **Problems caused:** Subsequent opacity scaling created an unintended contrast discrepancy on heavy edges.
+- **Why:** You can clearly see mistake directions on every connection, and the center node isn't covered by lines.
+- **Problems caused:** Thick lines ended up darker than thin lines, fixed in the next step.
 - **Time spent verifying:** 15 minutes
 ---
 
 ### 2026-10-24: Color Harmonization and Uniform Edge Opacity
 
 - **Who:** Lisa
-- **Goal:** Eliminate color discrepancies between edge strokes and arrowheads, and standardize edge opacity across mistake volumes.
+- **Goal:** Make all arrows use the exact same color and opacity so heavy lines don't look completely different from light ones.
 - **Prompt (important ones):**
   ```
   The arrow styling and opacity need refinement:
   - The thick connection at the bottom has a different, much darker color than the rest of the arrows.
   - Can we remove dynamic opacity so all connections share the same consistent color?
-  - Line thickness should communicate error volume, but the color and opacity should remain uniform across all edges.
+  - Line thickness should communicate error volume, but the color and opacity should remain the same across all edges.
   ```
-- **AI output summary:** Identified that dynamic opacity scaling caused high-error edges to render at 0.90 opacity (an isolated dark slate), while low-error edges rendered at 0.40 opacity (faint silver-gray), and earlier stroke vs. arrowhead RGB channels were mismatched. Removed dynamic opacity in overview mode and unified all overview edges, ensuring error magnitude is expressed strictly through stroke width without color or darkness discrepancies.
+- **AI output summary:** Removed dynamic opacity so all lines share the same gray tone, using only line thickness to show error count.
 - **Decision:** accepted
-- **Why:** Delivers clean visual hierarchy across the entire network, preventing heavy confusion edges from appearing as mismatched dark lines.
+- **Why:** Makes the graph look clean and consistent, thick lines show bigger error counts without turning into mismatched black bars.
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
@@ -580,19 +585,16 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 ### 2026-10-25: Increasing Inter-Cluster Spacing and In-Cluster Node Clearance
 
 - **Who:** Lisa
-- **Goal:** Reduce species name text overlaps by increasing inter-cluster separation and enlarging in-cluster node distances.
+- **Goal:** Spread out clusters and nodes in the network so species names don't overlap as much.
 - **Prompt (important ones):**
   ```
   sometimes the species names are overlapping. how could this be fixed?
   - can we please first try it by just increasing cluster distnaces?
   - is it possible to have the in-cluster distances larger so that there is less overlap of the text with other nodes?
   ```
-- **AI output summary:**
-  1. Increased satellite orbit buffer from `+ 3.2` to `+ 5.4` data units and ring mode fallback spacing from `max(2.8, ...)` to `max(3.8, ...)` to provide clearance between opposing cluster perimeters.
-  2. Expanded in-cluster radii ($m \ge 6$: $1.30 + 0.22 \cdot m$; 2-node pairs: $1.20$; small clusters: min $1.50$) to give nodes adequate angular separation within clusters.
-  3. Dynamically offset node labels using the marker's visual pixel diameter converted to data coordinates (`node_r_data + margin`), preventing labels from rendering over node circle markers (such as the central hub node and perimeter nodes).
+- **AI output summary:** Pushed clusters farther apart, made inner circles wider, and placed labels just outside node circle boundaries.
 - **Decision:** accepted
-- **Why:** Substantially reduces label crowding and eliminates text occluding node circle markers, preserving single-line species labels.
+- **Why:** Makes species names much easier to read without text drawing right over the circles.
 - **Problems caused:** none
 - **Time spent verifying:** 15 minutes
 ---
@@ -765,7 +767,7 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 - **Goal:** Make it obvious at a glance if two errors are the same species or from the same camera by color-coding card borders.
 - **Prompt (important ones):**
   ```
-  can we colour in **only the baclground each** - colour the background behind the image - with an colour representing the species; and below the part - where "camera" and stuff in a color representing the camera which took the foto
+  can we colour in **only the baclground each** - colour the background behind the image - with an colour representing the species, and below the part - where "camera" and stuff in a color representing the camera which took the foto
   ```
 - **AI output summary:** colour coded according to the prompt
 - **Decision:** accepted
@@ -890,5 +892,77 @@ This log tracks all AI interactions and reflections during Phase 1: Error Analys
 - **Why:** was not intuitive enough
 - **Problems caused:** none
 - **Time spent verifying:** 6
+
+---
+
+### 2026-10-31: Combining ID and OOD into Unified Dataset Splits
+
+- **Who:** Lisa
+- **Goal:** Merge in-distribution and out-of-distribution data into single test, validation, and training sets.
+- **Prompt (important ones):**
+  ```
+  please summarise ID and OOD into one dataset each. so, there should be one test set, one validation set and one training set
+  ```
+- **AI output summary:** Remapped `id_test` into `test` and `id_val` into `val` so the dropdown just shows three simple splits: Test Set, Validation Set, and Training Set.
+- **Decision:** accepted
+- **Why:** Much simpler to look at three main splits instead of constantly switching between ID and OOD camera locations.
+- **Problems caused:** During hot-reload, the Dash app kept the old split names in memory, so `id_val` and `id_test` still showed up at the bottom of the dropdown. Fixed by doing the remapping inside `create_app()` too and filtering the dropdown choices.
+- **Time spent verifying:** 10 minutes
+---
+
+### 2026-11-01: Integrating English Species Names and Bilingual Headings
+
+- **Who:** Lisa
+- **Goal:** Show common English names for animals alongside their scientific names so they are easier to recognize.
+- **Prompt (important ones):**
+  ```
+  Can we add English common names for the species so they are easier to recognize in the network, tooltips, and side panel? Keep the scientific names accessible too.
+  Also add compact readable abbreviations for node labels so they fit nicely around clusters without losing the full name on hover.
+  ```
+- **AI output summary:**
+  1. Added a CSV table with English animal names and wrote a helper script (`species_names.py`) to look them up.
+  2. Put English names on hover cards, side panels, and dropdowns, with the scientific name in italics underneath.
+  3. Shortened long names on network circles (like "W. peccary") so labels stay neat, while keeping the full name in the popup.
+- **Decision:** accepted
+- **Why:** Latin names are hard to recognize unless you're a biologist, having English names makes exploring the dashboard way more intuitive.
+- **Problems caused:** none
+- **Time spent verifying:** 15 minutes
+---
+
+### 2026-11-01: Client-Side Dynamic Collision Avoidance for Network Labels
+
+- **Who:** Lisa
+- **Goal:** Stop species names from overlapping with nodes, arrows, or each other, and add horizontal scrolling on small screens.
+- **Prompt (important ones):**
+  ```
+  The species names sometimes still collide with nodes, arrows, or each other in dense clusters.
+  Can we add dynamic label collision avoidance that measures the rendered text and moves labels into clear slots?
+  Also make sure the canvas scrolls horizontally on narrow screens instead of squishing the network.
+  ```
+- **AI output summary:** Wrote a small JavaScript script (`confusion_labels.js`) that measures text bounding boxes directly in the browser and moves overlapping labels into open space around nodes on zoom and pan. Added a minimum canvas width so the graph doesn't get squished.
+- **Decision:** accepted
+- **Why:** Python can't easily see how text actually renders in the browser, letting JavaScript measure the rendered text boxes and shift them in real time fixed the overlapping labels completely.
+- **Problems caused:** none
+- **Time spent verifying:** 20 minutes
+---
+
+### 2026-11-01: Configurable Dataset Paths and Filename Diagnostics CLI
+
+- **Who:** Lisa
+- **Goal:** Let the app take custom folder paths from the command line so anyone can run it on different machines (or external hard drives) without editing the code.
+- **Prompt (important ones):**
+  ```
+  Make image and prediction paths configurable via command line arguments so the viewer can run when images are stored in a different folder or drive.
+  Add a flag to quickly verify whether prediction filenames match images on disk without having to start the server.
+  Document path usage and Windows/WSL examples in the README.
+  ```
+- **AI output summary:**
+  1. Added command-line arguments (like `--images-dir` and `--predictions`) to point to custom folders.
+  2. Added a `--check-data` flag to quickly check if prediction image files actually exist on disk before launching the dashboard.
+  3. Added examples for Windows and WSL in the README.
+- **Decision:** accepted
+- **Why:** Everyone on the team has slightly different folder structures and drives, so this lets anyone run the app without breaking file paths.
+- **Problems caused:** none
+- **Time spent verifying:** 10 minutes
 
 ---
