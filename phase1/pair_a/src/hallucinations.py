@@ -81,7 +81,7 @@ def extract_background_features(df: pd.DataFrame, image_dir: Path) -> pd.DataFra
     return df.merge(feat_df, on='id', how='left')
 
 
-def load_comparative_data(split: str = 'val', compute_bg_features: bool = True):
+def load_comparative_data(split: str = 'test', compute_bg_features: bool = True):
     """Load model predictions and extract false detection and disagreement subsets.
 
     Reads precomputed predictions from the WILDS Fine-Tuned ResNet-50 and
@@ -182,7 +182,24 @@ def get_top5_distribution(row: pd.Series, class_names: pd.Series) -> list[dict]:
     ]
 
 
-def analyze_burst_persistence(fp_df: pd.DataFrame, empty_df: pd.DataFrame) -> dict:
+def generate_thumbnail_base64(image_path: Path, max_size=(280, 280)) -> str:
+    """Create a lightweight base64 JPEG thumbnail string."""
+    with Image.open(image_path) as img:
+        img.thumbnail(max_size)
+        buffer = io.BytesIO()
+        img.convert('RGB').save(buffer, format='JPEG', quality=82)
+        return 'data:image/jpeg;base64,' + base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+
+def analyze_burst_persistence(
+    fp_df: pd.DataFrame,
+    empty_df: pd.DataFrame,
+    full_df: pd.DataFrame = None,
+    image_dir: Path = None,
+    thumb_cache: dict = None,
+    format_scientific_name: callable = None,
+    species_emojis: dict = None,
+) -> dict:
     """Analyze temporal consistency of hallucinations across camera burst sequences."""
     empty_seqs = empty_df.groupby(['location', 'seq_id']).size().rename('seq_length')
     fp_seqs = fp_df.groupby(['location', 'seq_id']).agg(
@@ -195,6 +212,126 @@ def analyze_burst_persistence(fp_df: pd.DataFrame, empty_df: pd.DataFrame) -> di
     affected = merged[merged['fp_count'] > 0].copy()
     affected['fp_fraction'] = affected['fp_count'] / affected['seq_length']
 
+    if format_scientific_name is None:
+        def format_scientific_name(sp: str) -> str:
+            sp_clean = sp.strip().replace('_', ' ')
+            if not sp_clean:
+                return sp
+            parts = sp_clean.split()
+            if len(parts) >= 2:
+                return parts[0].capitalize() + ' ' + ' '.join(p.lower() for p in parts[1:])
+            return sp_clean.capitalize()
+
+    if species_emojis is None:
+        species_emojis = {}
+
+    if thumb_cache is None:
+        thumb_cache = {}
+
+    # Extract multi-frame sequence traces for interactive Heatmap & Filmstrip
+    seq_counts = empty_df.groupby('seq_id').size()
+    multi_fp_seqs = [s for s in fp_df['seq_id'].unique() if seq_counts.get(s, 0) > 1]
+
+    fp_id_set = set(fp_df['id'].values)
+    fp_lookup = {r['id']: r for _, r in fp_df.iterrows()}
+    full_lookup = {r['id']: r for _, r in full_df.iterrows()} if full_df is not None else {}
+
+    traces = []
+    for seq_id in multi_fp_seqs:
+        seq_frames = empty_df[empty_df['seq_id'] == seq_id].sort_values('datetime').reset_index(drop=True)
+        n_frames = len(seq_frames)
+        seq_fp = fp_df[fp_df['seq_id'] == seq_id]
+        n_fp = len(seq_fp)
+        loc = str(seq_frames['location'].iloc[0])
+
+        if n_fp == n_frames:
+            persistence = 'persistent'
+        elif n_fp > 1:
+            persistence = 'partial'
+        else:
+            persistence = 'isolated'
+
+        top_sp = seq_fp['prediction_name'].mode()[0] if not seq_fp.empty else 'empty'
+        primary_species_fmt = format_scientific_name(top_sp)
+        emoji = species_emojis.get(top_sp, '🐾')
+
+        # Calculate time offsets
+        try:
+            times = pd.to_datetime(seq_frames['datetime'])
+            start_t = times.iloc[0]
+            dur_s = round(float((times.iloc[-1] - start_t).total_seconds()), 1)
+        except Exception:
+            dur_s = 0.0
+            times = None
+
+        frame_items = []
+        for idx, row in seq_frames.iterrows():
+            f_idx = idx + 1
+            t_sec = round(float((times.iloc[idx] - start_t).total_seconds()), 1) if times is not None else 0.0
+            time_s = f"{t_sec:+.1f}" if t_sec > 0 else "+0.0"
+
+            is_fp = row['id'] in fp_id_set
+            if is_fp:
+                fp_row = fp_lookup.get(row['id'], row)
+                conf = float(fp_row.get('confidence', 0.9))
+                sp = fp_row.get('prediction_name', 'unknown')
+                sp_fmt = format_scientific_name(sp)
+                em = species_emojis.get(sp, '🐾')
+                fname = fp_row.get('filename', row.get('filename', ''))
+            else:
+                ft_row = full_lookup.get(row['id'], row)
+                conf = float(ft_row.get('confidence', 0.99))
+                sp = 'empty'
+                sp_fmt = 'Empty'
+                em = '🍃'
+                fname = row.get('filename', '')
+
+            # Thumbnail generation / lookup from cache
+            thumb = ''
+            if fname:
+                if fname in thumb_cache:
+                    thumb = thumb_cache[fname]
+                elif image_dir is not None:
+                    p = Path(image_dir) / fname
+                    if p.exists():
+                        thumb = generate_thumbnail_base64(p, max_size=(160, 120))
+                        thumb_cache[fname] = thumb
+
+            frame_items.append({
+                'idx': f_idx,
+                'time_s': time_s,
+                'is_fp': bool(is_fp),
+                'conf': round(conf, 3),
+                'conf_pct': f"{conf:.1%}",
+                'species': sp,
+                'species_fmt': sp_fmt,
+                'emoji': em,
+                'thumb': thumb,
+            })
+
+        mean_conf = float(seq_fp['confidence'].mean()) if not seq_fp.empty else 0.0
+
+        traces.append({
+            'seq_id': seq_id,
+            'camera': loc,
+            'persistence': persistence,
+            'primary_species': top_sp,
+            'primary_species_fmt': primary_species_fmt,
+            'emoji': emoji,
+            'n_frames': n_frames,
+            'n_fp': n_fp,
+            'duration_s': dur_s,
+            'mean_conf': mean_conf,
+            'frames': frame_items,
+        })
+
+    # Sort traces:
+    # 1. 100% persistent first (longest first, then highest mean confidence)
+    # 2. partial multi-shot bursts (most FPs first)
+    # 3. isolated 1-shot glitches (longest burst first)
+    p_rank = {'persistent': 0, 'partial': 1, 'isolated': 2}
+    traces.sort(key=lambda t: (p_rank[t['persistence']], -t['n_fp'], -t['n_frames'], -t['mean_conf']))
+
     return {
         'total_empty_sequences': len(merged),
         'affected_sequences': len(affected),
@@ -202,16 +339,8 @@ def analyze_burst_persistence(fp_df: pd.DataFrame, empty_df: pd.DataFrame) -> di
         'full_hallucination_rate': float((affected['fp_count'] == affected['seq_length']).mean()),
         'avg_fps_per_affected_burst': float(affected['fp_count'].mean()),
         'sequences_df': affected.sort_values('fp_count', ascending=False).reset_index(),
+        'traces': traces,
     }
-
-
-def generate_thumbnail_base64(image_path: Path, max_size=(280, 280)) -> str:
-    """Create a lightweight base64 JPEG thumbnail string."""
-    with Image.open(image_path) as img:
-        img.thumbnail(max_size)
-        buffer = io.BytesIO()
-        img.convert('RGB').save(buffer, format='JPEG', quality=82)
-        return 'data:image/jpeg;base64,' + base64.b64encode(buffer.getvalue()).decode('utf-8')
 
 
 def build_false_detection_gallery_html(
@@ -281,13 +410,41 @@ def build_false_detection_gallery_html(
         'mazama temama': '🦌',
         'funisciurus carruthersi': '🐿️',
         'equus grevyi': '🦓',
+        'sylvilagus brasiliensis': '🐇',
+        'cuniculus paca': '🦔',
+        'puma concolor': '🦁',
+        'didelphis sp': '🐀',
+        'pecari tajacu': '🐗',
+        'leptotila plumbeiceps': '🕊️',
+        'martes flavigula': '🦡',
+        'macaca sp': '🐒',
+        'mazama gouazoubira': '🦌',
+        'alouatta palliata': '🐒',
+        'sciurus granatensis': '🐿️',
+        'canis latrans': '🐺',
+        'procyon lotor': '🦝',
+        'leopardus wiedii': '🐆',
+        'tamandua mexicana': '🦡',
+        'bos primigenius': '🐂',
+        'sus scrofa': '🐗',
+        'odocoileus virginianus': '🦌',
+        'cebus capucinus': '🐒',
+        'eira barbara': '🦡',
+        'penelope purpurascens': '🦃',
+        'choloepus hoffmanni': '🦥',
+        'procyon cancrivorus': '🦝',
     }
+
+    thumb_cache = {}
 
     # Process fine-tuned records
     ft_items = []
     for _, row in ft_fp.iterrows():
-        img_path = image_dir / row['filename']
-        thumb = generate_thumbnail_base64(img_path) if img_path.exists() else ''
+        fname = row['filename']
+        if fname not in thumb_cache:
+            img_path = image_dir / fname
+            thumb_cache[fname] = generate_thumbnail_base64(img_path) if img_path.exists() else ''
+        thumb = thumb_cache[fname]
         top5 = get_top5_distribution(row, class_names)
         sp_name = row['prediction_name']
 
@@ -314,8 +471,11 @@ def build_false_detection_gallery_html(
     # Process probe records
     probe_items = []
     for _, row in probe_fp.iterrows():
-        img_path = image_dir / row['filename']
-        thumb = generate_thumbnail_base64(img_path) if img_path.exists() else ''
+        fname = row['filename']
+        if fname not in thumb_cache:
+            img_path = image_dir / fname
+            thumb_cache[fname] = generate_thumbnail_base64(img_path) if img_path.exists() else ''
+        thumb = thumb_cache[fname]
         top5 = get_top5_distribution(row, class_names)
         sp_name = row['prediction_name']
 
@@ -372,18 +532,7 @@ def build_false_detection_gallery_html(
         })
 
     # 2. RQ3 Background x Species Confusion Matrix data
-    top_spp = [
-        'panthera onca',
-        'leopardus pardalis',
-        'crax rubra',
-        'equus ferus',
-        'meleagris ocellata',
-        'urocyon cinereoargenteus',
-        'dasyprocta punctata',
-        'madoqua guentheri',
-        'aepyceros melampus',
-        'bos taurus',
-    ]
+    top_spp = list(ft_fp['prediction_name'].value_counts().head(10).index)
     bg_cats = ['Night / IR Flash', 'Dense Vegetation', 'High Contrast / Lighting', 'Open / Diffuse Landscape']
 
     def build_matrix_data(df_fp):
@@ -419,12 +568,21 @@ def build_false_detection_gallery_html(
     }
 
     # 3. Burst persistence & sequence dynamics
-    burst_res = analyze_burst_persistence(ft_fp, true_empty)
+    burst_res = analyze_burst_persistence(
+        ft_fp,
+        true_empty,
+        full_df=data_bundle.get('full_ft'),
+        image_dir=image_dir,
+        thumb_cache=thumb_cache,
+        format_scientific_name=format_scientific_name,
+        species_emojis=SPECIES_EMOJIS,
+    )
     burst_summary = {
         'affected_sequences': int(burst_res['affected_sequences']),
         'fully_hallucinated_sequences': int(burst_res['fully_hallucinated_sequences']),
         'full_hallucination_rate': f"{burst_res['full_hallucination_rate']:.1%}",
         'avg_fps': f"{burst_res['avg_fps_per_affected_burst']:.1f}",
+        'traces': burst_res.get('traces', []),
     }
 
     # 5. Species Hallucination Frequency & Diagnostics
@@ -483,6 +641,252 @@ def build_false_detection_gallery_html(
     camera_options = "\n".join([f'<option value="{c}">Camera {c}</option>' for c in camera_list])
     bg_options = "\n".join([f'<option value="{b}">{b}</option>' for b in bg_list])
     data_json = json.dumps(all_data)
+
+    # Dynamic helper functions for UI callout cards
+    def build_species_callout_cards(df_fp):
+        s_counts = df_fp['prediction_name'].value_counts()
+        if len(s_counts) == 0:
+            return ""
+
+        # Card 1: Primary phantom species
+        sp1 = s_counts.index[0]
+        cnt1 = int(s_counts.iloc[0])
+        pct1 = cnt1 / len(df_fp)
+        sp1_sub = df_fp[df_fp['prediction_name'] == sp1]
+        top_bg1 = sp1_sub['bg_category'].mode()[0] if ('bg_category' in sp1_sub and len(sp1_sub['bg_category']) > 0) else 'Night / IR Flash'
+        bg1_pct = (sp1_sub['bg_category'] == top_bg1).sum() / cnt1 if cnt1 > 0 else 0
+        top_cam1 = sp1_sub['location'].mode()[0] if ('location' in sp1_sub and len(sp1_sub['location']) > 0) else ''
+        cam1_cnt = (sp1_sub['location'] == top_cam1).sum() if top_cam1 != '' else 0
+        emoji1 = SPECIES_EMOJIS.get(sp1, '🐾')
+        fmt1 = format_scientific_name(sp1)
+
+        card1 = f"""
+        <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 12px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 11px; font-weight: 700; color: #be123c; text-transform: uppercase;">{emoji1} {fmt1}</span>
+            <span style="font-size: 10px; font-weight: 700; background: #ffe4e6; color: #9f1239; padding: 2px 6px; border-radius: 4px;">{pct1:.1%} ({cnt1:,} Frames)</span>
+          </div>
+          <div style="font-size: 15px; font-weight: 800; color: #9f1239; margin-top: 4px;">{fmt1} ({cnt1:,} Frames)</div>
+          <div style="font-size: 11px; color: #be123c; margin-top: 3px; line-height: 1.4;">
+            <strong>{bg1_pct:.1%} happen in {top_bg1}.</strong> Camera {top_cam1} accounts for {cam1_cnt:,} frames ({cam1_cnt/cnt1:.1%} of this taxon).
+          </div>
+        </div>
+        """
+
+        # Card 2: Runner-up species
+        if len(s_counts) > 1:
+            sp2 = s_counts.index[1]
+            cnt2 = int(s_counts.iloc[1])
+            pct2 = cnt2 / len(df_fp)
+            sp2_sub = df_fp[df_fp['prediction_name'] == sp2]
+            top_bg2 = sp2_sub['bg_category'].mode()[0] if ('bg_category' in sp2_sub and len(sp2_sub['bg_category']) > 0) else 'Night / IR Flash'
+            bg2_pct = (sp2_sub['bg_category'] == top_bg2).sum() / cnt2 if cnt2 > 0 else 0
+            top_cam2 = sp2_sub['location'].mode()[0] if ('location' in sp2_sub and len(sp2_sub['location']) > 0) else ''
+            cam2_cnt = (sp2_sub['location'] == top_cam2).sum() if top_cam2 != '' else 0
+            emoji2 = SPECIES_EMOJIS.get(sp2, '🐾')
+            fmt2 = format_scientific_name(sp2)
+            card2 = f"""
+            <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 12px 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 700; color: #6d28d9; text-transform: uppercase;">{emoji2} {fmt2}</span>
+                <span style="font-size: 10px; font-weight: 700; background: #ede9fe; color: #5b21b6; padding: 2px 6px; border-radius: 4px;">{pct2:.1%} ({cnt2:,} Frames)</span>
+              </div>
+              <div style="font-size: 15px; font-weight: 800; color: #5b21b6; margin-top: 4px;">{fmt2} ({cnt2:,} Frames)</div>
+              <div style="font-size: 11px; color: #6d28d9; margin-top: 3px; line-height: 1.4;">
+                <strong>{bg2_pct:.1%} in {top_bg2}.</strong> Camera {top_cam2} accounts for {cam2_cnt:,} frames ({cam2_cnt/cnt2:.1%}).
+              </div>
+            </div>
+            """
+        else:
+            card2 = ""
+
+        # Card 3: Top 3rd to 5th species cluster
+        if len(s_counts) > 2:
+            sps3 = s_counts.iloc[2:6]
+            tot3 = int(sps3.sum())
+            pct3 = tot3 / len(df_fp)
+            sps3_str = ", ".join([f"{format_scientific_name(s)} ({int(c)})" for s, c in sps3.items()])
+            title3 = " / ".join([f"{SPECIES_EMOJIS.get(s, '🐾')} {format_scientific_name(s)}" for s in sps3.index[:3]])
+            card3 = f"""
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">{title3}</span>
+                <span style="font-size: 10px; font-weight: 700; background: #dcfce7; color: #14532d; padding: 2px 6px; border-radius: 4px;">{pct3:.1%} ({tot3:,} Frames)</span>
+              </div>
+              <div style="font-size: 15px; font-weight: 800; color: #14532d; margin-top: 4px;">{sps3_str}</div>
+              <div style="font-size: 11px; color: #15803d; margin-top: 3px; line-height: 1.4;">
+                <strong>Secondary Hallucination Cluster.</strong> Recurrent ground wildlife, birds, and artifact misclassifications.
+              </div>
+            </div>
+            """
+        else:
+            card3 = ""
+
+        return f"""
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          {card1}
+          {card2}
+          {card3}
+        </div>
+        """
+
+    def build_environment_callout_cards(df_fp):
+        bg_c = df_fp['bg_category'].value_counts()
+        total = len(df_fp)
+        if total == 0:
+            return ""
+
+        bg_styles = {
+            'Night / IR Flash': {'bg': '#eff6ff', 'border': '#bfdbfe', 'text': '#1e3a8a', 'accent': '#1e40af', 'sub': '#3b82f6', 'icon': '🌙'},
+            'Dense Vegetation': {'bg': '#f0fdf4', 'border': '#bbf7d0', 'text': '#14532d', 'accent': '#166534', 'sub': '#15803d', 'icon': '🌿'},
+            'High Contrast / Lighting': {'bg': '#fff7ed', 'border': '#fed7aa', 'text': '#7c2d12', 'accent': '#9a3412', 'sub': '#ea580c', 'icon': '☀️'},
+            'Open / Diffuse Landscape': {'bg': '#fefce8', 'border': '#fef08a', 'text': '#713f12', 'accent': '#854d0e', 'sub': '#a16207', 'icon': '🌾'},
+        }
+
+        cards = []
+        sorted_bgs = [b for b in bg_c.index if b in bg_styles]
+        for bg_name in sorted_bgs[:3]:
+            cnt = int(bg_c.get(bg_name, 0))
+            pct = cnt / total if total > 0 else 0
+            style = bg_styles.get(bg_name, bg_styles['Night / IR Flash'])
+            bg_sub = df_fp[df_fp['bg_category'] == bg_name]
+            if len(bg_sub) > 0:
+                top_sp = bg_sub['prediction_name'].mode()[0]
+                sp_cnt = (bg_sub['prediction_name'] == top_sp).sum()
+                sp_pct = sp_cnt / cnt if cnt > 0 else 0
+                sp_fmt = format_scientific_name(top_sp)
+                sp_em = SPECIES_EMOJIS.get(top_sp, '🐾')
+                headline = f"{sp_pct:.1%} {sp_em} {sp_fmt} ({sp_cnt:,} Frames)"
+                desc = f"Primary trigger condition producing {cnt:,} false alarms in this environmental category."
+            else:
+                headline = "0 False Alarms"
+                desc = "No false detections observed in this category."
+
+            cards.append(f"""
+            <div style="background: {style['bg']}; border: 1px solid {style['border']}; border-radius: 10px; padding: 12px 14px;">
+              <div style="font-size: 11px; font-weight: 700; color: {style['accent']}; text-transform: uppercase;">{style['icon']} {bg_name} ({cnt:,} FPs, {pct:.1%})</div>
+              <div style="font-size: 16px; font-weight: 800; color: {style['text']}; margin-top: 2px;">{headline}</div>
+              <div style="font-size: 11px; color: {style['sub']}; margin-top: 3px;">{desc}</div>
+            </div>
+            """)
+
+        return f"""
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px;">
+          {''.join(cards)}
+        </div>
+        """
+
+    # Derive dynamic split & summary statistics for UI
+    split_name = ft_fp['split'].iloc[0] if ('split' in ft_fp.columns and len(ft_fp) > 0) else 'test'
+    split_title = 'Test' if split_name == 'test' else ('Validation' if split_name == 'val' else split_name.capitalize())
+
+    n_total_empty = len(true_empty)
+    n_ft_fp = len(ft_fp)
+    n_probe_fp = len(probe_fp)
+    fpr_pct_str = f"{n_ft_fp / n_total_empty:.2%}" if n_total_empty > 0 else "0.0%"
+
+    if n_probe_fp > n_ft_fp:
+        diff_pct = (n_probe_fp - n_ft_fp) / n_probe_fp
+        improvement_val = f"{diff_pct:.0%} Fewer Errors"
+        improvement_sub = f"Fine-tuned model cut errors from {n_probe_fp:,} down to {n_ft_fp:,}"
+    else:
+        diff_pct = (n_ft_fp - n_probe_fp) / n_probe_fp if n_probe_fp > 0 else 0
+        improvement_val = f"{diff_pct:.0%} More Errors"
+        improvement_sub = f"Probe: {n_probe_fp:,} vs Fine-Tuned: {n_ft_fp:,}"
+
+    # Top species
+    top_sp_series = ft_fp['prediction_name'].value_counts()
+    if len(top_sp_series) > 0:
+        top_sp_name1 = top_sp_series.index[0]
+        top_sp_cnt1 = int(top_sp_series.iloc[0])
+        top_sp_pct1 = top_sp_cnt1 / n_ft_fp if n_ft_fp > 0 else 0.0
+        top_sp_fmt1 = format_scientific_name(top_sp_name1)
+        top_sp_em1 = SPECIES_EMOJIS.get(top_sp_name1, '🐾')
+
+        if len(top_sp_series) > 1 and (top_sp_series.iloc[1] / n_ft_fp) > 0.10:
+            top_sp_name2 = top_sp_series.index[1]
+            top_sp_cnt2 = int(top_sp_series.iloc[1])
+            top_sp_pct2 = top_sp_cnt2 / n_ft_fp if n_ft_fp > 0 else 0.0
+            top_sp_fmt2 = format_scientific_name(top_sp_name2)
+            comb_pct = (top_sp_cnt1 + top_sp_cnt2) / n_ft_fp
+            top_sp_val = f"{top_sp_fmt1} & {top_sp_fmt2} ({comb_pct:.0%})"
+            top_sp_sub = f"{top_sp_cnt1 + top_sp_cnt2:,} empty frames mistaken for {top_sp_fmt1} & {top_sp_fmt2}"
+            explainer_species_str = f"Over <strong>{comb_pct:.0%} of false alarms</strong> are <em>{top_sp_fmt1} & {top_sp_fmt2}</em> ({top_sp_cnt1 + top_sp_cnt2:,} frames)."
+        else:
+            top_sp_val = f"{top_sp_fmt1} ({top_sp_pct1:.1%})"
+            top_sp_sub = f"{top_sp_cnt1:,} empty frames mistaken for {top_sp_fmt1}"
+            explainer_species_str = f"Over <strong>{top_sp_pct1:.0%} of false alarms</strong> are <em>{top_sp_fmt1}</em> ({top_sp_cnt1:,} frames)."
+    else:
+        top_sp_fmt1 = "Wildlife"
+        top_sp_val = "None"
+        top_sp_sub = "No false alarms recorded"
+        explainer_species_str = "No false alarms detected."
+
+    # Problem cameras
+    cam_counts = ft_fp['location'].value_counts()
+    cum = 0
+    top_cam_n = 0
+    for cnt in cam_counts:
+        cum += cnt
+        top_cam_n += 1
+        if cum / n_ft_fp >= 0.50 or top_cam_n >= len(cam_counts):
+            break
+    cum_pct = (cum / n_ft_fp) if n_ft_fp > 0 else 0.0
+    prob_cams_val = f"{top_cam_n} Cameras = {cum_pct:.0%} Errors"
+    prob_cams_sub = f"Over half of all mistakes happen at just {top_cam_n} sites"
+    explainer_cam_str = f"Over <strong>{cum_pct:.0%} of all errors</strong> occur at just {top_cam_n} specific camera sites with tricky backgrounds."
+
+    # Background statistics for explainer
+    bg_counts = ft_fp['bg_category'].value_counts()
+    top_bg_name = bg_counts.index[0] if len(bg_counts) > 0 else "Night / IR Flash"
+    top_bg_cnt = int(bg_counts.iloc[0]) if len(bg_counts) > 0 else 0
+    top_bg_pct = (top_bg_cnt / n_ft_fp) if n_ft_fp > 0 else 0.0
+    explainer_bg_str = f"<strong>{top_bg_pct:.1%} of false alarms</strong> happen in {top_bg_name.lower()}, where optical conditions trigger phantom wildlife."
+
+    # Burst statistics
+    traces = burst_summary.get('traces', [])
+    n_burst_total = len(traces)
+    n_burst_persist = sum(1 for t in traces if t['persistence'] == 'persistent')
+    n_burst_partial = sum(1 for t in traces if t['persistence'] == 'partial')
+    n_burst_iso = sum(1 for t in traces if t['persistence'] == 'isolated')
+    n_burst_transient = n_burst_partial + n_burst_iso
+
+    p_burst_persist = n_burst_persist / n_burst_total if n_burst_total > 0 else 0.0
+    p_burst_partial = n_burst_partial / n_burst_total if n_burst_total > 0 else 0.0
+    p_burst_iso = n_burst_iso / n_burst_total if n_burst_total > 0 else 0.0
+    p_burst_transient = n_burst_transient / n_burst_total if n_burst_total > 0 else 0.0
+
+    p_burst_persist_pct = f"{p_burst_persist:.1%}"
+    p_burst_partial_pct = f"{p_burst_partial:.1%}"
+    p_burst_iso_pct = f"{p_burst_iso:.1%}"
+    p_burst_transient_pct = f"{p_burst_transient:.1%}"
+
+    w_burst_iso = f"{p_burst_iso * 100:.2f}%"
+    w_burst_partial = f"{p_burst_partial * 100:.2f}%"
+    w_burst_persist = f"{p_burst_persist * 100:.2f}%"
+
+    explainer_burst_str = f"In <strong>{p_burst_persist_pct} of bursts</strong>, the AI repeats the exact same mistake across 100% of photos without recovering!"
+
+    # Dynamic spotlight chips from traces
+    cam_burst_counts = pd.Series([t['camera'] for t in traces]).value_counts()
+    spotlight_chips = []
+    for cam_id in cam_burst_counts.index:
+        cam_traces = [t for t in traces if str(t['camera']) == str(cam_id)]
+        if not cam_traces:
+            continue
+        top_tr = cam_traces[0]
+        spotlight_chips.append(f"""<button class="burst-spotlight-chip" id="spotlight-cam-{cam_id}" onclick="spotlightBurst('{cam_id}', '{top_tr['primary_species']}')">
+          <span>{top_tr['emoji']} Cam {cam_id}</span> <span>({top_tr['primary_species_fmt']}, {top_tr['n_frames']}-shot)</span>
+        </button>""")
+        if len(spotlight_chips) >= 4:
+            break
+    spotlight_chips_html = "\n        ".join(spotlight_chips)
+
+    # Dynamic species callouts
+    species_callouts_html = build_species_callout_cards(ft_fp)
+
+    # Dynamic environment callouts
+    bg_cards_html = build_environment_callout_cards(ft_fp)
 
     html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -937,6 +1341,176 @@ def build_false_detection_gallery_html(
 
 
 
+    /* Rapid Photo Bursts Sequence Matrix & Profiles */
+    .burst-behavior-card {{
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }}
+    .burst-behavior-card:hover {{
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }}
+    .burst-behavior-card.active {{
+      outline: 2px solid #7c3aed;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2);
+    }}
+    .burst-matrix-table {{
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 11px;
+      margin-top: 8px;
+    }}
+    .burst-matrix-table th {{
+      background: #f8fafc;
+      font-weight: 700;
+      color: var(--text);
+      padding: 8px 6px;
+      border-bottom: 2px solid var(--border-dark);
+      text-align: center;
+      white-space: nowrap;
+    }}
+    .burst-matrix-table td {{
+      padding: 5px 4px;
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      vertical-align: middle;
+    }}
+    .burst-row {{
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }}
+    .burst-row:hover {{
+      background: #f8fafc;
+    }}
+    .burst-row.active {{
+      background: #f5f3ff;
+      outline: 2px solid #7c3aed;
+    }}
+    .burst-tile {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 28px;
+      border-radius: 5px;
+      font-weight: 800;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }}
+    .burst-tile:hover {{
+      transform: scale(1.15);
+      z-index: 10;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }}
+    .burst-tile.fp-high {{
+      background: #5b21b6;
+      color: #ffffff;
+    }}
+    .burst-tile.fp-med {{
+      background: #8b5cf6;
+      color: #ffffff;
+    }}
+    .burst-tile.fp-low {{
+      background: #ddd6fe;
+      color: #5b21b6;
+    }}
+    .burst-tile.correct-empty {{
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 600;
+    }}
+    .burst-tile.none {{
+      background: #f1f5f9;
+      color: #94a3b8;
+      cursor: default;
+    }}
+    .burst-tile.none:hover {{
+      transform: none;
+      box-shadow: none;
+    }}
+    .burst-tooltip {{
+      position: absolute;
+      pointer-events: none;
+      z-index: 1000;
+      background: #ffffff;
+      border: 1px solid #c4b5fd;
+      border-radius: 10px;
+      padding: 10px 14px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      max-width: 350px;
+      transition: opacity 0.1s ease;
+    }}
+    .burst-pill-btn {{
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      border: 1px solid #ddd6fe;
+      background: #ffffff;
+      color: #6d28d9;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }}
+    .burst-pill-btn:hover {{
+      background: #f5f3ff;
+      border-color: #8b5cf6;
+    }}
+    .burst-pill-btn.active {{
+      background: #7c3aed;
+      color: #ffffff;
+      border-color: #7c3aed;
+    }}
+    .burst-spotlight-chip {{
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }}
+    .burst-spotlight-chip:hover {{
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }}
+    .burst-spotlight-chip.active {{
+      background: #f5f3ff;
+      color: #5b21b6;
+      border-color: #c4b5fd;
+      font-weight: 700;
+    }}
+    .burst-filmstrip-card {{
+      flex: 0 0 130px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+      transition: all 0.2s ease;
+    }}
+    .burst-filmstrip-card:hover {{
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: #7c3aed;
+    }}
+    .burst-filmstrip-card img {{
+      width: 100%;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #000000;
+    }}
+
     /* Active Filter Banner */
     .filter-banner {{
       display: none;
@@ -1363,48 +1937,34 @@ def build_false_detection_gallery_html(
     <div class="stat-pills">
       <div class="pill">
         <span class="pill-label">Total Empty Photos</span>
-        <span class="pill-val">2,399 Photos</span>
-        <span class="pill-sub">Tested validation scenes with no animals</span>
+        <span class="pill-val">{n_total_empty:,} Photos</span>
+        <span class="pill-sub">Tested {split_title.lower()} scenes with no animals</span>
       </div>
       <div class="pill">
         <span class="pill-label">AI False Alarms</span>
-        <span class="pill-val" style="color: var(--accent-rose);">118 Hallucinations</span>
-        <span class="pill-sub">4.92% of empty scenes tricked the model</span>
+        <span class="pill-val" style="color: var(--accent-rose);">{n_ft_fp:,} Hallucinations</span>
+        <span class="pill-sub">{fpr_pct_str} of empty scenes tricked the model</span>
       </div>
       <div class="pill">
         <span class="pill-label">Top Phantom Species</span>
-        <span class="pill-val" style="color: #e11d48;">Panthera onca & Leopardus pardalis (27%)</span>
-        <span class="pill-sub">32 empty frames mistaken for Panthera onca & Leopardus pardalis</span>
-      </div>
-      <div class="pill">
-        <span class="pill-label">Model Improvement</span>
-        <span class="pill-val" style="color: var(--accent-green);">48% Fewer Errors</span>
-        <span class="pill-sub">Fine-tuned model cut errors from 225 down to 118</span>
+        <span class="pill-val" style="color: #e11d48;">{top_sp_val}</span>
+        <span class="pill-sub">{top_sp_sub}</span>
       </div>
       <div class="pill">
         <span class="pill-label">Problem Locations</span>
-        <span class="pill-val" style="color: var(--primary);">3 Cameras = 54% Errors</span>
-        <span class="pill-sub">Over half of all mistakes happen at just 3 sites</span>
+        <span class="pill-val" style="color: var(--primary);">{prob_cams_val}</span>
+        <span class="pill-sub">{prob_cams_sub}</span>
       </div>
     </div>
   </header>
 
-  <!-- Educational Explainer Banner: What is an AI Hallucination? -->
-  <div class="explainer-card">
-    <div class="explainer-header">
-      <div class="explainer-title">
-        <span style="font-size: 20px;">💡</span>
-        <span>What is an AI "Hallucination" in Wildlife Camera Traps?</span>
-      </div>
-    </div>
+  <!-- Analytical Navigational Feature Cards -->
+  <div class="explainer-card" style="padding: 16px 20px; margin-bottom: 22px;">
     <div class="explainer-body">
-      <p>
-        An <strong>AI Hallucination</strong> (false alarm) occurs when the computer vision model looks at an entirely empty photo and confidently claims it sees an animal. This isn't random guessing: the AI gets fooled by environmental textures in the forest — such as camera flash reflections mimicking <em>Panthera onca</em> spots, or curved tree branches resembling the limbs of <em>Equus ferus</em>.
-      </p>
-      <div class="explainer-features">
+      <div class="explainer-features" style="margin-top: 0;">
         <div class="feature-item feature-blue active" onclick="openTabAndScroll('chart')">
           <div>
-            <strong style="color: #2563eb;">📍 Problem Cameras:</strong> Over <strong>54% of all errors</strong> occur at just 3 specific camera sites with tricky backgrounds.
+            <strong style="color: #2563eb;">📍 Problem Cameras:</strong> {explainer_cam_str}
           </div>
           <div class="feature-link" style="color: #2563eb;">
             <span>Explore Camera Hotspots &rarr;</span>
@@ -1412,7 +1972,7 @@ def build_false_detection_gallery_html(
         </div>
         <div class="feature-item feature-rose" onclick="openTabAndScroll('species')">
           <div>
-            <strong style="color: #e11d48;">🐾 Phantom Species:</strong> Over <strong>27% of false alarms</strong> are spotted wildcats (<em>Panthera onca & Leopardus pardalis</em>), triggered by flash glints.
+            <strong style="color: #e11d48;">🐾 Phantom Species:</strong> {explainer_species_str}
           </div>
           <div class="feature-link" style="color: #e11d48;">
             <span>Explore Hallucinated Animals &rarr;</span>
@@ -1420,7 +1980,7 @@ def build_false_detection_gallery_html(
         </div>
         <div class="feature-item feature-green" onclick="openTabAndScroll('matrix')">
           <div>
-            <strong style="color: #059669;">🌿 Environment Triggers:</strong> <strong>61.9% of false alarms</strong> happen at night, where flash glare on foliage is mistaken for wildcats.
+            <strong style="color: #059669;">🌿 Environment Triggers:</strong> {explainer_bg_str}
           </div>
           <div class="feature-link" style="color: #059669;">
             <span>Inspect Environment Matrix &rarr;</span>
@@ -1428,7 +1988,7 @@ def build_false_detection_gallery_html(
         </div>
         <div class="feature-item feature-purple" onclick="openTabAndScroll('burst')">
           <div>
-            <strong style="color: #7c3aed;">⏱️ Photo Bursts:</strong> In <strong>48.6% of multi-shot bursts</strong>, the AI repeats the exact same mistake across all 10 consecutive photos!
+            <strong style="color: #7c3aed;">⏱️ Photo Bursts:</strong> {explainer_burst_str}
           </div>
           <div class="feature-link" style="color: #7c3aed;">
             <span>Analyze Burst Dynamics &rarr;</span>
@@ -1483,40 +2043,7 @@ def build_false_detection_gallery_html(
     </div>
 
     <!-- 3 Key Hallucination Clusters Callout Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px;">
-      <div style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 10px; padding: 12px 14px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 11px; font-weight: 700; color: #be123c; text-transform: uppercase;">🐆 Panthera onca & Leopardus pardalis</span>
-          <span style="font-size: 10px; font-weight: 700; background: #ffe4e6; color: #9f1239; padding: 2px 6px; border-radius: 4px;">27.1% (32 Frames)</span>
-        </div>
-        <div style="font-size: 15px; font-weight: 800; color: #9f1239; margin-top: 4px;">Panthera onca (18) & Leopardus pardalis (14)</div>
-        <div style="font-size: 11px; color: #be123c; margin-top: 3px; line-height: 1.4;">
-          <strong>96.9% happen at Night.</strong> Monochrome IR flash glints on waxy leaves mimic circular coat rosettes.
-        </div>
-      </div>
-
-      <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 10px; padding: 12px 14px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 11px; font-weight: 700; color: #6d28d9; text-transform: uppercase;">🐎 Equus ferus</span>
-          <span style="font-size: 10px; font-weight: 700; background: #ede9fe; color: #5b21b6; padding: 2px 6px; border-radius: 4px;">Highest Conviction (87%)</span>
-        </div>
-        <div style="font-size: 15px; font-weight: 800; color: #5b21b6; margin-top: 4px;">Equus ferus (10 Frames)</div>
-        <div style="font-size: 11px; color: #6d28d9; margin-top: 3px; line-height: 1.4;">
-          <strong>100% in Dense Foliage.</strong> Camera 456's vertical tree branches and curved logs trick the model into seeing legs (87.1% avg conf).
-        </div>
-      </div>
-
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">🦃 Crax rubra, Dasyprocta & Meleagris</span>
-          <span style="font-size: 10px; font-weight: 700; background: #dcfce7; color: #14532d; padding: 2px 6px; border-radius: 4px;">22.9% (27 Frames)</span>
-        </div>
-        <div style="font-size: 15px; font-weight: 800; color: #14532d; margin-top: 4px;">Crax rubra (10), Dasyprocta punctata (9), Meleagris ocellata (8)</div>
-        <div style="font-size: 11px; color: #15803d; margin-top: 3px; line-height: 1.4;">
-          <strong>Forest Floor Illusions.</strong> Leaf mounds, root knots, and ground shadows mimic foraging ground wildlife.
-        </div>
-      </div>
-    </div>
+    {species_callouts_html}
 
     <!-- Ranked Species List -->
     <div style="background: #ffffff; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; box-shadow: var(--shadow-sm);">
@@ -1547,23 +2074,7 @@ def build_false_detection_gallery_html(
     </div>
 
     <!-- 3 Key Insight Callouts -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 16px;">
-      <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px 14px;">
-        <div style="font-size: 11px; font-weight: 700; color: #1e40af; text-transform: uppercase;">🌙 Night / IR Flash (73 FPs, 61.9%)</div>
-        <div style="font-size: 16px; font-weight: 800; color: #1e3a8a; margin-top: 2px;">42.5% Panthera onca & Leopardus pardalis (31 Frames)</div>
-        <div style="font-size: 11px; color: #3b82f6; margin-top: 3px;">Monochrome flash reflections on foliage mimic circular coat rosettes.</div>
-      </div>
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 12px 14px;">
-        <div style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">🌿 Dense Foliage (36 FPs, 30.5%)</div>
-        <div style="font-size: 16px; font-weight: 800; color: #14532d; margin-top: 2px;">83.3% Forest Species (30 Frames)</div>
-        <div style="font-size: 11px; color: #15803d; margin-top: 3px;">Branches & leaf mounds mimic Crax rubra, Equus ferus & Urocyon cinereoargenteus.</div>
-      </div>
-      <div style="background: #fefce8; border: 1px solid #fef08a; border-radius: 10px; padding: 12px 14px;">
-        <div style="font-size: 11px; font-weight: 700; color: #854d0e; text-transform: uppercase;">☀️ Sunlit & Open Landscapes (9 FPs, 7.6%)</div>
-        <div style="font-size: 16px; font-weight: 800; color: #713f12; margin-top: 2px;">100% Savanna Species (9 Frames)</div>
-        <div style="font-size: 11px; color: #a16207; margin-top: 3px;">Open terrain features trigger strong priors for Aepyceros melampus, Crocuta crocuta & Bos taurus.</div>
-      </div>
-    </div>
+    {bg_cards_html}
 
     <div style="overflow-x: auto; background: #ffffff; border: 1px solid var(--border); border-radius: 10px; padding: 6px;">
       <table class="matrix-table" id="confusion-matrix-table">
@@ -1580,108 +2091,122 @@ def build_false_detection_gallery_html(
 
 
   <!-- Tab 4: Rapid Photo Bursts -->
-  <div class="tab-pane" id="pane-burst">
+  <div class="tab-pane" id="pane-burst" style="position: relative;">
     <div class="pane-header">
       <div>
         <div class="pane-title" style="color: #5b21b6;">
           <span>⏱️</span>
           <span>Rapid Photo Bursts: Are false alarms single glitches or persistent illusions?</span>
-          <span class="pane-badge" style="background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe;">48.6% Persistent Illusions</span>
+          <span class="pane-badge" style="background: #f5f3ff; color: #5b21b6; border-color: #ddd6fe;">{p_burst_persist_pct} Persistent Illusions</span>
         </div>
         <div class="pane-desc">
-          When motion triggers a camera trap, it captures a rapid burst of 3 to 10 photos in just a few seconds. We audit whether the AI makes an isolated 1-shot mistake, or gets continuously fooled across the entire burst.
+          When motion triggers a camera trap, it captures a rapid burst of 3 to 10 photos in just a few seconds. We audit whether the AI makes an isolated 1-shot mistake, or gets continuously fooled across the entire burst sequence.
         </div>
       </div>
     </div>
 
-    <!-- 3 Intuitive Category Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 10px;">
-      <div style="background: #f5f3ff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 16px;">
-        <div style="font-size: 11px; font-weight: 700; color: #6d28d9; text-transform: uppercase;">100% Persistent Illusions</div>
-        <div style="font-size: 26px; font-weight: 800; color: #5b21b6; margin-top: 4px;">48.6% (17 Bursts)</div>
-        <div style="font-size: 12px; color: #6d28d9; margin-top: 4px; line-height: 1.4;">Every single photo in the multi-shot burst was falsely classified as an animal!</div>
-      </div>
-      <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 16px;">
-        <div style="font-size: 11px; font-weight: 700; color: #b45309; text-transform: uppercase;">Partial Multi-Shot Bursts</div>
-        <div style="font-size: 26px; font-weight: 800; color: #92400e; margin-top: 4px;">25.7% (9 Bursts)</div>
-        <div style="font-size: 12px; color: #b45309; margin-top: 4px; line-height: 1.4;">The hallucination persisted across 2 to 6 consecutive photos before disappearing.</div>
-      </div>
-      <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 16px;">
-        <div style="font-size: 11px; font-weight: 700; color: var(--text-dim); text-transform: uppercase;">Isolated 1-Shot Glitches</div>
-        <div style="font-size: 26px; font-weight: 800; color: var(--text); margin-top: 4px;">25.7% (9 Bursts)</div>
-        <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">A single momentary mistake; all other photos in the burst were correctly labeled empty.</div>
-      </div>
-    </div>
-
-    <!-- Case Study Spotlight Box -->
-    <div style="margin-top: 16px; background: #ffffff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 18px 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
-        <div style="font-weight: 800; font-size: 14px; color: #5b21b6; display: flex; align-items: center; gap: 8px;">
-          <span>🎯 Spotlight Case Study:</span>
-          <span>Camera 456 (Forest Understory)</span>
+    <!-- Unified Proportion Bar (Replaces Confusing Multi-Column Chart) -->
+    <div style="margin-top: 16px; background: #ffffff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 16px 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="font-weight: 800; font-size: 13px; color: #5b21b6; display: flex; align-items: center; gap: 8px;">
+          <span>📊 Burst Persistence Breakdown: How long do false alarms last?</span>
         </div>
-        <span style="font-size: 11px; font-weight: 700; background: #f5f3ff; color: #6d28d9; padding: 3px 10px; border-radius: 9999px;">
-          10 Photos in 8.2s &bull; 100% Equus ferus
+        <span style="font-size: 11px; font-weight: 700; color: #6d28d9; background: #f5f3ff; padding: 3px 10px; border-radius: 9999px;">
+          {n_burst_total} Multi-Frame Burst Events ({split_title} Set)
         </span>
       </div>
-      <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
-        In this 10-shot burst sequence, the camera triggered repeatedly over 8.2 seconds on a completely empty forest clearing. The AI predicted <strong>Equus ferus across all 10 consecutive photos</strong> with confidence scores climbing as high as <strong>98.7%</strong>. Vertical tree trunks and hanging lianas in the camera's fixed view permanently matched the leg and body contours of <em>Equus ferus</em>!
-      </p>
-      
-      <!-- Visual Timeline Filmstrip Blocks -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 6px;">
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 1</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+0.0s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 74%</div>
+
+      <!-- Segmented Bar -->
+      <div style="margin-top: 12px;">
+        <div style="display: flex; height: 28px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); font-size: 11px; font-weight: 800;">
+          <div style="width: {w_burst_iso}; background: #22c55e; display: flex; align-items: center; justify-content: center; color: #ffffff;" title="{n_burst_iso} Bursts: Isolated 1-Shot Glitch ({p_burst_iso_pct})">
+            🍃 1-Shot Glitch: {p_burst_iso_pct} ({n_burst_iso})
+          </div>
+          <div style="width: {w_burst_partial}; background: #f59e0b; display: flex; align-items: center; justify-content: center; color: #ffffff;" title="{n_burst_partial} Bursts: 2-3 Frame Flicker ({p_burst_partial_pct})">
+            ⚡ Flicker: {p_burst_partial_pct} ({n_burst_partial})
+          </div>
+          <div style="width: {w_burst_persist}; background: #7c3aed; display: flex; align-items: center; justify-content: center; color: #ffffff;" title="{n_burst_persist} Bursts: 100% Permanently Locked ({p_burst_persist_pct})">
+            🔒 100% Locked: {p_burst_persist_pct} ({n_burst_persist})
+          </div>
         </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 2</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+1.8s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 94%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 3</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+3.6s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 97%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 4</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+4.1s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 64%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 5</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+4.9s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 82%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 6</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+5.3s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 68%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 7</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+6.0s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 97%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 8</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+6.9s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 98%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 9</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+7.6s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 99%</div>
-        </div>
-        <div style="background: #f5f3ff; border: 1px solid #c4b5fd; border-radius: 6px; padding: 8px 4px; text-align: center;">
-          <div style="font-size: 10px; font-weight: 700; color: #6d28d9;">Frame 10</div>
-          <div style="font-size: 9px; color: #7c3aed; margin-top: 2px;">+8.2s</div>
-          <div style="font-size: 10px; font-weight: 800; color: #dc2626; margin-top: 4px;">Equus ferus 99%</div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; font-size: 11px; color: var(--text-muted);">
+          <div style="display: flex; align-items: flex-start; gap: 6px;">
+            <span style="width: 10px; height: 10px; background: #22c55e; border-radius: 2px; margin-top: 3px; flex-shrink: 0;"></span>
+            <span><b>1-Shot Glitch ({n_burst_iso}):</b> Error lasts only 1 frame. The AI was correct on all other frames.</span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 6px;">
+            <span style="width: 10px; height: 10px; background: #f59e0b; border-radius: 2px; margin-top: 3px; flex-shrink: 0;"></span>
+            <span><b>Multi-Shot Flicker ({n_burst_partial}):</b> Error persisted for 2–3 frames before clearing.</span>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 6px;">
+            <span style="width: 10px; height: 10px; background: #7c3aed; border-radius: 2px; margin-top: 3px; flex-shrink: 0;"></span>
+            <span><b>100% Locked Illusion ({n_burst_persist}):</b> Error repeated across <b>every photo captured</b> (up to 10 frames).</span>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- Sequence Heatmap Matrix Container -->
+    <div style="margin-top: 16px; background: #ffffff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 18px 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 10px;">
+        <div>
+          <div style="font-weight: 800; font-size: 14px; color: #5b21b6; display: flex; align-items: center; gap: 8px;">
+            <span>🔬 Sequence Heatmap: Every Camera Burst Tracked Frame-by-Frame</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+            Hover over any tile to preview that frame's photo thumbnail. Click any row to expand its full visual filmstrip below.
+          </div>
+        </div>
+
+        <!-- Filter pills -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="burst-filter-pills">
+          <button class="burst-pill-btn active" id="btn-burst-all" onclick="filterBurstType('all')">All Bursts ({n_burst_total})</button>
+          <button class="burst-pill-btn" id="btn-burst-persistent" onclick="filterBurstType('persistent')">🔒 Permanent Traps ({n_burst_persist})</button>
+          <button class="burst-pill-btn" id="btn-burst-transient" onclick="filterBurstType('transient')">🍃 Transient Glitches ({n_burst_transient})</button>
+          <button class="burst-pill-btn" id="btn-burst-isolated" onclick="filterBurstType('isolated')">1-Shot Only ({n_burst_iso})</button>
+        </div>
+      </div>
+
+      <!-- Quick Archetype Spotlight Chips -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+        <span style="font-size: 11px; font-weight: 700; color: var(--text-muted);">Quick Spotlights:</span>
+        {spotlight_chips_html}
+      </div>
+
+      <!-- Heatmap Table Wrap -->
+      <div style="overflow-x: auto;">
+        <table class="burst-matrix-table" id="burst-heatmap-table">
+          <!-- Filled dynamically in JS -->
+        </table>
+      </div>
+    </div>
+
+    <!-- Active Sequence Filmstrip Section -->
+    <div id="burst-filmstrip-section" style="margin-top: 16px; background: #ffffff; border: 1px solid #ddd6fe; border-radius: 12px; padding: 18px 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+        <div>
+          <div style="font-weight: 800; font-size: 14px; color: #5b21b6; display: flex; align-items: center; gap: 8px;">
+            <span>🎯 Filmstrip Sequence:</span>
+            <span id="filmstrip-title">Camera 456 (Forest Understory)</span>
+          </div>
+          <div id="filmstrip-subtitle" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+            10 Photos in 8.2s • 100% Equus ferus
+          </div>
+        </div>
+        <button class="btn" onclick="filterGalleryToActiveBurst()" style="font-size: 11px; padding: 6px 12px; background: #f5f3ff; color: #6d28d9; border: 1px solid #c4b5fd; font-weight: 700; cursor: pointer; border-radius: 6px;">
+          🔍 Filter Main Gallery to this Burst
+        </button>
+      </div>
+
+      <!-- Horizontal Filmstrip Cards Container -->
+      <div id="burst-filmstrip-cards" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px;">
+        <!-- Filled dynamically by JS -->
+      </div>
+    </div>
+
+    <!-- Floating Image Hover Tooltip -->
+    <div id="burst-tooltip" class="burst-tooltip" style="display: none;"></div>
   </div>
 
   <!-- Active Filter Notification Banner -->
@@ -1694,8 +2219,8 @@ def build_false_detection_gallery_html(
 
   <!-- Model Selector Tabs -->
   <div class="model-nav">
-    <button class="model-btn active" onclick="switchModel('fine_tuned')">WILDS Fine-Tuned ResNet-50 (118 FPs)</button>
-    <button class="model-btn" onclick="switchModel('probe')">ImageNet Linear Probe (225 FPs)</button>
+    <button class="model-btn active" onclick="switchModel('fine_tuned')">WILDS Fine-Tuned ResNet-50 ({n_ft_fp:,} FPs)</button>
+    <button class="model-btn" onclick="switchModel('probe')">ImageNet Linear Probe ({n_probe_fp:,} FPs)</button>
   </div>
 
   <!-- Filter Toolbar -->
@@ -1791,10 +2316,6 @@ def build_false_detection_gallery_html(
       
       <h3 style="font-size: 14px; font-weight: 700; margin-top: 18px; color: var(--text);">Top-5 Model Class Probability Distribution:</h3>
       <table class="top5-table" id="modal-top5"></table>
-
-      <div style="margin-top: 18px; padding: 14px; background: #eff6ff; border-left: 3px solid var(--primary); font-size: 12px; border-radius: 6px; color: #1e40af;">
-        <strong>Diagnostic Analysis:</strong> Notice whether the true class <code>empty</code> ranked within the top 5, or if the model's confidence was divided entirely across animal classes due to background vegetation/lighting textures.
-      </div>
     </div>
   </div>
 
@@ -1863,6 +2384,9 @@ def build_false_detection_gallery_html(
       if (targetFeature) targetFeature.classList.add('active');
       const pane = document.getElementById('pane-' + tabId);
       if (pane) pane.classList.add('active');
+      if (tabId === 'burst') {{
+        renderBurstSection();
+      }}
     }}
 
     // Switch tab and smooth scroll to it
@@ -2305,6 +2829,293 @@ def build_false_detection_gallery_html(
       document.getElementById('gallery-container').scrollIntoView({{ behavior: 'smooth' }});
     }}
 
+    // ----------------------------------------------------
+    // Rapid Photo Bursts: Sequence Matrix & Trend Bar
+    // ----------------------------------------------------
+    let activeBurstType = 'all';
+    let activeBurstSeqId = null;
+
+    function renderBurstSection() {{
+      const burstData = (dataStore.burst && dataStore.burst.traces) ? dataStore.burst : null;
+      if (!burstData || !burstData.traces || burstData.traces.length === 0) return;
+
+      const traces = burstData.traces;
+
+      // 1. Set default active sequence
+      if (!activeBurstSeqId) {{
+        activeBurstSeqId = traces[0] ? traces[0].seq_id : null;
+      }}
+
+      // 2. Render Heatmap Table
+      renderBurstHeatmapTable();
+
+      // 3. Render Filmstrip
+      renderBurstFilmstrip(activeBurstSeqId);
+    }}
+
+    function filterBurstType(type) {{
+      activeBurstType = type;
+      document.querySelectorAll('.burst-pill-btn').forEach(btn => {{
+        btn.classList.toggle('active', btn.id === 'btn-burst-' + type);
+      }});
+      renderBurstHeatmapTable();
+    }}
+
+    function spotlightBurst(camera, speciesSubstr) {{
+      const traces = (dataStore.burst && dataStore.burst.traces) || [];
+      const match = traces.find(t => {{
+        const camMatch = String(t.camera) === String(camera);
+        if (!speciesSubstr) return camMatch;
+        return camMatch && (t.primary_species || '').toLowerCase().includes(speciesSubstr.toLowerCase());
+      }});
+      if (match) {{
+        selectBurstSequence(match.seq_id);
+      }}
+      document.querySelectorAll('.burst-spotlight-chip').forEach(ch => {{
+        ch.classList.toggle('active', ch.id === `spotlight-cam-${{camera}}`);
+      }});
+    }}
+
+    function selectBurstSequence(seqId) {{
+      activeBurstSeqId = seqId;
+      document.querySelectorAll('.burst-row').forEach(r => {{
+        r.classList.toggle('active', r.id === `burst-row-${{seqId}}`);
+      }});
+      renderBurstFilmstrip(seqId);
+    }}
+
+    function renderBurstHeatmapTable() {{
+      const table = document.getElementById('burst-heatmap-table');
+      if (!table) return;
+
+      const traces = (dataStore.burst && dataStore.burst.traces) || [];
+      let filtered = traces;
+      if (activeBurstType === 'persistent') {{
+        filtered = traces.filter(t => t.persistence === 'persistent');
+      }} else if (activeBurstType === 'transient') {{
+        filtered = traces.filter(t => t.persistence === 'partial' || t.persistence === 'isolated');
+      }} else if (activeBurstType === 'isolated') {{
+        filtered = traces.filter(t => t.persistence === 'isolated');
+      }}
+
+      let html = `
+        <thead>
+          <tr>
+            <th style="text-align: left; padding-left: 10px;">Camera Site</th>
+            <th style="text-align: left;">Predicted Taxon</th>
+            <th>Photo 1</th>
+            <th>Photo 2</th>
+            <th>Photo 3</th>
+            <th>Photo 4</th>
+            <th>Photo 5</th>
+            <th>Photo 6</th>
+            <th>Photo 7</th>
+            <th>Photo 8</th>
+            <th>Photo 9</th>
+            <th>Photo 10</th>
+            <th>Burst Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+      `;
+
+      filtered.forEach(t => {{
+        const isSelected = t.seq_id === activeBurstSeqId;
+        const activeClass = isSelected ? ' active' : '';
+
+        let badgeText = '';
+        let badgeBg = '#f1f5f9';
+        let badgeCol = '#475569';
+        if (t.persistence === 'persistent') {{
+          badgeText = `🔒 Locked 100% (${{t.n_fp}}/${{t.n_frames}})`;
+          badgeBg = '#f5f3ff';
+          badgeCol = '#5b21b6';
+        }} else if (t.persistence === 'partial') {{
+          badgeText = `⚡ Recovered (${{t.n_fp}}/${{t.n_frames}} shots)`;
+          badgeBg = '#fffbeb';
+          badgeCol = '#b45309';
+        }} else {{
+          badgeText = `🍃 1-Shot Glitch (1/${{t.n_frames}} shots)`;
+          badgeBg = '#f0fdf4';
+          badgeCol = '#15803d';
+        }}
+
+        html += `
+          <tr class="burst-row${{activeClass}}" id="burst-row-${{t.seq_id}}" onclick="selectBurstSequence('${{t.seq_id}}')">
+            <td style="text-align: left; font-weight: 700; padding-left: 10px; color: var(--text);">
+              📷 Cam ${{t.camera}}
+            </td>
+            <td style="text-align: left; color: #475569;">
+              ${{t.emoji || '🐾'}} <i style="font-weight: 600;">${{t.primary_species_fmt}}</i>
+            </td>
+        `;
+
+        // 10 Frames columns
+        for (let f = 1; f <= 10; f++) {{
+          const fr = t.frames.find(frame => frame.idx === f);
+          if (!fr) {{
+            html += `<td><span class="burst-tile none">—</span></td>`;
+          }} else if (fr.is_fp) {{
+            let tileClass = 'fp-low';
+            if (fr.conf >= 0.8) tileClass = 'fp-high';
+            else if (fr.conf >= 0.5) tileClass = 'fp-med';
+
+            html += `
+              <td>
+                <span class="burst-tile ${{tileClass}}" 
+                      onmouseenter="showBurstTileTooltip(event, '${{t.seq_id}}', ${{fr.idx}})"
+                      onmousemove="moveBurstTooltip(event)"
+                      onmouseleave="hideBurstTooltip()">
+                  ${{Math.round(fr.conf * 100)}}%
+                </span>
+              </td>
+            `;
+          }} else {{
+            html += `
+              <td>
+                <span class="burst-tile correct-empty" 
+                      onmouseenter="showBurstTileTooltip(event, '${{t.seq_id}}', ${{fr.idx}})"
+                      onmousemove="moveBurstTooltip(event)"
+                      onmouseleave="hideBurstTooltip()">
+                  🍃
+                </span>
+              </td>
+            `;
+          }}
+        }}
+
+        html += `
+            <td>
+              <span style="font-size: 10px; font-weight: 700; background: ${{badgeBg}}; color: ${{badgeCol}}; padding: 3px 8px; border-radius: 9999px;">
+                ${{badgeText}}
+              </span>
+            </td>
+          </tr>
+        `;
+      }});
+
+      html += `</tbody>`;
+      table.innerHTML = html;
+    }}
+
+    function showBurstTileTooltip(event, seqId, frameIdx) {{
+      const traces = (dataStore.burst && dataStore.burst.traces) || [];
+      const trace = traces.find(t => t.seq_id === seqId);
+      if (!trace) return;
+      const frame = trace.frames.find(f => f.idx === frameIdx);
+      if (!frame) return;
+
+      const tt = document.getElementById('burst-tooltip');
+      if (!tt) return;
+
+      const statusTag = frame.is_fp 
+        ? `<span style="color: #dc2626; font-weight: 800;">⚠️ Hallucination: ${{frame.emoji || '🐾'}} ${{frame.species_fmt}} (${{frame.conf_pct}})</span>`
+        : `<span style="color: #059669; font-weight: 800;">✅ Correct: Empty (${{frame.conf_pct}})</span>`;
+
+      tt.innerHTML = `
+        <div style="display: flex; gap: 12px; align-items: center;">
+          <img src="${{frame.thumb}}" style="width: 130px; height: 95px; object-fit: cover; border-radius: 6px; border: 1px solid #cbd5e1; background: #000;">
+          <div style="font-size: 11px; line-height: 1.4;">
+            <div style="font-size: 12px; font-weight: 800; color: #5b21b6;">Camera ${{trace.camera}} • Photo ${{frame.idx}} (+${{frame.time_s}}s)</div>
+            <div style="margin-top: 4px;">${{statusTag}}</div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 2px;">Ground Truth: Empty Frame</div>
+            <div style="font-size: 10px; color: #94a3b8; margin-top: 5px;">Sequence: ${{trace.n_fp}}/${{trace.n_frames}} Hallucinations in ${{trace.duration_s}}s</div>
+            <div style="font-size: 9px; color: #7c3aed; font-weight: 700; margin-top: 3px;">Click row to inspect full burst filmstrip</div>
+          </div>
+        </div>
+      `;
+      tt.style.display = 'block';
+      moveBurstTooltip(event);
+    }}
+
+    function moveBurstTooltip(event) {{
+      const tt = document.getElementById('burst-tooltip');
+      if (!tt || tt.style.display === 'none') return;
+      const pane = document.getElementById('pane-burst');
+      const rect = pane.getBoundingClientRect();
+      let left = event.clientX - rect.left + 15;
+      let top = event.clientY - rect.top - 50;
+
+      if (left + 360 > rect.width) {{
+        left = event.clientX - rect.left - 370;
+      }}
+      if (left < 10) left = 10;
+      if (top < 10) top = 10;
+
+      tt.style.left = left + 'px';
+      tt.style.top = top + 'px';
+    }}
+
+    function hideBurstTooltip() {{
+      const tt = document.getElementById('burst-tooltip');
+      if (tt) tt.style.display = 'none';
+    }}
+
+    function renderBurstFilmstrip(seqId) {{
+      const traces = (dataStore.burst && dataStore.burst.traces) || [];
+      const trace = traces.find(t => t.seq_id === seqId) || traces[0];
+      if (!trace) return;
+
+      const titleEl = document.getElementById('filmstrip-title');
+      const subEl = document.getElementById('filmstrip-subtitle');
+      if (titleEl) {{
+        titleEl.innerHTML = `Camera ${{trace.camera}} (Site Trajectory)`;
+      }}
+      if (subEl) {{
+        const typeLabel = trace.persistence === 'persistent' ? '🔒 100% Locked Permanent Trap' : (trace.persistence === 'partial' ? '⚡ Multi-Shot Flicker' : '🍃 Isolated 1-Shot Glitch');
+        subEl.innerHTML = `<b>${{trace.n_frames}} Photos in ${{trace.duration_s}}s</b> • <span style="color: #dc2626; font-weight: 700;">${{trace.n_fp}} / ${{trace.n_frames}} Hallucinations</span> • ${{typeLabel}} • Primary: ${{trace.emoji || '🐾'}} <i>${{trace.primary_species_fmt}}</i>`;
+      }}
+
+      const cardsContainer = document.getElementById('burst-filmstrip-cards');
+      if (!cardsContainer) return;
+
+      let html = '';
+      trace.frames.forEach(f => {{
+        const borderColor = f.is_fp ? '#fca5a5' : '#86efac';
+        const badgeBg = f.is_fp ? '#fee2e2' : '#dcfce7';
+        const badgeColor = f.is_fp ? '#b91c1c' : '#15803d';
+        const badgeText = f.is_fp ? `${{f.emoji}} ${{f.species_fmt}}` : '🍃 Correct Empty';
+
+        html += `
+          <div class="burst-filmstrip-card" style="border-color: ${{borderColor}};">
+            <div style="font-size: 10px; font-weight: 700; color: #64748b; margin-bottom: 4px;">
+              Photo ${{f.idx}} <span style="color: #94a3b8;">(+${{f.time_s}}s)</span>
+            </div>
+            <img src="${{f.thumb}}" alt="${{badgeText}}" 
+                 title="Frame ${{f.idx}} (+${{f.time_s}}s) | ${{badgeText}} (Conf: ${{f.conf_pct}})">
+            <div style="font-size: 10px; font-weight: 800; background: ${{badgeBg}}; color: ${{badgeColor}}; padding: 3px 6px; border-radius: 4px; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+              ${{badgeText}}
+            </div>
+            <div style="font-size: 10px; color: #475569; font-weight: 700; margin-top: 4px;">
+              Conf: ${{f.conf_pct}}
+            </div>
+            <div style="font-size: 9px; color: ${{f.is_fp ? '#dc2626' : '#16a34a'}}; font-weight: 600; margin-top: 2px;">
+              ${{f.is_fp ? '⚠️ Hallucinated' : '✅ Empty'}}
+            </div>
+          </div>
+        `;
+      }});
+
+      cardsContainer.innerHTML = html;
+    }}
+
+    function filterGalleryToActiveBurst() {{
+      if (!activeBurstSeqId) return;
+      const items = dataStore[currentModel] || [];
+      currentFiltered = items.filter(it => it.seq_id === activeBurstSeqId);
+      currentPage = 1;
+
+      const banner = document.getElementById('active-filter-banner');
+      const text = document.getElementById('active-filter-text');
+      if (banner && text) {{
+        text.innerHTML = `Active Filter: Showing burst sequence at Camera ${{currentFiltered.length > 0 ? currentFiltered[0].camera : ''}} (${{currentFiltered.length}} hallucinated photos)`;
+        banner.classList.add('active');
+      }}
+
+      renderGalleryPage();
+      document.getElementById('gallery-container').scrollIntoView({{ behavior: 'smooth' }});
+    }}
+
     function openModalById(id) {{
       const idx = currentFiltered.findIndex(it => it.id === id);
       if (idx !== -1) {{
@@ -2388,6 +3199,13 @@ def build_false_detection_gallery_html(
     }}
 
     const SPECIES_COLOR_MAP = {{
+      'sylvilagus brasiliensis': {{ bg: '#fef3c7', bgLight: '#fffbeb', border: '#fde68a', accent: '#d97706', text: '#92400e' }},
+      'cuniculus paca': {{ bg: '#ffedd5', bgLight: '#fff7ed', border: '#fed7aa', accent: '#ea580c', text: '#9a3412' }},
+      'puma concolor': {{ bg: '#fff1f2', bgLight: '#ffe4e6', border: '#fecdd3', accent: '#e11d48', text: '#9f1239' }},
+      'didelphis sp': {{ bg: '#e2e8f0', bgLight: '#f1f5f9', border: '#cbd5e1', accent: '#475569', text: '#1e293b' }},
+      'pecari tajacu': {{ bg: '#fdf4ff', bgLight: '#fae8ff', border: '#f5d0fe', accent: '#c026d3', text: '#86198f' }},
+      'leptotila plumbeiceps': {{ bg: '#ecfeff', bgLight: '#f0fdfa', border: '#a5f3fc', accent: '#0891b2', text: '#155e75' }},
+      'martes flavigula': {{ bg: '#fefce8', bgLight: '#fef9c3', border: '#fef08a', accent: '#ca8a04', text: '#854d0e' }},
       'panthera onca': {{ bg: '#fef3c7', bgLight: '#fffbeb', border: '#fde68a', accent: '#d97706', text: '#92400e' }},
       'leopardus pardalis': {{ bg: '#ffedd5', bgLight: '#fff7ed', border: '#fed7aa', accent: '#ea580c', text: '#9a3412' }},
       'equus ferus': {{ bg: '#f3e8ff', bgLight: '#faf5ff', border: '#e9d5ff', accent: '#7c3aed', text: '#5b21b6' }},
@@ -2424,6 +3242,12 @@ def build_false_detection_gallery_html(
     }}
 
     const CAMERA_COLOR_MAP = {{
+      '282': {{ bg: '#fff1f2', border: '#fecdd3', text: '#9f1239', sub: '#be123c', tagBg: '#ffe4e6', tagText: '#881337' }},
+      '218': {{ bg: '#eff6ff', border: '#bfdbfe', text: '#1e3a8a', sub: '#1d4ed8', tagBg: '#dbeafe', tagText: '#1e40af' }},
+      '519': {{ bg: '#f5f3ff', border: '#ddd6fe', text: '#4c1d95', sub: '#6d28d9', tagBg: '#ede9fe', tagText: '#5b21b6' }},
+      '176': {{ bg: '#ecfdf5', border: '#a7f3d0', text: '#064e3b', sub: '#047857', tagBg: '#d1fae5', tagText: '#065f46' }},
+      '470': {{ bg: '#fefce8', border: '#fef08a', text: '#713f12', sub: '#ca8a04', tagBg: '#fef9c3', tagText: '#854d0e' }},
+      '131': {{ bg: '#ecfeff', border: '#a5f3fc', text: '#164e63', sub: '#0e7490', tagBg: '#cffafe', tagText: '#155e75' }},
       '529': {{ bg: '#fff1f2', border: '#fecdd3', text: '#9f1239', sub: '#be123c', tagBg: '#ffe4e6', tagText: '#881337' }},
       '547': {{ bg: '#eff6ff', border: '#bfdbfe', text: '#1e3a8a', sub: '#1d4ed8', tagBg: '#dbeafe', tagText: '#1e40af' }},
       '456': {{ bg: '#f5f3ff', border: '#ddd6fe', text: '#4c1d95', sub: '#6d28d9', tagBg: '#ede9fe', tagText: '#5b21b6' }},
@@ -2468,8 +3292,8 @@ def build_false_detection_gallery_html(
           <div class="card-img-wrap" style="background: ${{spCol.bg}};" title="Species: ${{scientificName}}">
             <div class="card-img-inner">
               <img src="${{item.thumb}}" alt="${{item.species}}" loading="lazy">
-              <span class="badge ${{badgeClass}}" title="The AI model was ${{item.confidence_pct}} certain this empty photo showed ${{scientificName}}">
-                AI Conf: ${{item.confidence_pct}}
+              <span class="badge ${{badgeClass}}" title="The model hallucinated on empty photo, with ${{item.confidence_pct}} certainty">
+                ${{item.confidence_pct}}
               </span>
               <span class="badge-bg">${{item.bg}}</span>
             </div>
@@ -2483,7 +3307,7 @@ def build_false_detection_gallery_html(
                 <span style="font-style: italic;">${{scientificName}}</span>
               </div>
               <div class="card-conf-expl">
-                AI hallucinated on empty photo (<b>${{item.confidence_pct}}</b> certain)
+                The model hallucinated on empty photo, with <b>${{item.confidence_pct}}</b> certainty
               </div>
             </div>
 
@@ -2684,6 +3508,7 @@ def build_false_detection_gallery_html(
     renderCameraBarChart();
     renderSpeciesStats();
     renderConfusionMatrix();
+    renderBurstSection();
     filterGallery();
   </script>
 </body>
@@ -2702,8 +3527,8 @@ def main():
     )
     parser.add_argument(
         "--split",
-        default="val",
-        help="WILDS split to evaluate: 'val' (OOD, default), 'id_val', or 'all'",
+        default="test",
+        help="WILDS split to evaluate: 'test' (OOD, default), 'val', 'id_val', or 'all'",
     )
     parser.add_argument(
         "--output-html",
