@@ -2236,6 +2236,7 @@ document.addEventListener('keydown', function(e) {
 // Use the same rendered curve for the shaft endpoint and arrowhead base.
 // SVG lengths are pixels, so gaps and head sizes stay fixed after zoom/resize.
 function trimConfusionEdges(graph) {
+    graph.querySelectorAll('.confusion-arrowhead').forEach(el => el.remove());
     for (const trace of graph._fullData || []) {
         const gap = trace.meta && trace.meta.edge_geometry;
         if (!gap) continue;
@@ -2276,16 +2277,13 @@ function trimConfusionEdges(graph) {
         const nx = -dy / distance * headWidth;
         const ny = dx / distance * headWidth;
 
-        let head = group.querySelector('.confusion-arrowhead');
-        if (!head) {
-            head = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-            head.classList.add('confusion-arrowhead');
-            head.setAttribute('pointer-events', 'none');
-            group.appendChild(head);
-        }
+        const head = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        head.classList.add('confusion-arrowhead');
+        head.setAttribute('pointer-events', 'none');
         head.setAttribute('d', `M ${tip.x} ${tip.y} L ${base.x + nx} ${base.y + ny} L ${base.x - nx} ${base.y - ny} Z`);
         head.setAttribute('fill', trace.line.color);
         head.setAttribute('stroke', 'none');
+        group.appendChild(head);
 
         // Stop at the head's base; no translucent shaft underneath the triangle.
         path.style.strokeDasharray = `0 ${startLength} ${visible} ${length}`;
