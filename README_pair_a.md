@@ -1,4 +1,4 @@
-# Pair A: Species Confusion Network and Hallucination Gallary 
+# Pair A: Species Confusion Network and Hallucination Gallery 
 
 **Pair A (AI-aided pair in Phase I):**
 - **Lisa Krimbacher** (`k12209298`)
@@ -6,23 +6,22 @@
 
 In Phase I, our pair was assigned to use Generative AI to analyze where and why the fine-tuned ResNet-50 model makes mistakes on the WILDS iWildCam camera-trap dataset. 
 
-This README covers Pair A's interactive visualization tools: the **Species Confusion Network** (`phase1/pair_a/src/species_confusion_network.py`). It is an interactive Dash dashboard built to study which animal species get confused with each other, which camera traps produce the most errors, and how these misclassifications look across dataset splits. \
-Furthermore, the
-**Hallucinations Gallary** (`phase1/pair_a/src/hallucinations.py`), an interactive visual tool built to investigate why the model hallucinates wildlife on completely empty photos. In this setting, "hallucinations" (false alarms) refer to predictions where the model confidently classifies an animal species on a ground-truth empty image,
+This README covers Pair A's interactive visualization tools:
+- **Species Confusion Network** (`phase1/pair_a/src/species_confusion_network.py`): an interactive Dash dashboard built to study which animal species get confused with each other, which camera traps produce the most errors, and how these misclassifications look across dataset splits.
+- **Hallucinations Gallery** (`phase1/pair_a/src/hallucinations.py`): an interactive visual tool built to investigate why the model hallucinates wildlife on completely empty photos. In this setting, "hallucinations" (false alarms) refer to predictions where the model confidently classifies an animal species on a ground-truth empty image.
 
 ---
 
-# Tool 1: Species Confusion Network & Matrix
+# Tool 1: Species Confusion Network 
 
 ## What the Dashboard Shows
 
 - **Directed Confusion Network:** Shows confusion flows between species as a network graph. Directed arrows point from the true animal to what the model predicted. Line thickness shows how many times that mistake happened, and circle size shows how common that species is in the dataset.
-- **Confusion Matrix View:** A matrix heatmap focused on the most confused species pairs.
 - **Linked Inspector Sidebar:** Clicking any animal in the network or matrix immediately updates the sidebar to focus on that species:
   - Bar charts of what it gets mistaken for (and what gets mistaken for it).
   - Which camera locations had the most errors for that species.
-  - Side-by-side photo comparisons showing the true animal photo next to what the model predicted.
-- **Camera Error Breakdown & Context:** Shows which camera locations had the most errors for that species. Hovering over any camera displays both the absolute mistake count and the true sighting error rate, plus total camera shots, so you can immediately tell a broken camera apart from one that just took thousands of photos. A dedicated callout card highlights the worst camera trap with photos of actual misclassified animals taken at that location.
+  - Side-by-side photo comparisons on hover showing the true animal photo next to what the model predicted.
+- **Camera Error Breakdown & Context:** Shows which camera locations had the most errors for that species. Hovering over any camera displays both the absolute mistake count and the true sighting error rate, as well as total camera shots.
 - **English & Scientific Names:** Displays plain English common names on nodes and dropdowns, while keeping full scientific Latin names visible on hover and in detail panels.
 
 ---
@@ -40,7 +39,6 @@ If you don't have `outputs/predictions.parquet` yet, you can generate it with:
 ```bash
 make inference
 ```
-*(or copy `outputs/predictions.parquet` from a teammate).*
 
 ### 2. Launch the Dashboard
 Run the Python script from the repository root:
@@ -67,7 +65,7 @@ The viewer can run with or without the image folder:
 
 **Good to know:**
 - **No GPU required:** The viewer itself never runs inference and does not need a GPU. You only need to run model inference if you don't already have a predictions file from a teammate.
-- **Direct photo loading:** The viewer loads photos directly from the filenames listed in the prediction file, so it does not even need a separate `metadata.csv` to find images.
+- **Direct photo loading:** The viewer loads photos directly from the filenames listed in the prediction file.
 - **Check data without starting Dash:** Append `--check-data` to quickly check whether all image files exist on disk without launching the web server. It scans every unique filename in the predictions and exits with code 0 if all are found, or code 1 if files are missing.
 
 ---
@@ -112,18 +110,18 @@ python phase1/pair_a/src/species_confusion_network.py --predictions "/path/to/pr
 ## Tips for Exploring the Dashboard
 
 1. **Switch Dataset Splits:** Use the dropdown at the top left to switch between the **Test Set**, **Validation Set**, and **Training Set**.
-2. **Click to Focus:** Click any node in the graph (or a row in the sidebar) to lock the dashboard onto that animal and see all its specific errors and photos. Click **"Reset Focus"** to zoom back out.
-3. **Compare Photos:** In the sidebar or hover tooltips, click the ‹ and › buttons on photo slideshows to flip through different camera trap shots of that species.
+2. **Click to Focus:** Click any node in the graph (or select from the Focus dropdown) to lock the dashboard onto that animal and see all its specific errors and photos. Click **"Reset Focus"** to zoom back out.
+3. **Compare Photos:** In the sidebar, click the ‹ and › buttons on photo slideshows to flip through different camera trap shots of that species.
 
 ---
 
-# Tool 2: Hallucination Gallary 
+# Tool 2: Hallucination Gallery 
 
 
 ## What the Gallery Shows
 
 - **Basic Statistics:** Basic statistical overview is provided at the top of the page
-- **Camera Hotspot Breakdown:** Shows that false alarms are not random across the forest. Over 64% of all false detections happen at just one camera traps. Clicking any bar in the chart instantly filters the gallery down to that specific camera.
+- **Camera Hotspot Breakdown:** Shows that false alarms are not random across the forest. Over 64% of all false detections happen at just one camera trap. Clicking any bar in the chart instantly filters the gallery down to that specific camera.
 - **Phantom Species Breakdown:** Audits which wildlife species the model hallucinates most frequently, ranked by false alarm volume or average model certainty. On the test set, 62% of all false alarms are concentrated in just two species (*Sylvilagus brasiliensis* and *Cuniculus paca*). Clicking any species row instantly filters the gallery below to that animal.
 - **Environment & Lighting Matrix:** Groups false alarms by environmental condition (Night/ IR Flash, Dense Foliage, Open Clearings). Highlights that over 51% of false detections happen under night-time infrared flash, where monochrome contrast and lens glare trick the model into predicting species like forest rabbits or pacas.
 - **Burst Sequence Heatmap:** Tracks multi-frame burst sequences (rapid 3–10 shot bursts) frame-by-frame. It proves that in 58.2% of burst sequences, the model gets permanently locked across all 10 consecutive frames without ever recovering, rather than just having a temporary 1-frame wind glitch. Hovering over any cell previews that exact photo thumbnail.
@@ -145,7 +143,6 @@ If you don't have `outputs/predictions.parquet` yet, you can generate it with:
 ```bash
 make inference
 ```
-*(or copy `outputs/predictions.parquet` from a teammate).*
 
 ### 2. Launch the Gallery
 Run the Python script from the repository root:

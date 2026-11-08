@@ -101,7 +101,7 @@ make strip-notebooks  # strip outputs from all notebooks (also done automaticall
 ### Pair A: 
 #### **Species Confusion Network Dashboard**
 
-Pair A developed an interactive Dash dashboard (`species_confusion_network.py`) to visually explore species confusion flows, empty-frame hallucinations, and camera trap error rates across splits. For full setup instructions, CLI options, and photo path configuration, see the dedicated [Pair A README](README_pair_a.md).
+Pair A developed an interactive Dash dashboard (`species_confusion_network.py`) to visually explore species confusion flows and camera trap error rates across splits. For full setup instructions, CLI options, and photo path configuration, see the dedicated [Pair A README](README_pair_a.md).
 
 ```bash
 python phase1/pair_a/src/species_confusion_network.py

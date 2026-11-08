@@ -35,7 +35,7 @@ This log tracks our AI interactions and reflections during Phase 1 (Error Analys
 
 ---
 
-## Chronological Log of AI Interactions
+## Log of AI Interactions
 
 ### 2026-10-19: Brainstorming Error Analysis Concepts
 
@@ -336,7 +336,7 @@ This log tracks our AI interactions and reflections during Phase 1 (Error Analys
   ```
   When a species is selected, the arrows get tangled and criss-cross each other. Can we use a starburst layout where the selected species is placed in the center, outgoing errors orbit on the right, and incoming false predictions orbit on the left?
   ```
-- **AI output summary:** Built a starburst layout that puts the selected animal in the center, outgoing mistakes on the right, and incoming mistakes on the left.
+- **AI output summary:** Built a starburst hub layout that puts the selected animal in the center and connected species along the ring, with radial spokes that never cross.
 - **Decision:** accepted
 - **Why:** Completely untangles the arrows so you can see mistake directions right away.
 - **Problems caused:** none
