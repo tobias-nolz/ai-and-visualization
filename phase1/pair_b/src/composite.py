@@ -21,8 +21,13 @@ CELL_NAMES = {
 
 
 def camera_habitats():
-    """SegFormer openness (results/camera_openness.csv) and habitat of every scored camera."""
-    cams = pd.read_csv(PAIR_B / "results" / "camera_openness.csv")[["location", "openness"]].dropna()
+    """SegFormer openness (results/camera_openness.csv) and habitat of every camera scored on daytime frames.
+
+    Cameras scored from the fallback frames (sample_policy "available_frames", night frames allowed) are left
+    out: their scores are less reliable, and the committed backgrounds were sampled without them.
+    """
+    cams = pd.read_csv(PAIR_B / "results" / "camera_openness.csv")
+    cams = cams.loc[cams["sample_policy"] == "daytime", ["location", "openness"]].dropna()
     cams["habitat"] = np.select(
         [cams["openness"] > OPEN_T, cams["openness"] < FOREST_T],
         ["open", "forest"],

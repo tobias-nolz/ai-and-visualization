@@ -36,6 +36,8 @@ analysis = [
     "lime",
     # segmentation (Pair B cut-outs for the background-swap experiment)
     "segment-anything",
+    # SegFormer openness of the camera backgrounds (Pair B, src/measure_background.py)
+    "transformers",
     # notebooks
     "ipywidgets",
 ]
