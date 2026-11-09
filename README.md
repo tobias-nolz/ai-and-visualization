@@ -21,7 +21,17 @@ Repository: https://github.com/p-lambda/wilds
 
 Model checkpoints: https://worksheets.codalab.org/worksheets/0x52cea64d1d3f4fa89de326b4e31aa50a
 
----
+## Research questions
+
+### Phase 1
+
+1. Species confusions: Which species does the model confuse, and how much do the camera and its surroundings shape these errors?
+2. Hallucinations: Where does the model predict animals in photos labeled empty and does it happen in the training data?
+
+### Phase 2
+
+1. Background overreliance: Which learned background features outweigh animal cues?
+2. Phantom rabbits: What makes the model predict rabbits in photos labeled empty?
 
 ## Team
 
