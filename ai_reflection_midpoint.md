@@ -96,4 +96,12 @@ Throughout the design and implementation process, we kept track of what worked a
 3. **Don't let the AI guess reasons without data:** Always verify AI claims against the raw dataset and actual photos before trusting them.
 4. **Use screenshots in prompting:** Sharing screenshots of the rendered browser UI alongside code allowed the AI to grasp visual issues better than with text descriptions alone.
 
+---
 
+## 7. Comparison of the AI-aided and non-AI pairs
+
+For confusions, the AI-aided pair used a network to show which species get mixed up and in which direction. The non-AI pair instead kept the animal fixed and changed its background and position. So one approach compared existing mistakes, while the other tested how changing the input changed the prediction.
+
+For hallucinations, the AI-aided pair looked at confidence and whether animal predictions repeat across sequences. The non-AI pair started from camera patterns, then manually checked selected training sequences. This showed more label mismatches in last frames than first frames, with strong differences between cameras.
+
+Both pairs found questionable labels, so a disagreement with the dataset did not always mean the model was wrong. Both also found that false alarms were concentrated at particular cameras. For example, all 440 rabbit false alarms came from one camera.
