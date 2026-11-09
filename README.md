@@ -52,7 +52,6 @@ notebooks/
 phase1/, phase2/
   pair_a/, pair_b/        notebooks/, src/, figures/ (+ ai_log.md for the AI-aided pair)
   comparison.md           Pair A vs. Pair B
-README_pair_a.md          Pair A interactive visualizations documentation (Confusion Network & Hallucination Gallery)
 data/, checkpoints/, outputs/   gitignored, created by the scripts
 ```
 
@@ -101,7 +100,7 @@ make strip-notebooks  # strip outputs from all notebooks (also done automaticall
 ### Pair A: 
 #### **Species Confusion Network Dashboard**
 
-Pair A developed an interactive Dash dashboard (`species_confusion_network.py`) to visually explore species confusion flows and camera trap error rates across splits. For full setup instructions, CLI options, and photo path configuration, see the dedicated [Pair A README](README_pair_a.md).
+Pair A developed an interactive Dash dashboard (`species_confusion_network.py`) to visually explore species confusion flows and camera trap error rates across splits. For full setup instructions, CLI options, and photo path configuration, see the dedicated [Pair A README](phase1/pair_a/README.md).
 
 ```bash
 python phase1/pair_a/src/species_confusion_network.py
@@ -113,7 +112,26 @@ Furthermore, we implemented an interactive visual audit tool (`hallucinations.py
    python phase1/pair_a/src/hallucinations.py --split test
    ```
    Generates and opens the standalone interactive HTML gallery at `phase1/pair_a/figures/false_detection_gallery.html`.
-   
+
+### Pair B:
+#### **Confusion Territories (background swap)**
+
+Pair B pastes animal cut-outs onto empty camera-trap frames from different habitats (open / mixed / forest, day and night) to test how much the model's prediction depends on the background rather than the animal. The prediction-territory explorer and observations are in [`confusion_territories.ipynb`](phase1/pair_b/notebooks/confusion_territories.ipynb); the cut-outs are made by [`make_cutouts.py`](phase1/pair_b/src/make_cutouts.py) and the composites run by [`run_composites.py`](phase1/pair_b/src/run_composites.py). For the full pipeline (SAM weights, cut-out selection, habitat measurement), see the dedicated [Pair B README](phase1/pair_b/README.md).
+
+```bash
+python phase1/pair_b/src/run_composites.py
+```
+
+#### **Hallucination Atlas and Label Review**
+
+An interactive atlas of images labeled empty where the model predicts an animal, plus a labeling tool for reviewing training labels. It compares whether an animal is actually visible with the labels in the training sequences, which can suggest (but does not prove) an explanation for these errors. The analysis is in [`hallucination_audit.ipynb`](phase1/pair_b/notebooks/hallucination_audit.ipynb).
+
+```bash
+python phase1/pair_b/src/server.py
+```
+
+Then open the atlas at http://127.0.0.1:8874/ and the labeling tool at http://127.0.0.1:8874/viewer/. After changing labels, update the atlas with `python phase1/pair_b/src/build_training_atlas.py`.
+
 ---
 
 ### Predictions files
