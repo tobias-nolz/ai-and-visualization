@@ -26,7 +26,7 @@ Model checkpoints: https://worksheets.codalab.org/worksheets/0x52cea64d1d3f4fa89
 ### Phase 1
 
 1. Species confusions: Which species does the model confuse, and how much do the camera and its surroundings shape these errors?
-2. Hallucinations: Where does the model predict animals in photos labeled empty and does it happen in the training data?
+2. Hallucinations: Where are animals confused with empty and is there a systematic pattern behind?
 
 ### Phase 2
 
