@@ -1,0 +1,1820 @@
+{
+ "set": "tree/plant top 256",
+ "habitat": "forest",
+ "runs": {
+  "as is": {
+   "n": 64800,
+   "n_units": 0,
+   "share": {
+    "exact species": 0.2567,
+    "same group": 0.0346,
+    "other group": 0.2431,
+    "empty": 0.4656
+   },
+   "sd": {
+    "exact species": 0.0,
+    "same group": 0.0,
+    "other group": 0.0,
+    "empty": 0.0
+   },
+   "acc": {
+    "id_test|all": {
+     "acc": 0.7605,
+     "sd": 0.0,
+     "n": 8154
+    },
+    "id_test|forest": {
+     "acc": 0.8053,
+     "sd": 0.0,
+     "n": 2743
+    },
+    "id_test|mixed": {
+     "acc": 0.7264,
+     "sd": 0.0,
+     "n": 3553
+    },
+    "id_test|open": {
+     "acc": 0.756,
+     "sd": 0.0,
+     "n": 1832
+    },
+    "test|all": {
+     "acc": 0.7018,
+     "sd": 0.0,
+     "n": 42791
+    },
+    "test|forest": {
+     "acc": 0.77,
+     "sd": 0.0,
+     "n": 10289
+    },
+    "test|mixed": {
+     "acc": 0.7824,
+     "sd": 0.0,
+     "n": 18803
+    },
+    "test|open": {
+     "acc": 0.54,
+     "sd": 0.0,
+     "n": 13660
+    }
+   }
+  },
+  "units off": {
+   "n": 64800,
+   "n_units": 256,
+   "share": {
+    "exact species": 0.3164,
+    "same group": 0.0527,
+    "other group": 0.3963,
+    "empty": 0.2347
+   },
+   "sd": {
+    "exact species": 0.0,
+    "same group": 0.0,
+    "other group": 0.0,
+    "empty": 0.0
+   },
+   "acc": {
+    "id_test|all": {
+     "acc": 0.7638,
+     "sd": 0.0,
+     "n": 8154
+    },
+    "id_test|forest": {
+     "acc": 0.8039,
+     "sd": 0.0,
+     "n": 2743
+    },
+    "id_test|mixed": {
+     "acc": 0.7225,
+     "sd": 0.0,
+     "n": 3553
+    },
+    "id_test|open": {
+     "acc": 0.7811,
+     "sd": 0.0,
+     "n": 1832
+    },
+    "test|all": {
+     "acc": 0.6928,
+     "sd": 0.0,
+     "n": 42791
+    },
+    "test|forest": {
+     "acc": 0.7468,
+     "sd": 0.0,
+     "n": 10289
+    },
+    "test|mixed": {
+     "acc": 0.7762,
+     "sd": 0.0,
+     "n": 18803
+    },
+    "test|open": {
+     "acc": 0.538,
+     "sd": 0.0,
+     "n": 13660
+    }
+   }
+  },
+  "random": {
+   "n": 64800,
+   "n_units": 256,
+   "share": {
+    "exact species": 0.2418,
+    "same group": 0.0319,
+    "other group": 0.2256,
+    "empty": 0.5007
+   },
+   "sd": {
+    "exact species": 0.0112,
+    "same group": 0.0026,
+    "other group": 0.0161,
+    "empty": 0.0282
+   },
+   "acc": {
+    "id_test|all": {
+     "acc": 0.7574,
+     "sd": 0.0019,
+     "n": 8154
+    },
+    "id_test|forest": {
+     "acc": 0.8044,
+     "sd": 0.0031,
+     "n": 2743
+    },
+    "id_test|mixed": {
+     "acc": 0.7242,
+     "sd": 0.002,
+     "n": 3553
+    },
+    "id_test|open": {
+     "acc": 0.7483,
+     "sd": 0.0043,
+     "n": 1832
+    },
+    "test|all": {
+     "acc": 0.7023,
+     "sd": 0.0032,
+     "n": 42791
+    },
+    "test|forest": {
+     "acc": 0.7777,
+     "sd": 0.0069,
+     "n": 10289
+    },
+    "test|mixed": {
+     "acc": 0.7817,
+     "sd": 0.0013,
+     "n": 18803
+    },
+    "test|open": {
+     "acc": 0.5367,
+     "sd": 0.0083,
+     "n": 13660
+    }
+   }
+  },
+  "random, matched": {
+   "n": 64800,
+   "n_units": 256,
+   "share": {
+    "exact species": 0.2756,
+    "same group": 0.0362,
+    "other group": 0.2485,
+    "empty": 0.4398
+   },
+   "sd": {
+    "exact species": 0.0106,
+    "same group": 0.0028,
+    "other group": 0.0139,
+    "empty": 0.0239
+   },
+   "acc": {
+    "id_test|all": {
+     "acc": 0.7584,
+     "sd": 0.0018,
+     "n": 8154
+    },
+    "id_test|forest": {
+     "acc": 0.8055,
+     "sd": 0.0033,
+     "n": 2743
+    },
+    "id_test|mixed": {
+     "acc": 0.7248,
+     "sd": 0.0017,
+     "n": 3553
+    },
+    "id_test|open": {
+     "acc": 0.75,
+     "sd": 0.0045,
+     "n": 1832
+    },
+    "test|all": {
+     "acc": 0.7018,
+     "sd": 0.0028,
+     "n": 42791
+    },
+    "test|forest": {
+     "acc": 0.7702,
+     "sd": 0.0032,
+     "n": 10289
+    },
+    "test|mixed": {
+     "acc": 0.7823,
+     "sd": 0.0019,
+     "n": 18803
+    },
+    "test|open": {
+     "acc": 0.54,
+     "sd": 0.0081,
+     "n": 13660
+    }
+   }
+  }
+ },
+ "draws": 50,
+ "empty_before": 30169,
+ "empty_after": {
+  "exact species": 4037,
+  "same group": 1288,
+  "other group": 9637,
+  "empty": 15207
+ },
+ "empty_after_share": {
+  "exact species": 0.1338,
+  "same group": 0.0427,
+  "other group": 0.3194,
+  "empty": 0.5041
+ },
+ "reappear": {
+  "n": 14962,
+  "correct": 0.2698,
+  "wrong": 0.7302
+ },
+ "other_sets": {
+  "tree/plant": {
+   "units_off": {
+    "n": 64800,
+    "n_units": 27,
+    "share": {
+     "exact species": 0.2657,
+     "same group": 0.0365,
+     "other group": 0.257,
+     "empty": 0.4409
+    },
+    "sd": {
+     "exact species": 0.0,
+     "same group": 0.0,
+     "other group": 0.0,
+     "empty": 0.0
+    }
+   },
+   "random": {
+    "n": 64800,
+    "n_units": 27,
+    "share": {
+     "exact species": 0.256,
+     "same group": 0.0344,
+     "other group": 0.2427,
+     "empty": 0.4668
+    },
+    "sd": {
+     "exact species": 0.0031,
+     "same group": 0.001,
+     "other group": 0.0047,
+     "empty": 0.0076
+    }
+   }
+  },
+  "tree/plant top 64": {
+   "units_off": {
+    "n": 64800,
+    "n_units": 64,
+    "share": {
+     "exact species": 0.2694,
+     "same group": 0.0378,
+     "other group": 0.2711,
+     "empty": 0.4216
+    },
+    "sd": {
+     "exact species": 0.0,
+     "same group": 0.0,
+     "other group": 0.0,
+     "empty": 0.0
+    }
+   },
+   "random": {
+    "n": 64800,
+    "n_units": 64,
+    "share": {
+     "exact species": 0.2545,
+     "same group": 0.0345,
+     "other group": 0.2419,
+     "empty": 0.4691
+    },
+    "sd": {
+     "exact species": 0.005,
+     "same group": 0.0014,
+     "other group": 0.008,
+     "empty": 0.0134
+    }
+   }
+  },
+  "ground top 256": {
+   "units_off": {
+    "n": 64800,
+    "n_units": 256,
+    "share": {
+     "exact species": 0.2651,
+     "same group": 0.055,
+     "other group": 0.3806,
+     "empty": 0.2993
+    },
+    "sd": {
+     "exact species": 0.0,
+     "same group": 0.0,
+     "other group": 0.0,
+     "empty": 0.0
+    }
+   },
+   "random": {
+    "n": 64800,
+    "n_units": 256,
+    "share": {
+     "exact species": 0.2536,
+     "same group": 0.0319,
+     "other group": 0.2276,
+     "empty": 0.4869
+    },
+    "sd": {
+     "exact species": 0.0103,
+     "same group": 0.0029,
+     "other group": 0.0169,
+     "empty": 0.0278
+    }
+   }
+  }
+ },
+ "dose": {
+  "k": [
+   8,
+   16,
+   32,
+   64,
+   128,
+   192,
+   256,
+   384,
+   512
+  ],
+  "sets": {
+   "tree": [
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2584,
+       "same group": 0.0349,
+       "other group": 0.2453,
+       "empty": 0.4613
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7014,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7679,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 126,
+       "same group": 37,
+       "other group": 168,
+       "empty": 29838
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2567,
+       "same group": 0.0347,
+       "other group": 0.2435,
+       "empty": 0.4651
+      },
+      "sd": {
+       "exact species": 0.0019,
+       "same group": 0.0005,
+       "other group": 0.0026,
+       "empty": 0.0045
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7018,
+        "sd": 0.0006
+       },
+       "test|forest": {
+        "acc": 0.7697,
+        "sd": 0.0007
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2573,
+       "same group": 0.0347,
+       "other group": 0.2436,
+       "empty": 0.4644
+      },
+      "sd": {
+       "exact species": 0.002,
+       "same group": 0.0005,
+       "other group": 0.0028,
+       "empty": 0.005
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7019,
+        "sd": 0.0005
+       },
+       "test|forest": {
+        "acc": 0.77,
+        "sd": 0.0009
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2613,
+       "same group": 0.0355,
+       "other group": 0.2508,
+       "empty": 0.4524
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7007,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7665,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 322,
+       "same group": 81,
+       "other group": 495,
+       "empty": 29271
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2564,
+       "same group": 0.0345,
+       "other group": 0.2435,
+       "empty": 0.4655
+      },
+      "sd": {
+       "exact species": 0.0023,
+       "same group": 0.0006,
+       "other group": 0.0031,
+       "empty": 0.0055
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7018,
+        "sd": 0.0007
+       },
+       "test|forest": {
+        "acc": 0.7699,
+        "sd": 0.0009
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2578,
+       "same group": 0.0348,
+       "other group": 0.2441,
+       "empty": 0.4634
+      },
+      "sd": {
+       "exact species": 0.0024,
+       "same group": 0.0008,
+       "other group": 0.0041,
+       "empty": 0.0067
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7022,
+        "sd": 0.0008
+       },
+       "test|forest": {
+        "acc": 0.7699,
+        "sd": 0.001
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2635,
+       "same group": 0.0362,
+       "other group": 0.2544,
+       "empty": 0.4459
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7003,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7656,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 445,
+       "same group": 143,
+       "other group": 782,
+       "empty": 28799
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2561,
+       "same group": 0.0346,
+       "other group": 0.2432,
+       "empty": 0.4661
+      },
+      "sd": {
+       "exact species": 0.0035,
+       "same group": 0.001,
+       "other group": 0.0057,
+       "empty": 0.0094
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7019,
+        "sd": 0.0009
+       },
+       "test|forest": {
+        "acc": 0.77,
+        "sd": 0.0013
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2602,
+       "same group": 0.0353,
+       "other group": 0.2463,
+       "empty": 0.4582
+      },
+      "sd": {
+       "exact species": 0.0042,
+       "same group": 0.0011,
+       "other group": 0.006,
+       "empty": 0.0105
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7021,
+        "sd": 0.0011
+       },
+       "test|forest": {
+        "acc": 0.7698,
+        "sd": 0.0015
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2694,
+       "same group": 0.0378,
+       "other group": 0.2711,
+       "empty": 0.4216
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7005,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7626,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 934,
+       "same group": 255,
+       "other group": 1694,
+       "empty": 27286
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2545,
+       "same group": 0.0345,
+       "other group": 0.2419,
+       "empty": 0.4691
+      },
+      "sd": {
+       "exact species": 0.005,
+       "same group": 0.0014,
+       "other group": 0.008,
+       "empty": 0.0134
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7019,
+        "sd": 0.0014
+       },
+       "test|forest": {
+        "acc": 0.77,
+        "sd": 0.0017
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.263,
+       "same group": 0.0354,
+       "other group": 0.2466,
+       "empty": 0.4551
+      },
+      "sd": {
+       "exact species": 0.0045,
+       "same group": 0.0013,
+       "other group": 0.0071,
+       "empty": 0.0111
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7021,
+        "sd": 0.0016
+       },
+       "test|forest": {
+        "acc": 0.7693,
+        "sd": 0.0015
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2916,
+       "same group": 0.0432,
+       "other group": 0.3125,
+       "empty": 0.3527
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6973,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7587,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 2276,
+       "same group": 657,
+       "other group": 4383,
+       "empty": 22853
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2536,
+       "same group": 0.0345,
+       "other group": 0.2413,
+       "empty": 0.4706
+      },
+      "sd": {
+       "exact species": 0.007,
+       "same group": 0.0021,
+       "other group": 0.0118,
+       "empty": 0.0195
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7026,
+        "sd": 0.0018
+       },
+       "test|forest": {
+        "acc": 0.7717,
+        "sd": 0.0028
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2702,
+       "same group": 0.0361,
+       "other group": 0.2485,
+       "empty": 0.4451
+      },
+      "sd": {
+       "exact species": 0.0072,
+       "same group": 0.0021,
+       "other group": 0.0136,
+       "empty": 0.0211
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7029,
+        "sd": 0.002
+       },
+       "test|forest": {
+        "acc": 0.7699,
+        "sd": 0.0023
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.3088,
+       "same group": 0.0475,
+       "other group": 0.3508,
+       "empty": 0.2929
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6945,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.753,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 3296,
+       "same group": 977,
+       "other group": 6914,
+       "empty": 18982
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2488,
+       "same group": 0.0335,
+       "other group": 0.235,
+       "empty": 0.4826
+      },
+      "sd": {
+       "exact species": 0.0085,
+       "same group": 0.0022,
+       "other group": 0.0129,
+       "empty": 0.0216
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7027,
+        "sd": 0.0026
+       },
+       "test|forest": {
+        "acc": 0.7742,
+        "sd": 0.0048
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2731,
+       "same group": 0.0362,
+       "other group": 0.2499,
+       "empty": 0.4408
+      },
+      "sd": {
+       "exact species": 0.0088,
+       "same group": 0.0026,
+       "other group": 0.0132,
+       "empty": 0.0226
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.702,
+        "sd": 0.0028
+       },
+       "test|forest": {
+        "acc": 0.7702,
+        "sd": 0.0032
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.3164,
+       "same group": 0.0527,
+       "other group": 0.3963,
+       "empty": 0.2347
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6928,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7468,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 4037,
+       "same group": 1288,
+       "other group": 9637,
+       "empty": 15207
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2418,
+       "same group": 0.0319,
+       "other group": 0.2256,
+       "empty": 0.5007
+      },
+      "sd": {
+       "exact species": 0.0112,
+       "same group": 0.0026,
+       "other group": 0.0161,
+       "empty": 0.0282
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7023,
+        "sd": 0.0032
+       },
+       "test|forest": {
+        "acc": 0.7777,
+        "sd": 0.0069
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2756,
+       "same group": 0.0362,
+       "other group": 0.2485,
+       "empty": 0.4398
+      },
+      "sd": {
+       "exact species": 0.0106,
+       "same group": 0.0028,
+       "other group": 0.0139,
+       "empty": 0.0239
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7018,
+        "sd": 0.0028
+       },
+       "test|forest": {
+        "acc": 0.7702,
+        "sd": 0.0032
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.3194,
+       "same group": 0.062,
+       "other group": 0.4694,
+       "empty": 0.1493
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6828,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7288,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 4549,
+       "same group": 1857,
+       "other group": 14089,
+       "empty": 9674
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2242,
+       "same group": 0.029,
+       "other group": 0.2043,
+       "empty": 0.5425
+      },
+      "sd": {
+       "exact species": 0.0152,
+       "same group": 0.0029,
+       "other group": 0.0175,
+       "empty": 0.0332
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7063,
+        "sd": 0.0045
+       },
+       "test|forest": {
+        "acc": 0.7915,
+        "sd": 0.0112
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2657,
+       "same group": 0.0327,
+       "other group": 0.2304,
+       "empty": 0.4711
+      },
+      "sd": {
+       "exact species": 0.0132,
+       "same group": 0.0034,
+       "other group": 0.0178,
+       "empty": 0.0315
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7031,
+        "sd": 0.0043
+       },
+       "test|forest": {
+        "acc": 0.7741,
+        "sd": 0.007
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.329,
+       "same group": 0.069,
+       "other group": 0.5318,
+       "empty": 0.0702
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6638,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.6806,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 5135,
+       "same group": 2397,
+       "other group": 18085,
+       "empty": 4552
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.1865,
+       "same group": 0.0228,
+       "other group": 0.1655,
+       "empty": 0.6253
+      },
+      "sd": {
+       "exact species": 0.0176,
+       "same group": 0.0034,
+       "other group": 0.0238,
+       "empty": 0.0421
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7073,
+        "sd": 0.0045
+       },
+       "test|forest": {
+        "acc": 0.8068,
+        "sd": 0.0137
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.244,
+       "same group": 0.0296,
+       "other group": 0.212,
+       "empty": 0.5144
+      },
+      "sd": {
+       "exact species": 0.0162,
+       "same group": 0.0044,
+       "other group": 0.0223,
+       "empty": 0.0395
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7023,
+        "sd": 0.0036
+       },
+       "test|forest": {
+        "acc": 0.7757,
+        "sd": 0.0091
+       }
+      }
+     }
+    }
+   ],
+   "ground": [
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2572,
+       "same group": 0.0353,
+       "other group": 0.2474,
+       "empty": 0.4601
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7027,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7709,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 93,
+       "same group": 46,
+       "other group": 219,
+       "empty": 29811
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2567,
+       "same group": 0.0347,
+       "other group": 0.2434,
+       "empty": 0.4652
+      },
+      "sd": {
+       "exact species": 0.0019,
+       "same group": 0.0005,
+       "other group": 0.0025,
+       "empty": 0.0045
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7018,
+        "sd": 0.0005
+       },
+       "test|forest": {
+        "acc": 0.7698,
+        "sd": 0.0006
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2563,
+       "same group": 0.0344,
+       "other group": 0.2424,
+       "empty": 0.4668
+      },
+      "sd": {
+       "exact species": 0.0016,
+       "same group": 0.0004,
+       "other group": 0.0021,
+       "empty": 0.0037
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7017,
+        "sd": 0.0005
+       },
+       "test|forest": {
+        "acc": 0.7698,
+        "sd": 0.0005
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.258,
+       "same group": 0.0362,
+       "other group": 0.2533,
+       "empty": 0.4524
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.703,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7715,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 215,
+       "same group": 98,
+       "other group": 543,
+       "empty": 29313
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2563,
+       "same group": 0.0346,
+       "other group": 0.2429,
+       "empty": 0.4662
+      },
+      "sd": {
+       "exact species": 0.0025,
+       "same group": 0.0007,
+       "other group": 0.0033,
+       "empty": 0.0058
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7017,
+        "sd": 0.0007
+       },
+       "test|forest": {
+        "acc": 0.77,
+        "sd": 0.001
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2555,
+       "same group": 0.0345,
+       "other group": 0.2426,
+       "empty": 0.4673
+      },
+      "sd": {
+       "exact species": 0.002,
+       "same group": 0.0007,
+       "other group": 0.0035,
+       "empty": 0.0055
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7019,
+        "sd": 0.0007
+       },
+       "test|forest": {
+        "acc": 0.77,
+        "sd": 0.0011
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2604,
+       "same group": 0.0386,
+       "other group": 0.266,
+       "empty": 0.435
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7022,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7701,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 517,
+       "same group": 235,
+       "other group": 1233,
+       "empty": 28184
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.256,
+       "same group": 0.0344,
+       "other group": 0.2422,
+       "empty": 0.4674
+      },
+      "sd": {
+       "exact species": 0.0037,
+       "same group": 0.001,
+       "other group": 0.0056,
+       "empty": 0.0096
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7017,
+        "sd": 0.001
+       },
+       "test|forest": {
+        "acc": 0.7698,
+        "sd": 0.0014
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2563,
+       "same group": 0.0346,
+       "other group": 0.2432,
+       "empty": 0.4659
+      },
+      "sd": {
+       "exact species": 0.0035,
+       "same group": 0.001,
+       "other group": 0.0048,
+       "empty": 0.0085
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.702,
+        "sd": 0.0011
+       },
+       "test|forest": {
+        "acc": 0.7699,
+        "sd": 0.0012
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2597,
+       "same group": 0.0412,
+       "other group": 0.2785,
+       "empty": 0.4206
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7025,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7699,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 675,
+       "same group": 362,
+       "other group": 1877,
+       "empty": 27255
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2561,
+       "same group": 0.0346,
+       "other group": 0.2417,
+       "empty": 0.4676
+      },
+      "sd": {
+       "exact species": 0.0046,
+       "same group": 0.0011,
+       "other group": 0.007,
+       "empty": 0.0111
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7016,
+        "sd": 0.0012
+       },
+       "test|forest": {
+        "acc": 0.7696,
+        "sd": 0.0014
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2545,
+       "same group": 0.0342,
+       "other group": 0.2411,
+       "empty": 0.4702
+      },
+      "sd": {
+       "exact species": 0.0048,
+       "same group": 0.0011,
+       "other group": 0.007,
+       "empty": 0.0119
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.702,
+        "sd": 0.0013
+       },
+       "test|forest": {
+        "acc": 0.7703,
+        "sd": 0.0015
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2598,
+       "same group": 0.0452,
+       "other group": 0.3102,
+       "empty": 0.3847
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7019,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7728,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 1085,
+       "same group": 634,
+       "other group": 3521,
+       "empty": 24929
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2555,
+       "same group": 0.0341,
+       "other group": 0.2408,
+       "empty": 0.4696
+      },
+      "sd": {
+       "exact species": 0.0065,
+       "same group": 0.002,
+       "other group": 0.011,
+       "empty": 0.0176
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.701,
+        "sd": 0.002
+       },
+       "test|forest": {
+        "acc": 0.7699,
+        "sd": 0.0026
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2527,
+       "same group": 0.0337,
+       "other group": 0.2397,
+       "empty": 0.4739
+      },
+      "sd": {
+       "exact species": 0.0075,
+       "same group": 0.0018,
+       "other group": 0.0118,
+       "empty": 0.0195
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7013,
+        "sd": 0.0019
+       },
+       "test|forest": {
+        "acc": 0.7695,
+        "sd": 0.0033
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2613,
+       "same group": 0.0504,
+       "other group": 0.3466,
+       "empty": 0.3417
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6997,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7665,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 1626,
+       "same group": 937,
+       "other group": 5464,
+       "empty": 22142
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2537,
+       "same group": 0.0335,
+       "other group": 0.2344,
+       "empty": 0.4785
+      },
+      "sd": {
+       "exact species": 0.0096,
+       "same group": 0.0026,
+       "other group": 0.0159,
+       "empty": 0.0253
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7006,
+        "sd": 0.0025
+       },
+       "test|forest": {
+        "acc": 0.7687,
+        "sd": 0.0037
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2457,
+       "same group": 0.0319,
+       "other group": 0.2283,
+       "empty": 0.494
+      },
+      "sd": {
+       "exact species": 0.0092,
+       "same group": 0.0026,
+       "other group": 0.0148,
+       "empty": 0.0251
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7009,
+        "sd": 0.0026
+       },
+       "test|forest": {
+        "acc": 0.7695,
+        "sd": 0.0042
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2651,
+       "same group": 0.055,
+       "other group": 0.3806,
+       "empty": 0.2993
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6984,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7673,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 2070,
+       "same group": 1240,
+       "other group": 7463,
+       "empty": 19396
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2536,
+       "same group": 0.0319,
+       "other group": 0.2276,
+       "empty": 0.4869
+      },
+      "sd": {
+       "exact species": 0.0103,
+       "same group": 0.0029,
+       "other group": 0.0169,
+       "empty": 0.0278
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7001,
+        "sd": 0.0028
+       },
+       "test|forest": {
+        "acc": 0.7668,
+        "sd": 0.0039
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2382,
+       "same group": 0.0306,
+       "other group": 0.2191,
+       "empty": 0.5121
+      },
+      "sd": {
+       "exact species": 0.0088,
+       "same group": 0.0023,
+       "other group": 0.0118,
+       "empty": 0.0208
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.7006,
+        "sd": 0.0029
+       },
+       "test|forest": {
+        "acc": 0.7684,
+        "sd": 0.0049
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2736,
+       "same group": 0.0666,
+       "other group": 0.4592,
+       "empty": 0.2006
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6887,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7587,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 3061,
+       "same group": 1993,
+       "other group": 12119,
+       "empty": 12996
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2386,
+       "same group": 0.0271,
+       "other group": 0.1968,
+       "empty": 0.5375
+      },
+      "sd": {
+       "exact species": 0.0153,
+       "same group": 0.0037,
+       "other group": 0.0209,
+       "empty": 0.0372
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6966,
+        "sd": 0.0033
+       },
+       "test|forest": {
+        "acc": 0.7613,
+        "sd": 0.0044
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2246,
+       "same group": 0.0263,
+       "other group": 0.1929,
+       "empty": 0.5562
+      },
+      "sd": {
+       "exact species": 0.0134,
+       "same group": 0.003,
+       "other group": 0.0194,
+       "empty": 0.0337
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6981,
+        "sd": 0.0035
+       },
+       "test|forest": {
+        "acc": 0.7646,
+        "sd": 0.0057
+       }
+      }
+     }
+    },
+    {
+     "none": {
+      "share": {
+       "exact species": 0.2712,
+       "same group": 0.0736,
+       "other group": 0.506,
+       "empty": 0.1493
+      },
+      "sd": {
+       "exact species": 0.0,
+       "same group": 0.0,
+       "other group": 0.0,
+       "empty": 0.0
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6791,
+        "sd": 0.0
+       },
+       "test|forest": {
+        "acc": 0.7524,
+        "sd": 0.0
+       }
+      },
+      "empty_after": {
+       "exact species": 3333,
+       "same group": 2446,
+       "other group": 14714,
+       "empty": 9676
+      }
+     },
+     "random": {
+      "share": {
+       "exact species": 0.2217,
+       "same group": 0.0226,
+       "other group": 0.1674,
+       "empty": 0.5883
+      },
+      "sd": {
+       "exact species": 0.017,
+       "same group": 0.0036,
+       "other group": 0.022,
+       "empty": 0.0408
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6924,
+        "sd": 0.0038
+       },
+       "test|forest": {
+        "acc": 0.7548,
+        "sd": 0.0047
+       }
+      }
+     },
+     "random, matched": {
+      "share": {
+       "exact species": 0.2045,
+       "same group": 0.0219,
+       "other group": 0.1625,
+       "empty": 0.6112
+      },
+      "sd": {
+       "exact species": 0.0137,
+       "same group": 0.0033,
+       "other group": 0.0198,
+       "empty": 0.0347
+      },
+      "acc": {
+       "test|all": {
+        "acc": 0.6933,
+        "sd": 0.0035
+       },
+       "test|forest": {
+        "acc": 0.7566,
+        "sd": 0.0052
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

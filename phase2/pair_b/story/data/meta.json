@@ -1,0 +1,85 @@
+{
+ "backgrounds": 444,
+ "cameras": 129,
+ "splits": {
+  "id_test": {
+   "frames": 236,
+   "cameras": 100
+  },
+  "test": {
+   "frames": 208,
+   "cameras": 29
+  }
+ },
+ "per_habitat": {
+  "day|open": {
+   "frames": 47,
+   "cameras": 7,
+   "top2_cameras_frames": 39
+  },
+  "day|mixed": {
+   "frames": 80,
+   "cameras": 36,
+   "top2_cameras_frames": 6
+  },
+  "day|forest": {
+   "frames": 80,
+   "cameras": 51,
+   "top2_cameras_frames": 4
+  },
+  "greyscale|open": {
+   "frames": 77,
+   "cameras": 18,
+   "top2_cameras_frames": 38
+  },
+  "greyscale|mixed": {
+   "frames": 80,
+   "cameras": 30,
+   "top2_cameras_frames": 15
+  },
+  "greyscale|forest": {
+   "frames": 80,
+   "cameras": 23,
+   "top2_cameras_frames": 25
+  }
+ },
+ "smallest_habitat": {
+  "key": "day|open",
+  "frames": 47,
+  "cameras": 7,
+  "top2_cameras_frames": 39
+ },
+ "groups": 15,
+ "cutouts": 45,
+ "cells": 9,
+ "composites": 179820,
+ "controls": {
+  "own camera": 2628,
+  "grey frame": 405,
+  "grey frame, greyscale cut-out": 405
+ },
+ "own_camera_frames_per_cutout": 4.0,
+ "thresholds": {
+  "forest_below": 0.3333,
+  "open_above": 0.6667
+ },
+ "outcomes": [
+  "exact species",
+  "same group",
+  "other group",
+  "empty"
+ ],
+ "outcome_shares": {
+  "exact species": 0.2701,
+  "same group": 0.0456,
+  "other group": 0.3536,
+  "empty": 0.3308
+ },
+ "greyscale": {
+  "frames": 237,
+  "infrared_flag": 1.0,
+  "no_colour_camera_frames": 90,
+  "no_colour_cameras": 21,
+  "daytime_stamp": 0.4177
+ }
+}

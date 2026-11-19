@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The elephant that turned into a bird</title>
+<meta name="description" content="Why our camera-trap ResNet-50 relies on the background: a scrollable article (Phase 2, Pair B).">
+<link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/story.css">
+<!--
+  Static page, no build step. Data and images: phase2/pair_b/src/export_story_data.py -> data/*.json, img/*.webp.
+  Every number in the text is filled in from data/*.json (elements with data-v="file.path", data-f = format).
+  Serve the folder over HTTP (the browser blocks fetch() on file://):
+      python -m http.server 8000 --directory phase2/pair_b/story     # then open http://localhost:8000
+
+  Presenting: the main line is the elements marked data-beat (hero, one map step, chapters 2-5, takeaway).
+  Arrow keys, space / shift+space and page up / down jump between them (js/keys.js). Everything else sits in
+  <details class="more"> boxes, closed by default, and is skipped by the keys.
+-->
+</head>
+<body>
+
+<div class="notice" id="notice" hidden></div>
+<script>
+  // browsers block ES modules and fetch() on file://, so nothing below would run: say how to open the page
+  if (location.protocol === "file:") {
+    const n = document.getElementById("notice");
+    n.innerHTML = "This page loads its data with JavaScript, which browsers block for files opened directly. " +
+      "Serve the folder instead: <code>python -m http.server 8000 --directory phase2/pair_b/story</code> " +
+      "(from the repo root), then open <code>http://localhost:8000</code>.";
+    n.hidden = false;
+  }
+</script>
+
+<!-- ================================================================ 0. hero (dark, full width) -->
+<header class="hero dark full" id="hero">
+  <div class="scrolly l-page" data-scrolly="hero">
+    <div class="steps">
+      <div class="step step--title" data-frame="0" data-beat>
+        <p class="kicker">Phase 2 &middot; Pair B</p>
+        <h1>The elephant that turned into a bird</h1>
+        <p class="dek">Our camera-trap model knows an elephant on the savanna. Paste it into a forest, and it sees
+          a <em>great argus</em>, a pheasant.</p>
+        <p class="scroll-hint">Scroll, or press space</p>
+      </div>
+      <div class="step" data-frame="0" data-beat>
+        <div class="step-card">
+          <p>An <b>elephant</b> cut-out in an empty savanna frame (camera
+            <span data-v="hero.frames.0.camera"></span>,
+            <span data-v="hero.frames.0.camera_openness" data-f="pct"></span> open).</p>
+          <p>The model: <b><span data-v="hero.frames.0.answer"></span></b>,
+            <span data-v="hero.frames.0.confidence" data-f="pct"></span> sure.</p>
+        </div>
+      </div>
+      <div class="step" data-frame="1" data-beat>
+        <div class="step-card">
+          <p>Same cut-out, same spot, in a forest (camera <span data-v="hero.frames.1.camera"></span>,
+            <span data-v="hero.frames.1.camera_openness" data-f="pct"></span> open).</p>
+          <p>The model: <b><span data-v="hero.frames.1.answer"></span></b>,
+            <span data-v="hero.frames.1.confidence" data-f="pct"></span> sure. Only the background changed.</p>
+        </div>
+      </div>
+    </div>
+
+    <figure class="sticky hero-figure" aria-label="The same elephant cut-out on an open and a forest background">
+      <div class="hero-stage" id="hero-stage"></div>
+      <figcaption class="hero-meta">
+        <div class="hero-label" aria-live="polite">
+          <span class="k">Model's answer</span>
+          <span class="hero-answer"><span class="dot"></span><span class="txt">&hellip;</span></span>
+          <span class="hero-conf">&hellip;</span>
+          <span class="hero-bar"><i></i></span>
+        </div>
+        <div class="hero-where"><span class="chip">&hellip;</span><span class="where-txt"></span></div>
+        <p class="hero-caption">
+          <b>One example</b>, picked by a fixed rule (see Methods); the open frame is wider, so its sides are
+          trimmed here. Over all <span data-v="hero.context.day_forest_composites" data-f="int"></span> daytime
+          forest composites with an elephant at this spot, <span data-v="hero.context.day_forest_correct"
+          data-f="pct"></span> are right and <span data-v="hero.context.day_forest_wrong_answer"
+          data-f="pct"></span> become a great argus.
+        </p>
+      </figcaption>
+    </figure>
+  </div>
+</header>
+
+<main>
+  <!-- ============================================================== byline + contents -->
+  <div class="byline-wrap">
+    <section class="byline l-page" aria-label="About this article">
+      <div><h4>Authors</h4><p>Martin and Tobias (Pair B)</p></div>
+      <div><h4>Project</h4><p>AI and Visualization lab &middot; group &ldquo;Lost in latent space&rdquo;</p></div>
+      <div><h4>Model</h4><p>WILDS ResNet-50 (ERM) on iWildCam v2.0</p></div>
+      <div><h4>Status</h4><p>Draft, November 2026</p></div>
+    </section>
+  </div>
+
+  <nav class="toc l-body" aria-label="Contents">
+    <ol>
+      <li><a href="#hero">One elephant, two backgrounds</a></li>
+      <li><a href="#recap">What Phase 1 found</a></li>
+      <li><a href="#evidence">Where is the evidence?</a></li>
+      <li><a href="#trees">What does the model see in the trees?</a></li>
+      <li><a href="#votes">Who votes for the great argus?</a></li>
+      <li><a href="#ablation">Switch off the forest</a></li>
+      <li class="extra"><a href="#takeaway">Takeaway</a></li>
+      <li class="extra"><a href="#methods">Methods &amp; caveats</a></li>
+    </ol>
+    <p class="draft-note">Boxes marked <span class="more-inline">More</span> hold details; they are closed by
+      default. The small controls above the charts change what they show. Every number on this page is computed
+      from the Phase 1 and Phase 2 result files.</p>
+  </nav>
+
+  <!-- ============================================================== 1. Phase 1 recap: one territory-map step -->
+  <section class="chapter recap" id="recap">
+    <div class="scrolly l-page" data-scrolly="recap">
+      <div class="steps">
+        <div class="step step--main" data-view="map" data-map="elephant" data-beat>
+          <p class="chapter-no">Chapter 1 &middot; Phase 1</p>
+          <h2>What Phase 1 found</h2>
+          <p class="chapter-sub"><span data-v="meta.cutouts"></span> cut-outs &times;
+            <span data-v="meta.backgrounds"></span> empty frames &times; <span data-v="meta.cells"></span> positions:
+            <span data-v="meta.composites" data-f="int"></span> composites.</p>
+          <div class="step-card">
+            <p><b>Each dot is a frame</b>, forest left, open land right. By day the elephant is right on
+              <span data-v="recap.map.views.elephant.habitats.day|open.correct" data-f="pct"></span> of open frames
+              but <span data-v="recap.map.views.elephant.habitats.day|forest.correct" data-f="pct"></span> in the
+              forest, where <i><span data-v="recap.map.views.elephant.habitats.day|forest.wrong"></span></i> wins
+              <span data-v="recap.map.views.elephant.habitats.day|forest.wrong_share" data-f="pct"></span>.</p>
+          </div>
+        </div>
+
+        <div class="more-group">
+          <details class="more">
+            <summary><span class="more-tag">More</span>A forest animal does the opposite</summary>
+            <div class="step" data-view="map" data-map="porcupine">
+              <div class="step-card">
+                <p>The Malayan porcupine, pasted at the centre, is right on
+                  <span data-v="recap.map.views.porcupine.habitats.greyscale|forest.correct" data-f="pct"></span> of
+                  the greyscale forest composites, but on only
+                  <span data-v="recap.map.views.porcupine.habitats.greyscale|open.correct" data-f="pct"></span> of
+                  the greyscale ones on open land.</p>
+                <p>On open land it mostly becomes a
+                  <i><span data-v="recap.map.views.porcupine.habitats.greyscale|open.wrong"></span></i>
+                  (<span data-v="recap.map.views.porcupine.habitats.greyscale|open.wrong_share" data-f="pct"></span>).
+                  The wrong answers fit the place.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="more">
+            <summary><span class="more-tag">More</span>Is it the cut-out? The grey-frame control</summary>
+            <div class="step" data-view="controls">
+              <div class="step-card">
+                <p>On a plain grey frame, with no background at all, the model names the elephant correctly in
+                  <span data-v="recap.controls.by_group.elephant.grey" data-f="pct"></span> of the cases. On other
+                  cameras' frames this drops to <span data-v="recap.controls.by_group.elephant.swap"
+                  data-f="pct"></span>.</p>
+                <p>But <span data-v="recap.controls.overall.grey_zero_groups"></span> of the
+                  <span data-v="recap.controls.overall.groups"></span> groups are never named correctly on grey. For
+                  them, the animal alone is not enough for the model (or our cut-outs are too hard).</p>
+                <p>Pasted back into empty frames of the camera they came from, the cut-outs are right
+                  <span data-v="recap.controls.overall.own" data-f="pct"></span> of the time, against
+                  <span data-v="recap.controls.overall.swap" data-f="pct"></span> on other cameras.</p>
+              </div>
+            </div>
+          </details>
+
+          <details class="more">
+            <summary><span class="more-tag">More</span>Position matters too: the top-row effect</summary>
+            <div class="step" data-view="cells">
+              <div class="step-card">
+                <p>Pasted in the top row, <span data-v="recap.cells.swap.rows.0" data-f="pct"></span> of the
+                  composites come out <i>empty</i>, against <span data-v="recap.cells.swap.rows.1"
+                  data-f="pct"></span> in the middle row and <span data-v="recap.cells.swap.rows.2"
+                  data-f="pct"></span> at the bottom.</p>
+                <p>The grey frame shows the same pattern
+                  (<span data-v="recap.cells.grey.rows.0" data-f="pct"></span>,
+                  <span data-v="recap.cells.grey.rows.1" data-f="pct"></span>,
+                  <span data-v="recap.cells.grey.rows.2" data-f="pct"></span>), so part of this is about position,
+                  not scenery. Our guess, not checked yet: in the training photos, animals seldom stand at the top of
+                  the frame.</p>
+                <p>The scenery adds to it: in forest frames the top row comes out empty
+                  <span data-v="recap.cells.swap_by_habitat.forest.0" data-f="pct"></span> of the time, on open land
+                  <span data-v="recap.cells.swap_by_habitat.open.0" data-f="pct"></span>.</p>
+              </div>
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <figure class="sticky recap-figure" id="recap-figure">
+        <div class="fig-head">
+          <p class="fig-title"></p>
+          <p class="fig-sub"></p>
+          <div class="legend"></div>
+          <div class="controls" id="recap-controls"></div>
+        </div>
+        <div class="fig-body">
+          <svg class="view-map" role="img" aria-label="Territory map: one dot per background frame"></svg>
+          <svg class="view-controls" role="img" aria-label="Share correct per species group: grey frame, own camera, other cameras"></svg>
+          <svg class="view-cells" role="img" aria-label="Share predicted empty for each of the nine paste positions"></svg>
+          <div class="tooltip"></div>
+        </div>
+        <p class="fig-note"></p>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================== 2.-5. one beat each: text left, figure right -->
+  <section class="chapter beat-chapter" id="evidence" data-beat>
+    <div class="l-page beat-grid">
+      <div class="beat-copy">
+        <p class="chapter-no">Chapter 2 &middot; Phase 2</p>
+        <h2>Where is the evidence?</h2>
+        <p class="beat-text">A score averages a 14&thinsp;&times;&thinsp;14 grid, so it splits into animal and
+          background. In wrong composites the animal slightly favours the true species
+          (<span data-v="evidence.wrong.animal" data-f="logit"></span>); the background gives the winner
+          <span data-v="evidence.wrong.background" data-f="logit"></span>.</p>
+        <details class="more">
+          <summary><span class="more-tag">More</span>Method and numbers</summary>
+          <p>A ResNet-50 logit is the mean of a class activation map over the 14&thinsp;&times;&thinsp;14 grid of the
+            last layer, plus a bias. Cutting the map with the cut-out's mask (pooled to the grid) splits each score
+            into a part on the animal's cells and a part on the background; with the bias they add up to the logit.
+            The figure shows the lead of the winning class over the true species, averaged over the
+            <span data-v="evidence.wrong.n" data-f="int"></span> composites where the model does not name the exact
+            species (<span data-v="evidence.wrong_share" data-f="pct"></span> of all), including &ldquo;empty&rdquo;
+            answers.</p>
+          <ul>
+            <li>The pasted animal covers <span data-v="evidence.wrong.mask_area" data-f="pct1"></span> of the frame
+              on average in these composites. In the forest hero composite it covers
+              <span data-v="evidence.hero.mask_area" data-f="pct1"></span>; the great argus's lead is
+              <span data-v="evidence.hero.animal" data-f="logit"></span> on its cells and
+              <span data-v="evidence.hero.background" data-f="logit"></span> on the background.</li>
+            <li>By light: forest by day <span data-v="evidence.habitats.forest.lights.day.animal" data-f="logit"></span>
+              on the animal and <span data-v="evidence.habitats.forest.lights.day.background" data-f="logit"></span>
+              on the background; greyscale forest frames
+              <span data-v="evidence.habitats.forest.lights.greyscale.animal" data-f="logit"></span> and
+              <span data-v="evidence.habitats.forest.lights.greyscale.background" data-f="logit"></span>.</li>
+            <li>&ldquo;On the animal&rdquo; means on the animal's grid cells. A layer4 cell sees far beyond its own
+              32&thinsp;&times;&thinsp;32 pixel patch, so this is evidence <i>located</i> there, not computed from
+              the animal's pixels alone.</li>
+            <li>The animal and habitat picker shows one wrong composite each: the model's most confident wrong
+              answer for that animal on a well-lit daytime frame, pasted at the bottom centre where possible.</li>
+            <li>Data: <code>results/evidence_split.parquet</code> and the class maps in
+              <code>results/story_extracts.npz</code> (<code>evidence_split.py</code>).</li>
+          </ul>
+        </details>
+      </div>
+      <figure class="chart-fig" id="evidence-figure">
+        <div class="fig-head">
+          <p class="fig-title">Lead of the winning class over the true species, in logits</p>
+          <p class="fig-sub">Left: the forest hero composite, each grid cell coloured by the class whose map is
+            higher there. Right: the same split, averaged over all wrong composites.</p>
+          <div class="legend">
+            <span class="item"><i class="sq" style="background: var(--correct)"></i>favours the true species</span>
+            <span class="item"><i class="sq" style="background: var(--other)"></i>favours the winning class</span>
+            <span class="item"><i class="ring sq"></i>the animal's cells</span>
+          </div>
+          <div class="controls"></div>
+        </div>
+        <div class="ev-grid">
+          <div class="ev-photo">
+            <div class="ev-stage"><img alt=""><svg class="ev-overlay" aria-hidden="true"></svg></div>
+            <p class="ev-caption"></p>
+          </div>
+          <div class="chart-body"><svg class="ev-bars" role="img"
+            aria-label="Lead of the winner from the animal's cells and from the background, per habitat"></svg>
+            <div class="tooltip"></div></div>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="chapter beat-chapter dark full" id="trees" data-beat>
+    <div class="l-page beat-grid">
+      <div class="beat-copy">
+        <p class="chapter-no">Chapter 3 &middot; Phase 2</p>
+        <h2>What does the model see in the trees?</h2>
+        <p class="beat-text">The paper's network dissection labels only
+          <span data-v="units.paper_finetuned_layer4_labelled"></span> of
+          <span data-v="units.n_units" data-f="int"></span> units: big concepts like trees cap its overlap score.
+          Counted by total activation, <span data-v="units.counts.finetuned.animal"></span> units look at the
+          animal, only <span data-v="units.scenery.finetuned"></span> at scenery.</p>
+        <details class="more">
+          <summary><span class="more-tag">More</span>Two ways to label a unit</summary>
+          <p><b>The paper's rule</b> (Bau et&nbsp;al., 2017): a unit's mask is where it is in its top
+            <span data-v="units.rules.quantile" data-f="pct1"></span> of activations; it gets the concept whose
+            SegFormer mask overlaps it best, if that IoU is at least <span data-v="units.rules.iou_min"></span>.
+            Tree covers <span data-v="units.concept_pixels.tree" data-f="pct"></span> of the probe pixels, so a
+            typical unit mask can reach an IoU of at most <span data-v="units.max_iou.tree"></span> with it.</p>
+          <p><b>By total activation</b>: the share of all of a unit's activation that falls on each concept, over
+            <span data-v="units.probe_frames" data-f="int"></span> real probe frames. A unit gets the concept that
+            holds at least <span data-v="units.rules.min_excess" data-f="pct"></span> points more of its activation
+            than the concept's area (and <span data-v="units.rules.min_lift"></span>&times; as much), else
+            &ldquo;mixed&rdquo;. Of the <span data-v="units.scenery.finetuned"></span> scenery units,
+            <span data-v="units.counts.finetuned.tree"></span> are tree,
+            <span data-v="units.counts.finetuned.ground"></span> ground and
+            <span data-v="units.counts.finetuned.sky"></span> sky;
+            <span data-v="units.counts.finetuned.mixed" data-f="int"></span> are mixed. The ImageNet starting point
+            has <span data-v="units.counts.imagenet.animal" data-f="int"></span> animal and
+            <span data-v="units.scenery.imagenet"></span> scenery units.</p>
+          <p>Example photos: the unit's frames with the highest total activation (one per camera) among those where
+            its concept covers 20&ndash;60&thinsp;% of the frame; brightness follows the unit's activation. Data:
+            <code>results/concepts_units.parquet</code>, <code>results/dissection_units.parquet</code>.</p>
+        </details>
+      </div>
+      <figure class="chart-fig" id="units-figure">
+        <div class="fig-head">
+          <p class="fig-title">The <span data-v="units.n_units" data-f="int"></span> units of the last layer,
+            labelled two ways</p>
+          <div class="legend"></div>
+          <div class="controls"></div>
+        </div>
+        <div class="chart-body unit-mosaics"><svg role="img"
+          aria-label="Two mosaics with one square per unit, coloured by its label under each rule"></svg>
+          <div class="tooltip"></div></div>
+        <div class="unit-examples"></div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="chapter beat-chapter" id="votes" data-beat>
+    <div class="l-page beat-grid">
+      <div class="beat-copy">
+        <p class="chapter-no">Chapter 4 &middot; Phase 2</p>
+        <h2>Who votes for the great argus?</h2>
+        <p class="beat-text">Split the lead by what lies under each cell: every part of the scene votes
+          roughly in proportion to its area. Trees cover
+          <span data-v="votes.habitats.forest.concepts.tree.area" data-f="pct"></span> of a forest frame and bring
+          <span data-v="votes.habitats.forest.concepts.tree.share" data-f="pct"></span> of the lead.</p>
+        <details class="more">
+          <summary><span class="more-tag">More</span>Method and the great argus itself</summary>
+          <p>Each pixel gets one concept (SegFormer on the background, the cut-out's alpha for the animal, the
+            timestamp strips at top and bottom); per grid cell this gives concept weights that sum to one. Weighting
+            both class maps with them splits the lead exactly into one vote per concept. Shown: the mean over the
+            wrong composites per habitat; &ldquo;other scenery&rdquo; is plant, grass, rock, water and the rest.</p>
+          <p>The timestamp strips vote above their area: they are dense evidence for &ldquo;empty&rdquo;. For the
+            <span data-v="votes.great_argus_forest.n" data-f="int"></span> forest composites the model calls great
+            argus, trees cover <span data-v="votes.great_argus_forest.concepts.tree.area" data-f="pct"></span> and
+            bring <span data-v="votes.great_argus_forest.concepts.tree.share" data-f="pct"></span> of the lead: a bit
+            more than their area, but no single region decides it.</p>
+          <p>Data: <code>results/concepts_composite_votes.csv</code> (<code>concepts.py votes</code>), per winning
+            class <code>results/story_votes_by_winner.csv</code>.</p>
+        </details>
+      </div>
+      <figure class="chart-fig" id="votes-figure">
+        <div class="fig-head">
+          <p class="fig-title">Share of the winner's lead vs. share of the frame, per concept</p>
+          <p class="fig-sub">Wrong composites. On the dashed line, a concept votes exactly in proportion to its
+            area.</p>
+          <div class="legend"></div>
+          <div class="controls"></div>
+        </div>
+        <div class="chart-body"><svg role="img"
+          aria-label="Three scatter plots, forest, mixed and open: vote share against area share per concept"></svg>
+          <div class="tooltip"></div></div>
+      </figure>
+    </div>
+  </section>
+
+  <section class="chapter beat-chapter" id="ablation" data-beat>
+    <div class="l-page beat-grid">
+      <div class="beat-copy">
+        <p class="chapter-no">Chapter 5 &middot; Phase 2</p>
+        <h2>Switch off the forest</h2>
+        <p class="beat-text">Switch off the <span data-v="ablation.runs.units off.n_units"></span> most
+          tree-leaning units and &ldquo;empty&rdquo; in the forest halves,
+          <span data-v="ablation.runs.as is.share.empty" data-f="pct"></span> to
+          <span data-v="ablation.runs.units off.share.empty" data-f="pct"></span>. But
+          <span data-v="ablation.reappear.wrong" data-f="pct"></span> of the animals that reappear get the wrong name.
+          Real test accuracy barely moves.</p>
+        <details class="more">
+          <summary><span class="more-tag">More</span>Method and controls</summary>
+          <p>Logits are linear in the pooled layer4 features, so switching a unit off means setting its pooled
+            feature to zero. The <span data-v="ablation.runs.units off.n_units"></span> units are those with the
+            largest excess share of activation on tree and plant. Controls: the same number of random units
+            (<span data-v="ablation.draws"></span> draws), uniform or matched on mean activation.</p>
+          <ul>
+            <li>Real test photos: accuracy <span data-v="ablation.runs.as is.acc.test|all.acc" data-f="pct1"></span>
+              &rarr; <span data-v="ablation.runs.units off.acc.test|all.acc" data-f="pct1"></span> (random units
+              <span data-v="ablation.runs.random.acc.test|all.acc" data-f="pct1"></span>); on forest cameras
+              <span data-v="ablation.runs.as is.acc.test|forest.acc" data-f="pct1"></span> &rarr;
+              <span data-v="ablation.runs.units off.acc.test|forest.acc" data-f="pct1"></span>.</li>
+            <li>Only the <span data-v="ablation.other_sets.tree/plant.units_off.n_units"></span> units labelled tree
+              or plant: &ldquo;empty&rdquo; in the forest
+              <span data-v="ablation.runs.as is.share.empty" data-f="pct"></span> &rarr;
+              <span data-v="ablation.other_sets.tree/plant.units_off.share.empty" data-f="pct"></span>, a small
+              effect.</li>
+            <li>The top <span data-v="ablation.other_sets.ground top 256.units_off.n_units"></span> ground-leaning
+              units: &ldquo;empty&rdquo; <span data-v="ablation.other_sets.ground top 256.units_off.share.empty"
+              data-f="pct"></span> in the forest.</li>
+            <li>The slider switches off the k most tree- or ground-leaning units, same method; random controls
+              with <span data-v="ablation.draws"></span> draws each.</li>
+            <li>Data: <code>results/concepts_ablation_*.csv</code> (<code>concepts.py ablation</code>), slider
+              <code>results/story_ablation_dose.csv</code>.</li>
+          </ul>
+        </details>
+      </div>
+      <figure class="chart-fig" id="ablation-figure">
+        <div class="fig-head">
+          <p class="fig-title">Forest composites: the model's answers with units switched off</p>
+          <p class="fig-sub"><span data-v="ablation.runs.as is.n" data-f="int"></span> composites. Random rows:
+            mean of <span data-v="ablation.draws"></span> draws.</p>
+          <div class="legend"></div>
+          <div class="controls"></div>
+        </div>
+        <div class="chart-body"><svg role="img"
+          aria-label="Stacked bars of outcome shares with and without switched-off units, and test accuracy"></svg>
+          <div class="tooltip"></div></div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ============================================================== takeaway -->
+  <section class="takeaway" id="takeaway" data-beat>
+    <div class="l-body">
+      <p class="kicker">Takeaway</p>
+      <p class="takeaway-line">No forest detector overrules the elephant. A small animal is simply outvoted by a
+        frame full of scenery.</p>
+    </div>
+  </section>
+
+  <!-- ============================================================== everything else: closed boxes -->
+  <section class="appendix" id="more">
+    <div class="l-body">
+      <details class="more more--big" id="methods">
+        <summary><span class="more-tag">More</span>Methods &amp; caveats</summary>
+        <div class="cols">
+          <div>
+            <h3>Model</h3>
+            <p>The WILDS ERM ResNet-50 (seed 0), fine-tuned from ImageNet on iWildCam v2.0, 182 classes. Input
+              448&thinsp;&times;&thinsp;448: frames are squashed, not cropped. The pictures on this page are shown
+              un-squashed.</p>
+
+            <h3>Composites (Phase 1)</h3>
+            <ul>
+              <li><b>Backgrounds:</b> <span data-v="meta.backgrounds"></span> frames labelled and predicted empty,
+                one per sequence, from id_test (<span data-v="meta.splits.id_test.frames"></span> frames,
+                <span data-v="meta.splits.id_test.cameras"></span> cameras) and test
+                (<span data-v="meta.splits.test.frames"></span> frames,
+                <span data-v="meta.splits.test.cameras"></span> cameras); at most 80 per habitat and 20 per camera.</li>
+              <li><b>Cut-outs:</b> <span data-v="meta.groups"></span> species groups &times; 3 photos
+                (<span data-v="meta.cutouts"></span> cut-outs). SAM masks from MegaDetector boxes; pasted at the
+                group's typical size, in greyscale on greyscale frames.</li>
+              <li>Every cut-out on every cell of a 3&thinsp;&times;&thinsp;3 grid of every frame:
+                <span data-v="meta.composites" data-f="int"></span> composites, classified once in Phase 1
+                (<code>run_composites.py</code>). Nothing on this page reruns the model. A composite counts as
+                correct only if the model names the exact species.</li>
+            </ul>
+
+            <h3>Habitats</h3>
+            <p>SegFormer-B2 (ADE20K) openness of the camera: the share of the outdoor background that is not tree,
+              plant or palm, median over up to 12 daytime frames. Open above
+              <span data-v="meta.thresholds.open_above" data-f="pct"></span>, forest below
+              <span data-v="meta.thresholds.forest_below" data-f="pct"></span>, mixed in between. It measures visible
+              woody cover, so bare forest floor counts as open ground; a &ldquo;mixed&rdquo; frame can look like
+              forest.</p>
+
+            <h3>Day and greyscale</h3>
+            <p>Phase 1 split the frames into &ldquo;day&rdquo; (colour) and &ldquo;night&rdquo; (greyscale). The
+              second group is really <b>greyscale</b>: infrared or black-and-white cameras, often shooting by day.
+              Of its <span data-v="meta.greyscale.frames"></span> frames,
+              <span data-v="meta.greyscale.no_colour_camera_frames"></span> come from
+              <span data-v="meta.greyscale.no_colour_cameras"></span> cameras for which we found no usable colour
+              frame, and <span data-v="meta.greyscale.daytime_stamp" data-f="pct"></span> carry a timestamp between
+              7:00 and 18:59. This page calls the group greyscale.</p>
+
+            <h3>Outcomes and the map</h3>
+            <p>On the map, x is the camera's openness and y the frame's brightness; colour (day) and greyscale
+              frames sit in separate rows. Correct = the exact species. &ldquo;Right group, other species&rdquo;
+              uses our hand-made species groups (<code>data/species_groups.csv</code>). A dot is the most common
+              outcome of the three cut-outs on that frame (ties go to the better outcome), as in the Phase 1
+              notebook; hover a dot for all three answers.</p>
+          </div>
+          <div>
+            <h3>Controls</h3>
+            <ul>
+              <li><b>Grey frame:</b> each cut-out on each cell of a uniform grey frame
+                (<span data-v="meta.controls.grey frame" data-f="int"></span> composites, colour cut-outs).</li>
+              <li><b>Own camera:</b> each cut-out pasted into empty frames from the camera it was photographed at,
+                other sequences only (<span data-v="meta.controls.own camera" data-f="int"></span> composites; some
+                cut-outs have few such frames).</li>
+            </ul>
+
+            <h3>The hero example</h3>
+            <p>One cut-out (photographed at camera <span data-v="hero.cutout_camera"></span>) at the bottom centre,
+              two well-lit daytime frames from other cameras; each label is the model's stored answer for exactly
+              that image. Open: the most confident correct answer. Forest: the most confident &ldquo;great
+              argus&rdquo;. The cut-out is the one where the weaker of these two is strongest. It shows the effect
+              clearly; it is not a typical case. Both pictures are shown in the same box, so the wider open frame
+              loses a strip at each side.</p>
+
+            <h3>Phase 2 analyses</h3>
+            <p>Chapters 2 to 5 reuse the stored Phase 1 composites and their class maps; nothing is classified
+              again except with units switched off (chapter 5, on stored features). Scripts:
+              <code>evidence_split.py</code>, <code>dissect.py</code>, <code>concepts.py</code> in
+              <code>phase2/pair_b/src/</code>. Each chapter's <span class="more-inline">More</span> box gives its
+              method. Splits by grid cell are exact, but a layer4 cell sees far beyond its own patch.</p>
+
+            <h3>Caveats</h3>
+            <ul>
+              <li>Open land by day is thin: <span data-v="meta.per_habitat.day|open.frames"></span> frames from
+                <span data-v="meta.per_habitat.day|open.cameras"></span> cameras, and the two largest cameras give
+                <span data-v="meta.per_habitat.day|open.top2_cameras_frames"></span> of them.</li>
+              <li>Composites are artificial: hard edges, mismatched light and scale. The own-camera control uses the
+                same pasting and still gets <span data-v="recap.controls.overall.own" data-f="pct"></span> right,
+                so pasting alone does not explain the errors, but it may add to them.</li>
+              <li>Many cut-outs are hard for the model even on their own:
+                <span data-v="recap.controls.overall.grey_zero_groups"></span> groups are never right on the grey
+                frame. Their maps carry little information about the background.</li>
+              <li>The map shows the majority of three cut-outs; single composites can differ.</li>
+            </ul>
+
+            <h3>Reproduce</h3>
+            <pre><code>python phase2/pair_b/src/export_story_data.py
+python -m http.server 8000 --directory phase2/pair_b/story</code></pre>
+
+            <h3>Presenting</h3>
+            <p>&darr;&nbsp;&rarr;&nbsp;space and page down jump to the next step of the main line; &uarr;&nbsp;&larr;
+              shift+space and page up go back. Closed boxes are skipped.</p>
+
+            <h3>References</h3>
+            <ul>
+              <li>Koh et al. (2021). WILDS: A Benchmark of in-the-Wild Distribution Shifts. ICML.</li>
+              <li>Bau et al. (2017). Network Dissection: Quantifying Interpretability of Deep Visual Representations. CVPR.</li>
+              <li>Xie et al. (2021). SegFormer. NeurIPS. &middot; Kirillov et al. (2023). Segment Anything. ICCV.</li>
+            </ul>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="l-body">
+    D3 v7.9.2 (ISC), scrollama 3.2.0 (MIT) and Inter (SIL OFL 1.1) are bundled in <code>vendor/</code> and
+    <code>fonts/</code> with their licences. Data and images: <code>phase2/pair_b/src/export_story_data.py</code>.
+  </div>
+</footer>
+
+<script src="vendor/d3.v7.9.2.min.js"></script>
+<script src="vendor/scrollama.v3.2.0.min.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

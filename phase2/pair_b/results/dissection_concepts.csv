@@ -1,0 +1,10 @@
+concept,ade_classes,pixel_share,max_iou_for_median_unit_mask
+tree,tree | palm,0.4727,0.0078
+plant,plant | flower,0.0452,0.0812
+grass,grass | field,0.0326,0.1124
+ground,earth | sand | path | dirt track | land | road | floor,0.243,0.0151
+rock,rock | mountain | hill,0.0132,0.2774
+sky,sky,0.0694,0.0529
+water,water | sea | river | lake | waterfall,0.0102,0.3612
+animal,"MegaDetector box, conf >= 0.8",0.0831,0.0442
+info strip,top 3 % + bottom 5 %,0.0781,0.047

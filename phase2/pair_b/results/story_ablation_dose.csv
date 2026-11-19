@@ -1,0 +1,407 @@
+set,k,control,metric,value,sd
+none,0,none,share|exact species,0.256682,0
+none,0,none,share|same group,0.0346142,0
+none,0,none,share|other group,0.243133,0
+none,0,none,share|empty,0.465571,0
+none,0,none,acc|test|all,0.701853,0
+none,0,none,acc|test|forest,0.769948,0
+none,0,none,empty_to|exact species,0,0
+none,0,none,empty_to|same group,0,0
+none,0,none,empty_to|other group,0,0
+none,0,none,empty_to|empty,30169,0
+tree,8,none,share|exact species,0.258426,0
+tree,8,none,share|same group,0.034892,0
+tree,8,none,share|other group,0.24534,0
+tree,8,none,share|empty,0.461343,0
+tree,8,none,acc|test|all,0.701409,0
+tree,8,none,acc|test|forest,0.767908,0
+tree,8,none,empty_to|exact species,126,0
+tree,8,none,empty_to|same group,37,0
+tree,8,none,empty_to|other group,168,0
+tree,8,none,empty_to|empty,29838,0
+tree,8,random,share|exact species,0.256673,0.00185377
+tree,8,random,share|same group,0.0347111,0.000514368
+tree,8,random,share|other group,0.243492,0.00261103
+tree,8,random,share|empty,0.465124,0.00446309
+tree,8,random,acc|test|all,0.701753,0.000589727
+tree,8,random,acc|test|forest,0.769696,0.000719733
+tree,8,"random, matched",share|exact species,0.257256,0.00200208
+tree,8,"random, matched",share|same group,0.0347154,0.000534683
+tree,8,"random, matched",share|other group,0.243586,0.00281499
+tree,8,"random, matched",share|empty,0.464442,0.00496154
+tree,8,"random, matched",acc|test|all,0.701922,0.000507475
+tree,8,"random, matched",acc|test|forest,0.77003,0.000873929
+tree,16,none,share|exact species,0.261265,0
+tree,16,none,share|same group,0.0355093,0
+tree,16,none,share|other group,0.250818,0
+tree,16,none,share|empty,0.452407,0
+tree,16,none,acc|test|all,0.700708,0
+tree,16,none,acc|test|forest,0.766547,0
+tree,16,none,empty_to|exact species,322,0
+tree,16,none,empty_to|same group,81,0
+tree,16,none,empty_to|other group,495,0
+tree,16,none,empty_to|empty,29271,0
+tree,16,random,share|exact species,0.256411,0.00234183
+tree,16,random,share|same group,0.0345259,0.000573485
+tree,16,random,share|other group,0.243532,0.00314694
+tree,16,random,share|empty,0.465531,0.00553001
+tree,16,random,acc|test|all,0.701827,0.000671703
+tree,16,random,acc|test|forest,0.769943,0.000933723
+tree,16,"random, matched",share|exact species,0.257756,0.00243066
+tree,16,"random, matched",share|same group,0.0347716,0.000760651
+tree,16,"random, matched",share|other group,0.244086,0.00406805
+tree,16,"random, matched",share|empty,0.463385,0.00671712
+tree,16,"random, matched",acc|test|all,0.702202,0.000823834
+tree,16,"random, matched",acc|test|forest,0.769915,0.00102057
+tree,32,none,share|exact species,0.263457,0
+tree,32,none,share|same group,0.0362037,0
+tree,32,none,share|other group,0.254429,0
+tree,32,none,share|empty,0.44591,0
+tree,32,none,acc|test|all,0.700334,0
+tree,32,none,acc|test|forest,0.765575,0
+tree,32,none,empty_to|exact species,445,0
+tree,32,none,empty_to|same group,143,0
+tree,32,none,empty_to|other group,782,0
+tree,32,none,empty_to|empty,28799,0
+tree,32,random,share|exact species,0.256104,0.00346241
+tree,32,random,share|same group,0.0345954,0.000989207
+tree,32,random,share|other group,0.243165,0.00569513
+tree,32,random,share|empty,0.466135,0.00944451
+tree,32,random,acc|test|all,0.701908,0.000949303
+tree,32,random,acc|test|forest,0.769956,0.00129024
+tree,32,"random, matched",share|exact species,0.260199,0.00422855
+tree,32,"random, matched",share|same group,0.035266,0.00113717
+tree,32,"random, matched",share|other group,0.246304,0.00604638
+tree,32,"random, matched",share|empty,0.458231,0.0104783
+tree,32,"random, matched",acc|test|all,0.702073,0.00111696
+tree,32,"random, matched",acc|test|forest,0.769775,0.00148843
+tree,64,none,share|exact species,0.269414,0
+tree,64,none,share|same group,0.0378395,0
+tree,64,none,share|other group,0.271111,0
+tree,64,none,share|empty,0.421636,0
+tree,64,none,acc|test|all,0.700474,0
+tree,64,none,acc|test|forest,0.762562,0
+tree,64,none,empty_to|exact species,934,0
+tree,64,none,empty_to|same group,255,0
+tree,64,none,empty_to|other group,1694,0
+tree,64,none,empty_to|empty,27286,0
+tree,64,random,share|exact species,0.254501,0.00499678
+tree,64,random,share|same group,0.0345093,0.00137154
+tree,64,random,share|other group,0.241937,0.00801535
+tree,64,random,share|empty,0.469052,0.0134406
+tree,64,random,acc|test|all,0.701914,0.00143521
+tree,64,random,acc|test|forest,0.769966,0.00165393
+tree,64,"random, matched",share|exact species,0.263017,0.00451786
+tree,64,"random, matched",share|same group,0.0353688,0.00130503
+tree,64,"random, matched",share|other group,0.246552,0.00711665
+tree,64,"random, matched",share|empty,0.455061,0.0110569
+tree,64,"random, matched",acc|test|all,0.702096,0.00157601
+tree,64,"random, matched",acc|test|forest,0.769288,0.0014927
+tree,128,none,share|exact species,0.29162,0
+tree,128,none,share|same group,0.0431944,0
+tree,128,none,share|other group,0.312515,0
+tree,128,none,share|empty,0.35267,0
+tree,128,none,acc|test|all,0.697296,0
+tree,128,none,acc|test|forest,0.758674,0
+tree,128,none,empty_to|exact species,2276,0
+tree,128,none,empty_to|same group,657,0
+tree,128,none,empty_to|other group,4383,0
+tree,128,none,empty_to|empty,22853,0
+tree,128,random,share|exact species,0.253584,0.00695251
+tree,128,random,share|same group,0.0345352,0.00207231
+tree,128,random,share|other group,0.241302,0.0118189
+tree,128,random,share|empty,0.47058,0.0194864
+tree,128,random,acc|test|all,0.702596,0.00179747
+tree,128,random,acc|test|forest,0.771743,0.00283786
+tree,128,"random, matched",share|exact species,0.270231,0.00722134
+tree,128,"random, matched",share|same group,0.0360836,0.00211761
+tree,128,"random, matched",share|other group,0.248539,0.0135705
+tree,128,"random, matched",share|empty,0.445146,0.0210739
+tree,128,"random, matched",acc|test|all,0.702863,0.00195546
+tree,128,"random, matched",acc|test|forest,0.769948,0.00232918
+tree,192,none,share|exact species,0.308781,0
+tree,192,none,share|same group,0.0475309,0
+tree,192,none,share|other group,0.350756,0
+tree,192,none,share|empty,0.292932,0
+tree,192,none,acc|test|all,0.694539,0
+tree,192,none,acc|test|forest,0.753037,0
+tree,192,none,empty_to|exact species,3296,0
+tree,192,none,empty_to|same group,977,0
+tree,192,none,empty_to|other group,6914,0
+tree,192,none,empty_to|empty,18982,0
+tree,192,random,share|exact species,0.248831,0.00848129
+tree,192,random,share|same group,0.0335074,0.00216493
+tree,192,random,share|other group,0.235032,0.0128521
+tree,192,random,share|empty,0.482629,0.0216209
+tree,192,random,acc|test|all,0.70273,0.00263727
+tree,192,random,acc|test|forest,0.7742,0.00481024
+tree,192,"random, matched",share|exact species,0.273083,0.00882275
+tree,192,"random, matched",share|same group,0.0362173,0.00258649
+tree,192,"random, matched",share|other group,0.249865,0.0131511
+tree,192,"random, matched",share|empty,0.440835,0.0226177
+tree,192,"random, matched",acc|test|all,0.702044,0.00281468
+tree,192,"random, matched",acc|test|forest,0.770217,0.00322514
+tree,256,none,share|exact species,0.316373,0
+tree,256,none,share|same group,0.0526698,0
+tree,256,none,share|other group,0.396281,0
+tree,256,none,share|empty,0.234676,0
+tree,256,none,acc|test|all,0.692833,0
+tree,256,none,acc|test|forest,0.746817,0
+tree,256,none,empty_to|exact species,4037,0
+tree,256,none,empty_to|same group,1288,0
+tree,256,none,empty_to|other group,9637,0
+tree,256,none,empty_to|empty,15207,0
+tree,256,random,share|exact species,0.241767,0.0111991
+tree,256,random,share|same group,0.0318617,0.00264174
+tree,256,random,share|other group,0.225641,0.016116
+tree,256,random,share|empty,0.500731,0.0282224
+tree,256,random,acc|test|all,0.702343,0.00323458
+tree,256,random,acc|test|forest,0.777665,0.0068889
+tree,256,"random, matched",share|exact species,0.275556,0.0105617
+tree,256,"random, matched",share|same group,0.0361645,0.0027797
+tree,256,"random, matched",share|other group,0.248514,0.0138619
+tree,256,"random, matched",share|empty,0.439766,0.0238887
+tree,256,"random, matched",acc|test|all,0.701824,0.00278654
+tree,256,"random, matched",acc|test|forest,0.770151,0.0032063
+tree,384,none,share|exact species,0.319367,0
+tree,384,none,share|same group,0.0619599,0
+tree,384,none,share|other group,0.469383,0
+tree,384,none,share|empty,0.14929,0
+tree,384,none,acc|test|all,0.682831,0
+tree,384,none,acc|test|forest,0.728837,0
+tree,384,none,empty_to|exact species,4549,0
+tree,384,none,empty_to|same group,1857,0
+tree,384,none,empty_to|other group,14089,0
+tree,384,none,empty_to|empty,9674,0
+tree,384,random,share|exact species,0.22422,0.0151616
+tree,384,random,share|same group,0.0290154,0.00289096
+tree,384,random,share|other group,0.204306,0.0175377
+tree,384,random,share|empty,0.542459,0.0332247
+tree,384,random,acc|test|all,0.706267,0.00448957
+tree,384,random,acc|test|forest,0.791465,0.0111556
+tree,384,"random, matched",share|exact species,0.265734,0.0132151
+tree,384,"random, matched",share|same group,0.0327207,0.00343928
+tree,384,"random, matched",share|other group,0.230405,0.017806
+tree,384,"random, matched",share|empty,0.47114,0.031502
+tree,384,"random, matched",acc|test|all,0.703092,0.00431096
+tree,384,"random, matched",acc|test|forest,0.77406,0.00704075
+tree,512,none,share|exact species,0.328997,0
+tree,512,none,share|same group,0.068966,0
+tree,512,none,share|other group,0.53179,0
+tree,512,none,share|empty,0.0702469,0
+tree,512,none,acc|test|all,0.663761,0
+tree,512,none,acc|test|forest,0.68063,0
+tree,512,none,empty_to|exact species,5135,0
+tree,512,none,empty_to|same group,2397,0
+tree,512,none,empty_to|other group,18085,0
+tree,512,none,empty_to|empty,4552,0
+tree,512,random,share|exact species,0.186477,0.0176122
+tree,512,random,share|same group,0.0227562,0.00336017
+tree,512,random,share|other group,0.165471,0.0238423
+tree,512,random,share|empty,0.625295,0.0421106
+tree,512,random,acc|test|all,0.707281,0.00454012
+tree,512,random,acc|test|forest,0.806788,0.0136905
+tree,512,"random, matched",share|exact species,0.243958,0.0161765
+tree,512,"random, matched",share|same group,0.029637,0.00439396
+tree,512,"random, matched",share|other group,0.212016,0.0222746
+tree,512,"random, matched",share|empty,0.514389,0.0394669
+tree,512,"random, matched",acc|test|all,0.702318,0.00355887
+tree,512,"random, matched",acc|test|forest,0.775652,0.00912338
+ground,8,none,share|exact species,0.257176,0
+ground,8,none,share|same group,0.0352932,0
+ground,8,none,share|other group,0.247438,0
+ground,8,none,share|empty,0.460093,0
+ground,8,none,acc|test|all,0.702671,0
+ground,8,none,acc|test|forest,0.77092,0
+ground,8,none,empty_to|exact species,93,0
+ground,8,none,empty_to|same group,46,0
+ground,8,none,empty_to|other group,219,0
+ground,8,none,empty_to|empty,29811,0
+ground,8,random,share|exact species,0.256735,0.00192228
+ground,8,random,share|same group,0.0346698,0.000450533
+ground,8,random,share|other group,0.243374,0.00254884
+ground,8,random,share|empty,0.46522,0.00447128
+ground,8,random,acc|test|all,0.70178,0.000454162
+ground,8,random,acc|test|forest,0.769822,0.000639172
+ground,8,"random, matched",share|exact species,0.256327,0.00162095
+ground,8,"random, matched",share|same group,0.0344198,0.00043387
+ground,8,"random, matched",share|other group,0.242413,0.00213523
+ground,8,"random, matched",share|empty,0.46684,0.00368852
+ground,8,"random, matched",acc|test|all,0.701709,0.000488517
+ground,8,"random, matched",acc|test|forest,0.769832,0.00047175
+ground,16,none,share|exact species,0.257994,0
+ground,16,none,share|same group,0.0362346,0
+ground,16,none,share|other group,0.253349,0
+ground,16,none,share|empty,0.452423,0
+ground,16,none,acc|test|all,0.702952,0
+ground,16,none,acc|test|forest,0.771504,0
+ground,16,none,empty_to|exact species,215,0
+ground,16,none,empty_to|same group,98,0
+ground,16,none,empty_to|other group,543,0
+ground,16,none,empty_to|empty,29313,0
+ground,16,random,share|exact species,0.256289,0.00252828
+ground,16,random,share|same group,0.0346022,0.000716391
+ground,16,random,share|other group,0.242889,0.00332026
+ground,16,random,share|empty,0.46622,0.00576888
+ground,16,random,acc|test|all,0.701666,0.00072886
+ground,16,random,acc|test|forest,0.769956,0.000953824
+ground,16,"random, matched",share|exact species,0.255528,0.00200911
+ground,16,"random, matched",share|same group,0.0344938,0.00067443
+ground,16,"random, matched",share|other group,0.242634,0.0034978
+ground,16,"random, matched",share|empty,0.467344,0.00553282
+ground,16,"random, matched",acc|test|all,0.701921,0.000717283
+ground,16,"random, matched",acc|test|forest,0.769982,0.00105372
+ground,32,none,share|exact species,0.260432,0
+ground,32,none,share|same group,0.0386265,0
+ground,32,none,share|other group,0.265972,0
+ground,32,none,share|empty,0.434969,0
+ground,32,none,acc|test|all,0.70218,0
+ground,32,none,acc|test|forest,0.770143,0
+ground,32,none,empty_to|exact species,517,0
+ground,32,none,empty_to|same group,235,0
+ground,32,none,empty_to|other group,1233,0
+ground,32,none,empty_to|empty,28184,0
+ground,32,random,share|exact species,0.255955,0.00365222
+ground,32,random,share|same group,0.0344275,0.000958149
+ground,32,random,share|other group,0.242187,0.00559609
+ground,32,random,share|empty,0.467431,0.00961654
+ground,32,random,acc|test|all,0.701657,0.000965741
+ground,32,random,acc|test|forest,0.769764,0.00136542
+ground,32,"random, matched",share|exact species,0.256272,0.00352778
+ground,32,"random, matched",share|same group,0.0346022,0.000967135
+ground,32,"random, matched",share|other group,0.243245,0.00478853
+ground,32,"random, matched",share|empty,0.465881,0.0085352
+ground,32,"random, matched",acc|test|all,0.70198,0.00107381
+ground,32,"random, matched",acc|test|forest,0.769921,0.0012014
+ground,64,none,share|exact species,0.259722,0
+ground,64,none,share|same group,0.0411728,0
+ground,64,none,share|other group,0.278472,0
+ground,64,none,share|empty,0.420633,0
+ground,64,none,acc|test|all,0.702508,0
+ground,64,none,acc|test|forest,0.769851,0
+ground,64,none,empty_to|exact species,675,0
+ground,64,none,empty_to|same group,362,0
+ground,64,none,empty_to|other group,1877,0
+ground,64,none,empty_to|empty,27255,0
+ground,64,random,share|exact species,0.256065,0.00455303
+ground,64,random,share|same group,0.0346213,0.00111642
+ground,64,random,share|other group,0.241729,0.00698276
+ground,64,random,share|empty,0.467585,0.011144
+ground,64,random,acc|test|all,0.70161,0.00121116
+ground,64,random,acc|test|forest,0.769562,0.00140002
+ground,64,"random, matched",share|exact species,0.254519,0.00480111
+ground,64,"random, matched",share|same group,0.0342022,0.00109641
+ground,64,"random, matched",share|other group,0.241088,0.00697969
+ground,64,"random, matched",share|empty,0.470191,0.0119184
+ground,64,"random, matched",acc|test|all,0.701957,0.00130337
+ground,64,"random, matched",acc|test|forest,0.770345,0.00153067
+ground,128,none,share|exact species,0.259799,0
+ground,128,none,share|same group,0.0452469,0
+ground,128,none,share|other group,0.310231,0
+ground,128,none,share|empty,0.384722,0
+ground,128,none,acc|test|all,0.701947,0
+ground,128,none,acc|test|forest,0.772767,0
+ground,128,none,empty_to|exact species,1085,0
+ground,128,none,empty_to|same group,634,0
+ground,128,none,empty_to|other group,3521,0
+ground,128,none,empty_to|empty,24929,0
+ground,128,random,share|exact species,0.255515,0.0065498
+ground,128,random,share|same group,0.0341275,0.00195615
+ground,128,random,share|other group,0.24076,0.0110496
+ground,128,random,share|empty,0.469597,0.0176406
+ground,128,random,acc|test|all,0.701034,0.00197501
+ground,128,random,acc|test|forest,0.769941,0.00259701
+ground,128,"random, matched",share|exact species,0.252703,0.00747945
+ground,128,"random, matched",share|same group,0.0337241,0.00180466
+ground,128,"random, matched",share|other group,0.239669,0.011819
+ground,128,"random, matched",share|empty,0.473904,0.0194613
+ground,128,"random, matched",acc|test|all,0.701331,0.00191112
+ground,128,"random, matched",acc|test|forest,0.769468,0.0033404
+ground,192,none,share|exact species,0.261327,0
+ground,192,none,share|same group,0.0503704,0
+ground,192,none,share|other group,0.346605,0
+ground,192,none,share|empty,0.341698,0
+ground,192,none,acc|test|all,0.699656,0
+ground,192,none,acc|test|forest,0.766547,0
+ground,192,none,empty_to|exact species,1626,0
+ground,192,none,empty_to|same group,937,0
+ground,192,none,empty_to|other group,5464,0
+ground,192,none,empty_to|empty,22142,0
+ground,192,random,share|exact species,0.253675,0.00959513
+ground,192,random,share|same group,0.0334534,0.0026168
+ground,192,random,share|other group,0.234384,0.0158931
+ground,192,random,share|empty,0.478488,0.0253173
+ground,192,random,acc|test|all,0.700577,0.00252907
+ground,192,random,acc|test|forest,0.768681,0.00369434
+ground,192,"random, matched",share|exact species,0.245738,0.00917355
+ground,192,"random, matched",share|same group,0.0319432,0.00256506
+ground,192,"random, matched",share|other group,0.22833,0.0147685
+ground,192,"random, matched",share|empty,0.49399,0.0250652
+ground,192,"random, matched",acc|test|all,0.700877,0.00262516
+ground,192,"random, matched",acc|test|forest,0.769472,0.00416646
+ground,256,none,share|exact species,0.265062,0
+ground,256,none,share|same group,0.055,0
+ground,256,none,share|other group,0.380617,0
+ground,256,none,share|empty,0.299321,0
+ground,256,none,acc|test|all,0.698371,0
+ground,256,none,acc|test|forest,0.767324,0
+ground,256,none,empty_to|exact species,2070,0
+ground,256,none,empty_to|same group,1240,0
+ground,256,none,empty_to|other group,7463,0
+ground,256,none,empty_to|empty,19396,0
+ground,256,random,share|exact species,0.25361,0.0102593
+ground,256,random,share|same group,0.031912,0.00287732
+ground,256,random,share|other group,0.227589,0.016861
+ground,256,random,share|empty,0.486889,0.0278332
+ground,256,random,acc|test|all,0.700116,0.00282763
+ground,256,random,acc|test|forest,0.766757,0.00392774
+ground,256,"random, matched",share|exact species,0.238193,0.00884096
+ground,256,"random, matched",share|same group,0.0306003,0.00226166
+ground,256,"random, matched",share|other group,0.219088,0.0118319
+ground,256,"random, matched",share|empty,0.512119,0.0207747
+ground,256,"random, matched",acc|test|all,0.700566,0.00286552
+ground,256,"random, matched",acc|test|forest,0.768378,0.00490597
+ground,384,none,share|exact species,0.273627,0
+ground,384,none,share|same group,0.0666049,0
+ground,384,none,share|other group,0.459213,0
+ground,384,none,share|empty,0.200556,0
+ground,384,none,acc|test|all,0.68872,0
+ground,384,none,acc|test|forest,0.758674,0
+ground,384,none,empty_to|exact species,3061,0
+ground,384,none,empty_to|same group,1993,0
+ground,384,none,empty_to|other group,12119,0
+ground,384,none,empty_to|empty,12996,0
+ground,384,random,share|exact species,0.238579,0.0152653
+ground,384,random,share|same group,0.0271148,0.00371108
+ground,384,random,share|other group,0.196849,0.0209191
+ground,384,random,share|empty,0.537457,0.0371622
+ground,384,random,acc|test|all,0.696587,0.00328701
+ground,384,random,acc|test|forest,0.761277,0.00440637
+ground,384,"random, matched",share|exact species,0.224602,0.01342
+ground,384,"random, matched",share|same group,0.0262969,0.00302799
+ground,384,"random, matched",share|other group,0.192913,0.0194012
+ground,384,"random, matched",share|empty,0.556188,0.0337409
+ground,384,"random, matched",acc|test|all,0.698069,0.00351023
+ground,384,"random, matched",acc|test|forest,0.764595,0.00570517
+ground,512,none,share|exact species,0.271157,0
+ground,512,none,share|same group,0.0735648,0
+ground,512,none,share|other group,0.505957,0
+ground,512,none,share|empty,0.149321,0
+ground,512,none,acc|test|all,0.679091,0
+ground,512,none,acc|test|forest,0.752357,0
+ground,512,none,empty_to|exact species,3333,0
+ground,512,none,empty_to|same group,2446,0
+ground,512,none,empty_to|other group,14714,0
+ground,512,none,empty_to|empty,9676,0
+ground,512,random,share|exact species,0.221679,0.0169575
+ground,512,random,share|same group,0.0225605,0.00364095
+ground,512,random,share|other group,0.167435,0.022008
+ground,512,random,share|empty,0.588325,0.0408463
+ground,512,random,acc|test|all,0.692412,0.00375912
+ground,512,random,acc|test|forest,0.754841,0.00470462
+ground,512,"random, matched",share|exact species,0.20446,0.0137125
+ground,512,"random, matched",share|same group,0.0218948,0.00326268
+ground,512,"random, matched",share|other group,0.162482,0.0197845
+ground,512,"random, matched",share|empty,0.611163,0.034661
+ground,512,"random, matched",acc|test|all,0.693322,0.00350738
+ground,512,"random, matched",acc|test|forest,0.756608,0.00520465
