@@ -60,8 +60,9 @@ scripts/
 notebooks/
   00_quickstart.ipynb     shared demo: data, models and outputs (start here; no analysis; outputs committed)
 phase1/, phase2/
-  pair_a/, pair_b/        notebooks/, src/, figures/ (+ ai_log.md for the AI-aided pair)
+  pair_a/, pair_b/        notebooks/, src/, figures/
   comparison.md           Pair A vs. Pair B
+ai-interactions/          AI logs of the AI-aided pair: ai_log_pair_a.md (Phase 1), ai_log_pair_b.md (Phase 2)
 data/, checkpoints/, outputs/   gitignored, created by the scripts
 ```
 
@@ -151,9 +152,13 @@ Pair B opens the ResNet-50 to explain the Phase 1 background swap: class activat
 python -m http.server 8000 --directory phase2/pair_b/story   # then open http://127.0.0.1:8000
 ```
 
-#### **Hallucinations: phantom rabbits**
+#### **Hallucinations: inside Camera 156 (phantom rabbits)**
 
-To be added; see the [Phase 2 Pair B README](phase2/pair_b/README.md).
+Pair B explains why the model sees Brazilian rabbits and lowland pacas on the empty frames of the unseen African Camera 156: a 24 px white metadata bar, shared with five South American training cameras, suppresses the `empty` score inside the network. A single-screen white-box explorer shows where the shortcut forms across the layers, compares Grad-CAM with strip occlusion, tests a local fix inside the last layer and shows the nearest training frames. For details, see the [Phase 2 Pair B README](phase2/pair_b/README.md).
+
+```bash
+python phase2/pair_b/src/server.py --port 8875   # then open http://127.0.0.1:8875/
+```
 
 ---
 

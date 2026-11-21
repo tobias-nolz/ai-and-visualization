@@ -84,7 +84,7 @@ Camera 156 carries a `24 px` white Bushnell metadata bar along the bottom (`rows
   - [figures/slide_2_depth.png](figures/slide_2_depth.png) — `2 / 5` ResNet-50 depth takeover (`Layer 1 → 49`) vs. `Frozen ImageNet control`
   - [figures/slide_3_spatial.png](figures/slide_3_spatial.png) — `3 / 5` `Standard Layer 49 Grad-CAM` (`100% clipped`) vs. `Layer 49 Contrastive` and row-aligned `24 px` strip occlusion
   - [figures/slide_4_local_fix.png](figures/slide_4_local_fix.png) — `4 / 5` Layer 49 per-row suppression (`Row 12` spillover) & local `Zero 12–13` intervention
-- [ai_log.md](ai_log.md) — Chronological log of AI interactions, accepted/rejected pivots, verification catches, failure patterns, and best practices.
+- [AI log](../../ai-interactions/ai_log_pair_b.md) — Chronological log of AI interactions (both parts of Pair B), accepted/rejected pivots, verification catches, failure patterns, and best practices.
 
 ### Run locally
 
