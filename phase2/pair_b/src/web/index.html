@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Inside Camera 156 · ResNet-50 White-Box Diagnosis</title>
+    <style>
+      :root {
+        --ink: #111;
+        --muted: #555;
+        --subtle: #777;
+        --rule: #ccc;
+        --rule-strong: #aaa;
+        --bg: #ffffff;
+        --tint: #f7f7f7;
+        --model: #806000;
+        --model-fill: #DDAA33;
+        --model-soft: #fbf3db;
+        --model-active: #f4df9e;
+        --model-dark: #9c6a00;
+        --cam0-bg: #f6edd2;
+        --cam0-ink: #6a5308;
+        --train: #004488;
+        --train-soft: #e1eef7;
+        --slate: #8a99a8;
+        --slate-soft: #eef1f4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font: 13px/1.35 Arial, Helvetica, sans-serif;
+        color: var(--ink);
+        background: var(--bg);
+        font-variant-numeric: tabular-nums;
+      }
+
+      h1, h2, h3, p {
+        margin: 0;
+      }
+
+      button, select {
+        font: inherit;
+        color: inherit;
+        background: white;
+        border: 1px solid var(--rule);
+        padding: 3px 8px;
+        line-height: 1.25;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      /* Scoped hover so active [aria-pressed="true"] buttons never lose contrast */
+      button:hover:not(:disabled):not([aria-pressed="true"]) {
+        background: #f0f0f0;
+      }
+
+      button[aria-pressed="true"]:hover:not(:disabled) {
+        filter: brightness(0.95);
+      }
+
+      button:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+        outline: 2px solid var(--train);
+        outline-offset: 1px;
+      }
+
+      /* Overall zero-scroll 1440x780 & 16:9 grid */
+      .app {
+        height: 100dvh;
+        width: 100%;
+        padding: 8px 18px 8px;
+        display: grid;
+        grid-template-rows: 34px minmax(0, 1fr) clamp(166px, 22.8vh, 222px);
+        gap: 6px;
+        overflow: hidden;
+      }
+
+      /* Top minimal header */
+      .topbar {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--rule-strong);
+        padding-bottom: 5px;
+      }
+
+      .title-group {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .topbar h1 {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        white-space: nowrap;
+      }
+
+      .topbar .sub {
+        font-size: 12px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .depth-note {
+        color: var(--subtle);
+        white-space: nowrap;
+      }
+
+      /* 3-Column Stage */
+      .stage {
+        display: grid;
+        grid-template-columns: minmax(0, 1.02fr) minmax(0, 1.46fr) minmax(0, 1.02fr);
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .col {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .col-1 {
+        padding: 4px 14px 4px 0;
+      }
+
+      .col-2 {
+        border-left: 1px solid var(--rule);
+        padding: 4px 14px;
+      }
+
+      .col-3 {
+        border-left: 1px solid var(--rule);
+        padding: 4px 0 4px 14px;
+      }
+
+      .col-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 2px;
+        min-height: 22px;
+      }
+
+      .col-head h2 {
+        font-size: 14px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .col-sub {
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 5px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .col1-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        margin-bottom: 5px;
+        flex-shrink: 0;
+      }
+
+      .cohort-seg {
+        display: inline-flex;
+      }
+
+      .cohort-seg button {
+        font-size: 11px;
+        padding: 3px 8px;
+        border-right-width: 0;
+        white-space: nowrap;
+      }
+
+      .cohort-seg button:last-child {
+        border-right-width: 1px;
+      }
+
+      .cohort-seg button[aria-pressed="true"] {
+        background: var(--ink);
+        color: white;
+        border-color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* Shared legend & inline pills */
+      .inline-legend {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 4px 12px;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .leg-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+      }
+
+      .leg-line {
+        width: 16px;
+        height: 0;
+        border-top: 2px solid var(--model);
+        display: inline-block;
+      }
+
+      .leg-line.dashed {
+        border-top: 1.8px dashed #7a8694;
+      }
+
+      .leg-line.dotted {
+        border-top: 1.5px dotted #aaa;
+      }
+
+      .leg-swatch {
+        width: 9px;
+        height: 9px;
+        display: inline-block;
+        flex-shrink: 0;
+      }
+
+      /* Column 1: Layer chart + cohort bar */
+      .chart-wrap {
+        flex: 1 1 auto;
+        min-height: 0;
+        position: relative;
+      }
+
+      .chart-wrap svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .col1-foot {
+        border-top: 1px solid var(--rule);
+        padding-top: 7px;
+        margin-top: 4px;
+        flex-shrink: 0;
+      }
+
+      .cohort-bar-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 6px;
+        font-size: 11px;
+        margin-bottom: 4px;
+        color: var(--muted);
+      }
+
+      .cohort-bar-label strong {
+        color: var(--ink);
+        white-space: nowrap;
+      }
+
+      .cohort-bar-label span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .stacked-bar {
+        display: flex;
+        height: 11px;
+        width: 100%;
+        background: #eee;
+        overflow: hidden;
+      }
+
+      .stacked-bar > span {
+        display: block;
+        height: 100%;
+        transition: width 160ms ease;
+      }
+
+      .cohort-breakdown {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        margin-top: 5px;
+        color: var(--muted);
+      }
+
+      .cohort-breakdown .cb-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+      }
+
+      .cohort-breakdown .leg-swatch {
+        width: 8px;
+        height: 8px;
+      }
+
+      .cohort-breakdown b {
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .ink-model { color: var(--model); }
+      .ink-train { color: var(--train); }
+
+      /* Column 2: Spatial map + exact pixel-aligned 18-strip occlusion */
+      .col2-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        margin-bottom: 5px;
+        flex-shrink: 0;
+      }
+
+      .seg {
+        display: inline-flex;
+      }
+
+      .seg button {
+        font-size: 11px;
+        padding: 3px 7px;
+        border-right-width: 0;
+        white-space: nowrap;
+      }
+
+      .seg button:last-child {
+        border-right-width: 1px;
+      }
+
+      .seg button[aria-pressed="true"] {
+        background: var(--model-active);
+        color: #4f3a00;
+        border-color: var(--model);
+        border-right-width: 1px;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+      }
+
+      .seg button[aria-pressed="true"] + button {
+        border-left-width: 0;
+      }
+
+      .cover-btn {
+        font-size: 11px;
+        padding: 3px 9px;
+        font-weight: 600;
+        border-color: var(--ink);
+        white-space: nowrap;
+      }
+
+      .cover-btn[aria-pressed="true"] {
+        background: var(--train);
+        color: white;
+        border-color: var(--train);
+      }
+
+      .frame-select {
+        font-size: 11px;
+        padding: 2px 6px;
+        height: 24px;
+        max-width: 175px;
+      }
+
+      .spatial-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        overflow: hidden;
+      }
+
+      .spatial-subhead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 8px;
+        font-size: 10.5px;
+        color: var(--muted);
+        flex-shrink: 0;
+        padding: 0 2px;
+      }
+
+      .spatial-pair {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      /* Exact 1:1 square sized by JS ResizeObserver to guarantee 0% distortion & 0px strip alignment */
+      .photo-box {
+        position: relative;
+        width: 320px;
+        height: 320px;
+        background: #1a1a1a;
+        cursor: zoom-in;
+        flex-shrink: 0;
+        overflow: hidden;
+        outline: 1px solid var(--rule);
+      }
+
+      .photo-box img,
+      .photo-box canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .photo-box img {
+        object-fit: fill;
+      }
+
+      .photo-box canvas {
+        pointer-events: none;
+      }
+
+      .strip-band {
+        position: absolute;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+        display: none;
+        border-top: 1.5px solid #fff;
+        border-bottom: 1.5px solid #fff;
+        background: rgba(0, 68, 136, 0.24);
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+      }
+
+      .photo-caption-badge {
+        position: absolute;
+        left: 6px;
+        top: 6px;
+        background: rgba(17, 17, 17, 0.78);
+        color: white;
+        font-size: 10.5px;
+        padding: 2px 6px;
+        pointer-events: none;
+      }
+
+      .r12-guide {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 85.71%;
+        border-top: 1.5px dashed rgba(255, 255, 255, 0.86);
+        pointer-events: none;
+        display: none;
+      }
+
+      .r12-guide span {
+        position: absolute;
+        right: 5px;
+        top: 2px;
+        background: rgba(17, 17, 17, 0.78);
+        color: white;
+        font-size: 9.5px;
+        font-weight: 700;
+        padding: 1px 5px;
+      }
+
+      .blank-overlay-note {
+        position: absolute;
+        left: 50%;
+        top: 44%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.94);
+        color: var(--ink);
+        border: 1px solid var(--ink);
+        font-size: 11px;
+        padding: 4px 8px;
+        pointer-events: none;
+        display: none;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .strip-col {
+        flex: 1 1 172px;
+        min-width: 162px;
+        max-width: 224px;
+        height: 320px;
+        display: block;
+        flex-shrink: 0;
+      }
+
+      .strip-col svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .col2-foot {
+        border-top: 1px solid var(--rule);
+        padding-top: 5px;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font-size: 11px;
+        flex-shrink: 0;
+        min-height: 28px;
+        overflow: hidden;
+      }
+
+      .col2-foot-left {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+      }
+
+      .gt-text {
+        font-size: 11px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+      }
+
+      .pred-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 7px;
+        font-weight: 600;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .pred-pill.halluc {
+        background: var(--model-soft);
+        color: var(--model);
+        border: 1px solid #e2c97a;
+      }
+
+      .pred-pill.ok {
+        background: var(--train-soft);
+        color: var(--train);
+        border: 1px solid #b4cfe6;
+      }
+
+      .pred-pill.neutral {
+        background: var(--slate-soft);
+        color: #333;
+        border: 1px solid var(--rule);
+      }
+
+      .col2-foot-right {
+        font-size: 10.5px;
+        color: var(--muted);
+        white-space: nowrap;
+        flex-shrink: 0;
+        text-align: right;
+      }
+
+      /* Column 3: Layer 49 row profile & local intervention */
+      .int-pills {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 4px;
+        margin-bottom: 6px;
+        flex-shrink: 0;
+      }
+
+      .int-pills button {
+        font-size: 11px;
+        padding: 4px 4px;
+        text-align: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .int-pills button[aria-pressed="true"] {
+        background: var(--train);
+        color: white;
+        border-color: var(--train);
+        font-weight: 600;
+      }
+
+      .int-pills button.ctrl-active[aria-pressed="true"] {
+        background: var(--model);
+        border-color: var(--model);
+      }
+
+      .active-cover-banner {
+        display: none;
+        font-size: 11px;
+        background: var(--train-soft);
+        color: var(--train);
+        border: 1px solid #b4cfe6;
+        padding: 3px 8px;
+        margin-bottom: 5px;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+      }
+
+      .active-cover-banner.visible {
+        display: flex;
+      }
+
+      .active-cover-banner button {
+        font-size: 10.5px;
+        padding: 1px 6px;
+        border-color: var(--train);
+        color: var(--train);
+      }
+
+      .col3-metrics {
+        border-top: 1px solid var(--rule);
+        padding-top: 6px;
+        margin-top: 4px;
+        display: grid;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .metric-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 4px 10px;
+        padding: 2px 4px;
+        cursor: help;
+      }
+
+      .metric-row:hover {
+        background: var(--tint);
+      }
+
+      .metric-label {
+        font-size: 11.5px;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .metric-val {
+        font-size: 13px;
+        font-weight: 700;
+        text-align: right;
+        white-space: nowrap;
+      }
+
+      .metric-bar-track {
+        grid-column: 1 / -1;
+        height: 6px;
+        background: #eeeeee;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .metric-bar-fill {
+        height: 100%;
+        transition: width 160ms ease;
+      }
+
+      /* Bottom Strip: Full 129,809-train nearest neighbors */
+      .bottom-strip {
+        border-top: 1px solid var(--rule-strong);
+        padding-top: 7px;
+        display: grid;
+        grid-template-columns: 332px minmax(0, 1fr);
+        gap: 14px;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .knn-summary {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 0;
+        padding-right: 12px;
+        border-right: 1px solid var(--rule);
+      }
+
+      .knn-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+      }
+
+      .knn-head h2 {
+        font-size: 13.5px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .knn-sub {
+        font-size: 10.5px;
+        color: var(--muted);
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .backbone-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+      }
+
+      .backbone-toggle button {
+        font-size: 10.5px;
+        padding: 2px 6px;
+        border-right-width: 0;
+        color: var(--muted);
+      }
+
+      .backbone-toggle button:last-child {
+        border-right-width: 1px;
+      }
+
+      .backbone-toggle button[aria-pressed="true"] {
+        background: #e6e6e6;
+        color: var(--ink);
+        font-weight: 700;
+        border-color: #888;
+      }
+
+      .knn-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .scope-toggle {
+        display: inline-flex;
+        flex-shrink: 0;
+      }
+
+      .scope-toggle button {
+        font-size: 10.5px;
+        padding: 2px 6px;
+        border-right-width: 0;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .scope-toggle button:last-child {
+        border-right-width: 1px;
+      }
+
+      .scope-toggle button[aria-pressed="true"] {
+        background: var(--ink);
+        color: white;
+        font-weight: 600;
+        border-color: var(--ink);
+      }
+
+      .knn-vote-block {
+        cursor: help;
+      }
+
+      .knn-vote-title {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+
+      .knn-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px 10px;
+        font-size: 10.5px;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+
+      .knn-note {
+        font-size: 10.5px;
+        color: var(--subtle);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* 5 Neighbor Tiles (Phase 1 .frames style, native 4:3 preserves full white bar with minimal pillarboxing) */
+      .neighbor-tiles {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        min-height: 0;
+        min-width: 0;
+      }
+
+      .ntile {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) 23px;
+        min-height: 0;
+        min-width: 0;
+        border: 1px solid var(--rule);
+        background: white;
+        padding: 0;
+        text-align: left;
+        cursor: zoom-in;
+      }
+
+      .ntile:hover {
+        border-color: var(--ink);
+      }
+
+      .ntile-photo {
+        position: relative;
+        min-height: 0;
+        background: #1b1b1b;
+        overflow: hidden;
+      }
+
+      .ntile-photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+
+      .animal-bbox {
+        position: absolute;
+        border: 1.5px solid #DDAA33;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.58);
+        pointer-events: none;
+        display: none;
+      }
+
+      .animal-bbox.dialog-bbox {
+        border-width: 2.5px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.72);
+      }
+
+      .ntile-rank {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        background: rgba(17, 17, 17, 0.78);
+        color: white;
+        font-size: 10px;
+        padding: 1px 5px;
+      }
+
+      .ntile-track {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 4px;
+        padding: 0 6px;
+        font-size: 11px;
+        border-top: 1px solid var(--rule);
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .ntile-track span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .ntile-track.sa-wb {
+        background: var(--model-soft);
+        color: var(--model);
+        font-weight: 600;
+      }
+
+      .ntile-track.cam0-wb {
+        background: var(--cam0-bg);
+        color: var(--cam0-ink);
+        font-weight: 600;
+      }
+
+      .ntile-track.norm-emp {
+        background: var(--train-soft);
+        color: var(--train);
+        font-weight: 600;
+      }
+
+      .ntile-track.other-cam {
+        background: var(--slate-soft);
+        color: #333;
+      }
+
+      /* Floating crisp Phase 1 tooltip */
+      .tooltip {
+        position: fixed;
+        display: none;
+        z-index: 30;
+        background: white;
+        border: 1px solid var(--ink);
+        padding: 8px 10px;
+        font-size: 11.5px;
+        line-height: 1.48;
+        pointer-events: none;
+        max-width: 300px;
+      }
+
+      .tooltip b {
+        font-weight: 700;
+      }
+
+      .tooltip .tt-sep {
+        border-top: 1px solid #e2e2e2;
+        margin: 5px 0;
+      }
+
+      /* Click-to-zoom lightbox (Phase 1 style) */
+      .image-dialog {
+        width: min(920px, 92vw);
+        height: min(760px, 90vh);
+        border: 1px solid var(--ink);
+        padding: 14px 16px;
+        background: white;
+      }
+
+      .image-dialog[open] {
+        display: grid;
+        grid-template-rows: 28px minmax(0, 1fr) auto;
+        gap: 8px;
+      }
+
+      .image-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.72);
+      }
+
+      .dialog-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .dialog-head strong {
+        font-size: 14px;
+      }
+
+      .dialog-img-wrap {
+        position: relative;
+        min-height: 0;
+        background: #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .dialog-img-wrap img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
+      .dialog-caption {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      /* Responsive tweaks for smaller 16:9 screens (e.g. 1280x720) */
+      @media (max-width: 1340px) {
+        .app {
+          padding: 6px 12px 6px;
+          grid-template-rows: 32px minmax(0, 1fr) clamp(154px, 22vh, 195px);
+        }
+        .topbar h1 { font-size: 15.5px; }
+        .topbar .sub { display: none; }
+        .bottom-strip { grid-template-columns: 304px minmax(0, 1fr); gap: 10px; }
+        .col-1 { padding-right: 10px; }
+        .col-2 { padding: 4px 10px; }
+        .col-3 { padding-left: 10px; }
+        .int-pills button { font-size: 10.5px; }
+        .col2-foot { font-size: 10.5px; gap: 6px; }
+        .cohort-breakdown { font-size: 10.5px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <div class="title-group">
+          <h1>Camera 156: How a 24 px White Bar Hijacks ResNet-50</h1>
+          <span class="sub" id="topbarSub">White-box diagnosis on empty test frames · Fine-Tuned vs. Frozen ImageNet control</span>
+        </div>
+        <div class="topbar-right">
+          <span class="depth-note">ResNet-50 depth: Layers 1–49 conv · Layer 50 = classifier (fc)</span>
+        </div>
+      </header>
+
+      <main class="stage">
+        <!-- COLUMN 1: WHERE THE SHORTCUT FORMS -->
+        <section class="col col-1" aria-label="Where the shortcut forms across ResNet-50 depth">
+          <div class="col-head">
+            <h2>1. Where the shortcut forms</h2>
+            <span id="col1ObjTag" style="font-size:10.5px;color:var(--muted);"></span>
+          </div>
+          <p class="col-sub">Contrastive Grad-CAM share on bottom bar (Layer 49: rows 12–13)</p>
+          <div class="col1-controls">
+            <div class="cohort-seg" id="cohortSeg" role="group" aria-label="Camera 156 lighting split">
+              <button type="button" data-cohort="all" id="btnCohAll" aria-pressed="true">All</button>
+              <button type="button" data-cohort="night" id="btnCohNight" aria-pressed="false">Night IR</button>
+              <button type="button" data-cohort="day" id="btnCohDay" aria-pressed="false">Day RGB</button>
+            </div>
+          </div>
+          <div class="inline-legend">
+            <span class="leg-item"><span class="leg-line"></span>Fine-Tuned</span>
+            <span class="leg-item"><span class="leg-line dashed"></span>Frozen ImageNet control</span>
+            <span class="leg-item"><span class="leg-line dotted"></span>Normal empty (12 cams)</span>
+          </div>
+          <div class="chart-wrap">
+            <svg id="layerChart" role="img" aria-label="Layerwise contrastive Grad-CAM bar share from Layer 1 to Layer 49"></svg>
+          </div>
+          <div class="col1-foot">
+            <div class="cohort-bar-label">
+              <strong id="cohortBarTitle">Camera 156 empty baseline</strong>
+              <span id="cohortBarMeta"></span>
+            </div>
+            <div class="stacked-bar" id="cohortStackedBar"></div>
+            <div class="cohort-breakdown" id="cohortBreakdown"></div>
+          </div>
+        </section>
+
+        <!-- COLUMN 2: SPATIAL DIAGNOSIS & 24 PX STRIP OCCLUSION -->
+        <section class="col col-2" aria-label="Spatial attribution and 24 px strip occlusion on Camera 156">
+          <div class="col-head">
+            <h2>2. Spatial check: Grad-CAM vs. 24 px strips</h2>
+            <button type="button" class="cover-btn" id="coverBarBtn" aria-pressed="false" title="Black out bottom 24 px (rows 424–448) on the input photo and update predictions &amp; neighbors">Cover bar (24 px)</button>
+          </div>
+          <div class="col2-controls">
+            <div class="inline-legend" id="ctrLegend" style="margin-bottom:0;gap:4px 9px;" title="Layer 49 Contrastive Grad-CAM (hallucinated animal logit minus empty logit)">
+              <strong style="color:var(--ink);font-size:11px;white-space:nowrap;">Layer 49 Contrastive:</strong>
+              <span class="leg-item"><span class="leg-swatch" style="background:#e09e1d;border:1px solid #96680a;"></span><span id="ctrPosLbl">pushes rabbit</span></span>
+              <span class="leg-item"><span class="leg-swatch" style="background:#004a98;"></span><span>pushes empty</span></span>
+            </div>
+            <select class="frame-select" id="frameSelect" aria-label="Select Camera 156 frame"></select>
+          </div>
+          <div class="spatial-body">
+            <div class="spatial-subhead">
+              <span>Model input (448×448) · click to zoom</span>
+              <span>24 px strip occlusion Δz₀ (■ black · ◆ mean)</span>
+            </div>
+            <div class="spatial-pair" id="spatialPair">
+              <div class="photo-box" id="photoBox" tabindex="0" role="button" aria-label="Inspect Camera 156 frame at full size">
+                <img id="mainPhoto" alt="Camera 156 frame in 448x448 model space">
+                <canvas id="heatCanvas" width="448" height="448"></canvas>
+                <div class="r12-guide" id="r12Guide"><span>rows 12–13</span></div>
+                <div class="strip-band" id="stripBand"></div>
+                <div class="photo-caption-badge" id="photoBadge">Camera 156</div>
+              </div>
+              <div class="strip-col" id="stripCol">
+                <svg id="stripChart" role="img" aria-label="Equal-height 24 px horizontal strip occlusion sweep"></svg>
+              </div>
+            </div>
+          </div>
+          <div class="col2-foot">
+            <div class="col2-foot-left">
+              <span class="pred-pill halluc" id="framePredPill"></span>
+              <span class="gt-text" id="frameGtText"></span>
+            </div>
+            <span class="col2-foot-right" id="mapNote"></span>
+          </div>
+        </section>
+
+        <!-- COLUMN 3: SPATIALLY LOCAL LAYER 49 INTERVENTION -->
+        <section class="col col-3" aria-label="Spatially local Layer 49 row ablation">
+          <div class="col-head">
+            <h2>3. Spatially local Layer 49 fix</h2>
+            <span id="col3ModeTag" style="font-size:11px;color:var(--muted);"></span>
+          </div>
+          <p class="col-sub">Exact additive empty logit per row (14×14) · zero rows with renorm mean</p>
+          <div class="int-pills" id="intPills" role="group" aria-label="Layer 49 row ablation mode">
+            <button type="button" data-mode="baseline" aria-pressed="true">Baseline</button>
+            <button type="button" data-mode="zero_r13" aria-pressed="false">Zero row 13</button>
+            <button type="button" data-mode="zero_r12_13" aria-pressed="false">Zero 12–13</button>
+            <button type="button" data-mode="zero_r6_7" class="ctrl-active" aria-pressed="false">Ctrl 6–7</button>
+          </div>
+          <div class="active-cover-banner" id="coverBanner">
+            <span>Input bar covered (24 px) · Layer 49 untouched</span>
+            <button type="button" id="clearCoverBtn">Reset</button>
+          </div>
+          <div class="chart-wrap">
+            <svg id="rowChart" role="img" aria-label="Exact additive Layer 49 row contribution to empty logit"></svg>
+          </div>
+          <div class="col3-metrics" id="col3Metrics">
+            <div class="metric-row" id="metricC156">
+              <span class="metric-label" id="metricC156Lbl">Camera 156 empty</span>
+              <span class="metric-val" id="metricC156Val"></span>
+              <div class="metric-bar-track"><div class="metric-bar-fill" id="metricC156Bar"></div></div>
+            </div>
+            <div class="metric-row" id="metricOther">
+              <span class="metric-label" id="metricOtherLbl">Other test cameras (real animals)</span>
+              <span class="metric-val" id="metricOtherVal"></span>
+              <div class="metric-bar-track"><div class="metric-bar-fill" id="metricOtherBar"></div></div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- BOTTOM FULL-WIDTH STRIP: 129,809-TRAIN NEAREST NEIGHBORS -->
+      <section class="bottom-strip" aria-label="Nearest training neighbors across all 129,809 training embeddings">
+        <div class="knn-summary">
+          <div>
+            <div class="knn-head">
+              <h2>Nearest train frames</h2>
+              <div class="backbone-toggle" id="knnBackboneSeg" role="group" aria-label="Neighbor embedding space">
+                <button type="button" data-bb="ft" aria-pressed="true">Fine-Tuned</button>
+                <button type="button" data-bb="frozen" aria-pressed="false">ImageNet control</button>
+              </div>
+            </div>
+            <div class="knn-controls">
+              <div class="scope-toggle" id="knnScopeSeg" role="group" aria-label="Neighbor class filter">
+                <button type="button" data-scope="pred" aria-pressed="true" title="ExMatchina: nearest training frames matching each frame's predicted class">Predicted class</button>
+                <button type="button" data-scope="all" aria-pressed="false" title="Unfiltered nearest training frames across all 182 classes">All classes</button>
+              </div>
+              <span class="knn-sub" id="knnSubline" style="margin-top:0;">129,809 train frames</span>
+            </div>
+          </div>
+
+          <div class="knn-vote-block" id="knnVoteBlock">
+            <div class="knn-vote-title">
+              <span id="knnVoteLabel">Cohort top-5 votes</span>
+              <strong id="knnCosLabel"></strong>
+            </div>
+            <div class="stacked-bar" id="knnStackedBar"></div>
+            <div class="knn-legend" id="knnLegend"></div>
+          </div>
+
+          <div class="knn-note" id="knnFootNote">Tiles = selected frame · click photo to zoom</div>
+        </div>
+
+        <div class="neighbor-tiles" id="neighborTiles" aria-label="Top 5 nearest training images for selected Camera 156 frame"></div>
+      </section>
+    </div>
+
+    <div class="tooltip" id="tooltip" role="status"></div>
+
+    <dialog class="image-dialog" id="imageDialog" aria-label="Zoomed image viewer">
+      <div class="dialog-head">
+        <strong id="dialogTitle"></strong>
+        <button type="button" id="dialogClose">Close ×</button>
+      </div>
+      <div class="dialog-img-wrap" id="dialogImgWrap">
+        <img id="dialogImg" alt="Zoomed camera-trap image">
+        <div class="animal-bbox dialog-bbox" id="dialogBbox"></div>
+      </div>
+      <p class="dialog-caption" id="dialogCaption"></p>
+    </dialog>
+
+    <script src="app.js?v=7"></script>
+  </body>
+</html>
