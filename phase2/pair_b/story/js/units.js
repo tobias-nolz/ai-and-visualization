@@ -5,6 +5,7 @@
 
 import { CONCEPT_COLOR, onResize, pct, tooltip } from "./format.js";
 import { slider } from "./controls.js";
+import { introAnimation, tr } from "./reveal.js";
 
 const C = CONCEPT_COLOR.dark;
 const ORDER = ["animal", "tree", "ground", "sky", "plant", "grass", "rock", "water", "info strip", "other", "mixed",
@@ -90,19 +91,32 @@ export function initUnits(u) {
     const H = narrow ? 2 * (head + mh) + gap : head + mh;
     const svg = body.select("svg").attr("viewBox", `0 0 ${W} ${H}`);
     svg.selectAll("*").remove();
+    // intro (as in the slide clip): the few units the paper's rule labels light up and get ringed, then the
+    // activation labels sweep through the second mosaic, group by group
+    const mode = anim.mode;
+    const labelled = units.filter((d) => d.act !== "mixed");
+    const rank = new Map(labelled.map((d, i) => [d.unit, i]));
+    const SWEEP = 2400;
     panels().forEach((p, k) => {
       const gx = narrow ? 0 : k * (mw + gap);
       const gy = narrow ? k * (head + mh + gap) : 0;
       const g = svg.append("g").attr("transform", `translate(${gx},${gy})`);
       g.append("text").attr("class", "grid-title").attr("y", 12).text(p.title);
-      g.append("text").attr("class", "tick").attr("y", 28).text(p.sub);
+      const sub = g.append("text").attr("class", "tick").attr("y", 28).text(p.sub);
+      if (mode !== "end") sub.attr("opacity", 0);
+      if (mode === "play") tr(sub, k ? 1400 + SWEEP : 500, 500).attr("opacity", 1);
       const cells = g.append("g").attr("transform", `translate(0,${head})`);
-      cells.selectAll("rect").data(units).join("rect")
+      const blank = p.key === "iou" ? C.none : C.mixed;
+      const rects = cells.selectAll("rect").data(units).join("rect")
         .attr("x", (_, i) => (i % COLS) * s).attr("y", (_, i) => Math.floor(i / COLS) * s)
         .attr("width", s - 1).attr("height", s - 1)
-        .attr("fill", (d) => color(d[p.key]))
+        .attr("fill", (d) => (mode === "end" ? color(d[p.key]) : blank))
         .on("mousemove", (event, d) => tip.show(event, unitTip(d)))
         .on("mouseleave", tip.hide);
+      if (mode === "play") {
+        const delay = (d) => (p.key === "iou" ? 300 : 1300 + (rank.get(d.unit) / labelled.length) * SWEEP);
+        tr(rects.filter((d) => color(d[p.key]) !== blank), delay, 300).attr("fill", (d) => color(d[p.key]));
+      }
       // the few units labelled by the paper's rule are single squares: ring them
       const marked = units.map((d, i) => ({ d, i }))
         .filter(({ d }) => (p.key === "iou" ? d.iou !== "" : examples.has(d.unit)));
@@ -110,22 +124,35 @@ export function initUnits(u) {
       cells.selectAll("circle").data(marked).join("circle")
         .attr("cx", ({ i }) => (i % COLS) * s + (s - 1) / 2).attr("cy", ({ i }) => Math.floor(i / COLS) * s + (s - 1) / 2)
         .attr("r", s * 1.6).attr("fill", "none").attr("stroke", "#f3f2ee").attr("stroke-width", 1.4)
-        .style("pointer-events", "none");
+        .style("pointer-events", "none")
+        .call((rings) => {
+          if (mode !== "end") rings.attr("opacity", 0);
+          if (mode !== "play") return;
+          if (p.key === "iou") {
+            rings.attr("r", s * 9);
+            tr(rings, 300, 800, d3.easeBackOut).attr("r", s * 1.6).attr("opacity", 1);
+          } else tr(rings, 1400 + SWEEP, 500).attr("opacity", 1);
+        });
       if (p.key === "act") {
         cells.selectAll("text.ex").data(marked).join("text").attr("class", "tick ex")
           .attr("x", ({ i }) => (i % COLS) * s + s * 2.3 + 2).attr("y", ({ i }) => Math.floor(i / COLS) * s + s / 2)
           .attr("dy", "0.35em").attr("stroke", "#151514").attr("stroke-width", 3).attr("paint-order", "stroke")
           .style("fill", "#f3f2ee").style("font-weight", 600).style("pointer-events", "none")
-          .text(({ d }) => d.unit);
+          .text(({ d }) => d.unit)
+          .call((lbl) => {
+            if (mode !== "end") lbl.attr("opacity", 0);
+            if (mode === "play") tr(lbl, 1400 + SWEEP, 500).attr("opacity", 1);
+          });
       }
     });
   }
+  const anim = introAnimation(fig, draw);
   setLegend();
   onResize(draw);
 
   // ------------------------------------------------------------------ threshold sliders
   const controls = fig.select(".controls");
-  const update = () => { relabel(); setLegend(); draw(); };
+  const update = () => { anim.skip(); relabel(); setLegend(); draw(); };
   slider(controls, {
     label: "Paper's rule: IoU at least",
     values: d3.range(5, 51).map((v) => v / 1000),

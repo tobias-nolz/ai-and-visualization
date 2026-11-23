@@ -8,6 +8,7 @@ import { initEvidence } from "./evidence.js";
 import { initUnits } from "./units.js";
 import { initVotes } from "./votes.js";
 import { initAblation } from "./ablation.js";
+import { initTakeaway } from "./takeaway.js";
 import { setupKeys, openBoxesForLinks } from "./keys.js";
 import { setupScrolly } from "./scrolly.js";
 
@@ -32,6 +33,7 @@ async function main() {
   initUnits(data.units);
   initVotes(data.votes);
   initAblation(data.ablation);
+  initTakeaway(data.evidence);
 
   setupScrolly("hero", (_, el) => hero.show(+el.dataset.frame), { offset: 0.6 });
   setupScrolly("recap", (_, el) => recap.show(el.dataset), { offset: 0.55 });

@@ -6,6 +6,7 @@
 
 import { HABITAT_COLOR, TRUE_COLOR, WINNER_COLOR, logit, onResize, pct, tooltip } from "./format.js";
 import { dropdown, toggle } from "./controls.js";
+import { introAnimation, tr } from "./reveal.js";
 
 const HABITAT_ROWS = ["forest", "mixed", "open"];
 const MAX_ALPHA = 0.78;
@@ -25,6 +26,7 @@ export function initEvidence(ev) {
   let state = { ...DEFAULT };
   const pick = () => picks.get(`${state.group}|${state.habitat}`);
   const isHero = (p) => p.rule === "hero composite";
+  let anim; // intro animation (js/reveal.js): grid cells sweep in, then the animal's outline, then the bars grow
 
   // ------------------------------------------------------------------ head: subtitle, legend, controls
   const sub = fig.select(".fig-sub");
@@ -100,10 +102,15 @@ export function initEvidence(ev) {
       const fill = state.mode === "true" ? TRUE_COLOR : WINNER_COLOR;
       cells = cam.flatMap((row, i) => row.map((v, j) => ({ i, j, fill, alpha: MAX_ALPHA * (v - lo) / (hi - lo) })));
     }
-    overlay.selectAll("rect.cell").data(cells).join("rect").attr("class", "cell")
+    const rects = overlay.selectAll("rect.cell").data(cells).join("rect").attr("class", "cell")
       .attr("x", (d) => d.j).attr("y", (d) => d.i).attr("width", 1).attr("height", 1)
-      .attr("fill", (d) => d.fill)
+      .attr("fill", (d) => d.fill);
+    const mode = anim?.mode ?? "start";
+    if (mode === "start") rects.interrupt().attr("fill-opacity", 0);
+    // a diagonal sweep from the top left, as in the slide clip
+    else if (mode === "play") tr(rects.interrupt().attr("fill-opacity", 0), (d) => 200 + (d.i + d.j) / (2 * n) * 1300, 500)
       .attr("fill-opacity", (d) => d.alpha);
+    else tr(rects, 0, 300).attr("fill-opacity", (d) => d.alpha);
     // outline of the animal's cells (cells at least half covered by the cut-out)
     const inside = (i, j) => i >= 0 && j >= 0 && i < n && j < n && p.mask[i][j] >= 0.5;
     const edges = [];
@@ -119,6 +126,10 @@ export function initEvidence(ev) {
     overlay.selectAll("line.edge").data(edges).join("line").attr("class", "edge")
       .attr("x1", (d) => d[0]).attr("y1", (d) => d[1]).attr("x2", (d) => d[2]).attr("y2", (d) => d[3])
       .attr("stroke", "#fff").attr("stroke-width", 2.2).attr("vector-effect", "non-scaling-stroke");
+    const outline = overlay.selectAll("line.edge").interrupt();
+    if (mode === "start") outline.attr("opacity", 0);
+    else if (mode === "play") tr(outline.attr("opacity", 0), 1800, 600).attr("opacity", 1);
+    else outline.attr("opacity", 1);
     const where = isHero(p) ? "a forest frame" : `${aFrame(p.habitat)}, pasted at the ${p.cell}`;
     const rule = isHero(p) ? "" : " The model's most confident wrong answer for this animal here.";
     // the picks are the most confident wrong answers, so the animal often favours the winner too; set it against
@@ -188,22 +199,31 @@ export function initEvidence(ev) {
       for (const [part, v, dy] of [["animal", d.animal, -barH / 2 - 1], ["background", d.background, barH / 2 + 1]]) {
         const x0 = x(Math.min(0, v));
         const w = Math.max(1, Math.abs(x(v) - x(0)));
-        row.append("rect").attr("x", x0).attr("width", w).attr("y", dy - barH / 2).attr("height", barH)
+        const bar = row.append("rect").attr("x", x0).attr("width", w).attr("y", dy - barH / 2).attr("height", barH)
           .attr("rx", 2).attr("fill", v > 0 ? WINNER_COLOR : TRUE_COLOR)
           .on("mousemove", (event) => tip.show(event, `<b>${d.key === "hero" ? "This composite" : d.label}</b>` +
             `<br>lead from the ${part === "animal" ? "animal's cells" : "background"}: <b>${logit(v)}</b>` +
             (d.key === "hero" ? "" : `<br>${d3.format(",")(d.n)} wrong composites; the animal covers ` +
               `${pct(d.mask_area)} of the frame`)))
           .on("mouseleave", tip.hide);
+        // intro: the example's bars grow from zero first, then the three habitat averages, one after the other
+        const t0 = 2300 + k * 450 + (part === "animal" ? 0 : 150);
+        if (anim?.mode !== "end") bar.attr("x", x(0)).attr("width", 0);
+        if (anim?.mode === "play") tr(bar, t0, 800).attr("x", x0).attr("width", w);
         // value labels right of the bar end, or right of zero for the (short, negative) animal bars
         row.append("text").attr("class", "bar-val").attr("y", dy).attr("dy", "0.35em")
           .attr("x", x(Math.max(0, v)) + 5)
-          .text(`${logit(v)} ${part === "animal" ? "animal" : "background"}`);
+          .text(`${logit(v)} ${part === "animal" ? "animal" : "background"}`)
+          .call((lbl) => {
+            if (anim?.mode !== "end") lbl.attr("opacity", 0);
+            if (anim?.mode === "play") tr(lbl, t0 + 600, 400).attr("opacity", 1);
+          });
       }
     });
   }
 
-  function update() {
+  function update(byUser = true) {
+    if (byUser) anim.skip();
     const p = pick();
     animal.set(state.group);
     habitat.set(state.habitat);
@@ -216,7 +236,13 @@ export function initEvidence(ev) {
     else img.node().addEventListener("load", draw, { once: true });
   }
 
-  update();
+  const imgReady = () => new Promise((ok) => {
+    const node = img.node();
+    if (node.complete && node.naturalWidth) ok();
+    else node.addEventListener("load", ok, { once: true });
+  });
+  anim = introAnimation(fig, async () => { await imgReady(); showPhoto(pick()); draw(); }, { target: ".ev-grid" });
+  update(false);
   // first draw (and redraw on resize) once the image has its size
   const node = img.node();
   if (node.complete) onResize(draw);

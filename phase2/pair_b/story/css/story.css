@@ -329,6 +329,9 @@ svg .seg-label.on-light { fill: var(--ink); }
 
 /* takeaway */
 .takeaway { min-height: 70vh; display: flex; flex-direction: column; justify-content: center; padding: 72px 0; border-top: 1px solid var(--grid); }
+.takeaway-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(220px, 1fr); gap: 56px; align-items: center; width: 100%; box-sizing: border-box; }
+.takeaway-fig { margin: 0; max-width: 360px; }
+.takeaway-fig svg { display: block; width: 100%; height: auto; }
 .takeaway-line { font-size: clamp(1.6rem, 2.7vw, 2.4rem); font-weight: 700; letter-spacing: -0.018em; line-height: 1.22; margin: 0; }
 
 /* "more" boxes: closed by default, everything that is not on the main line */
@@ -382,9 +385,16 @@ svg .seg-label.on-light { fill: var(--ink); }
   .recap .steps { padding-top: 0; }
   .byline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .toc ol, .appendix .cols { columns: 1; grid-template-columns: minmax(0, 1fr); }
-  .beat-grid, .ev-grid { grid-template-columns: minmax(0, 1fr); }
+  .beat-grid, .ev-grid, .takeaway-grid { grid-template-columns: minmax(0, 1fr); }
   .unit-examples { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* "Replay" for the charts' intro animations (js/reveal.js) */
+.fig-head .replay { float: right; margin: 0 0 6px 14px; font: inherit; font-size: .74rem; line-height: 1.5; color: var(--muted);
+  background: none; border: 1px solid #cfcec8; border-radius: 4px; padding: 1px 8px; cursor: pointer; }
+.fig-head .replay:hover { color: var(--ink); border-color: var(--ink-2); }
+.dark .fig-head .replay { color: var(--dark-ink-2); border-color: #4a4a46; }
+.dark .fig-head .replay:hover { color: var(--dark-ink); border-color: var(--dark-ink-2); }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
