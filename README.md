@@ -60,8 +60,9 @@ scripts/
 notebooks/
   00_quickstart.ipynb     shared demo: data, models and outputs (start here; no analysis; outputs committed)
 phase1/, phase2/
-  pair_a/, pair_b/        notebooks/, src/, figures/ (+ ai_log.md for the AI-aided pair)
+  pair_a/, pair_b/        notebooks/, src/, figures/
   comparison.md           Pair A vs. Pair B
+ai-interactions/          AI logs of the AI-aided pair: ai_log_pair_a.md (Phase 1), ai_log_pair_b.md (Phase 2)
 data/, checkpoints/, outputs/   gitignored, created by the scripts
 ```
 
@@ -107,7 +108,7 @@ make strip-notebooks  # strip outputs from all notebooks (also done automaticall
 **Getting the outputs from a teammate instead of re-running:** `make inference` and `make baselines` reproduce identical files on the same machine (other GPUs may differ in the last decimals), so one run can be shared and placed at the same paths: `outputs/predictions.parquet`, `outputs/predictions_probe.parquet` (~230 MB each), `outputs/baselines.csv`, `checkpoints/linear_probe.pt` and, for embedding analyses, `outputs/embeddings.npy` and `outputs/embeddings_imagenet.npy` (~1.7 GB each). Check them from the repo root with `sha256sum -c outputs/SHA256SUMS` (the sender creates it with `sha256sum outputs/*.parquet outputs/*.npy outputs/baselines.csv checkpoints/linear_probe.pt > outputs/SHA256SUMS`). Working with the predictions files alone needs neither the dataset nor a GPU; showing images or running the models does (`make data`).
 
 ---
-### Pair A: 
+### Phase 1, Pair A:
 #### **Species Confusion Network Dashboard**
 
 Pair A developed an interactive Dash dashboard (`species_confusion_network.py`) to visually explore species confusion flows and camera trap error rates across splits. For full setup instructions, CLI options, and photo path configuration, see the dedicated [Pair A README](phase1/pair_a/README.md).
@@ -123,7 +124,7 @@ Furthermore, we implemented an interactive visual audit tool (`hallucinations.py
    ```
    Generates and opens the standalone interactive HTML gallery at `phase1/pair_a/figures/false_detection_gallery.html`.
 
-### Pair B:
+### Phase 1, Pair B:
 #### **Confusion Territories (background swap)**
 
 Pair B pastes animal cut-outs onto empty camera-trap frames from different habitats (open / mixed / forest, day and night) to test how much the model's prediction depends on the background rather than the animal. The prediction-territory explorer and observations are in [`confusion_territories.ipynb`](phase1/pair_b/notebooks/confusion_territories.ipynb); the cut-outs are made by [`make_cutouts.py`](phase1/pair_b/src/make_cutouts.py) and the composites run by [`run_composites.py`](phase1/pair_b/src/run_composites.py). For the full pipeline (SAM weights, cut-out selection, habitat measurement), see the dedicated [Pair B README](phase1/pair_b/README.md).
@@ -141,6 +142,23 @@ python phase1/pair_b/src/server.py
 ```
 
 Then open the atlas at http://127.0.0.1:8874/ and the labeling tool at http://127.0.0.1:8874/viewer/. After changing labels, update the atlas with `python phase1/pair_b/src/build_training_atlas.py`.
+
+### Phase 2, Pair B:
+#### **Confusions: why does the background win? (story page)**
+
+Pair B opens the ResNet-50 to explain the Phase 1 background swap: class activation maps split each score into animal and background, network dissection and unit profiles show which units carry the scenery, and switching those units off tests whether they matter. The results are told as a scrollable, interactive story page, "The elephant that turned into a bird". For the findings, the full pipeline and the files, see the dedicated [Phase 2 Pair B README](phase2/pair_b/README.md).
+
+```bash
+python -m http.server 8000 --directory phase2/pair_b/story   # then open http://127.0.0.1:8000
+```
+
+#### **Hallucinations: inside Camera 156 (phantom rabbits)**
+
+Pair B explains why the model sees Brazilian rabbits and lowland pacas on the empty frames of the unseen African Camera 156: a 24 px white metadata bar, shared with five South American training cameras, suppresses the `empty` score inside the network. A single-screen white-box explorer shows where the shortcut forms across the layers, compares Grad-CAM with strip occlusion, tests a local fix inside the last layer and shows the nearest training frames. For details, see the [Phase 2 Pair B README](phase2/pair_b/README.md).
+
+```bash
+python phase2/pair_b/src/server.py --port 8875   # then open http://127.0.0.1:8875/
+```
 
 ---
 

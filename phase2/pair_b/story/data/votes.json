@@ -1,0 +1,924 @@
+{
+ "habitats": {
+  "open": {
+   "n": 36219,
+   "lead": 7.399,
+   "bias": -0.0,
+   "concepts": {
+    "tree": {
+     "area": 0.188,
+     "votes": 1.589,
+     "share": 0.2148
+    },
+    "plant": {
+     "area": 0.0068,
+     "votes": 0.057,
+     "share": 0.0077
+    },
+    "grass": {
+     "area": 0.0667,
+     "votes": 0.416,
+     "share": 0.0562
+    },
+    "ground": {
+     "area": 0.3046,
+     "votes": 2.071,
+     "share": 0.2799
+    },
+    "rock": {
+     "area": 0.0039,
+     "votes": 0.015,
+     "share": 0.0021
+    },
+    "sky": {
+     "area": 0.2692,
+     "votes": 2.438,
+     "share": 0.3295
+    },
+    "water": {
+     "area": 0.0302,
+     "votes": 0.296,
+     "share": 0.04
+    },
+    "animal": {
+     "area": 0.0419,
+     "votes": -0.053,
+     "share": -0.0072
+    },
+    "info strip": {
+     "area": 0.0775,
+     "votes": 0.473,
+     "share": 0.0639
+    },
+    "other": {
+     "area": 0.0113,
+     "votes": 0.098,
+     "share": 0.0132
+    }
+   },
+   "folded": [
+    {
+     "concept": "tree",
+     "area": 0.188,
+     "votes": 1.589,
+     "share": 0.2148
+    },
+    {
+     "concept": "ground",
+     "area": 0.3046,
+     "votes": 2.071,
+     "share": 0.2799
+    },
+    {
+     "concept": "sky",
+     "area": 0.2692,
+     "votes": 2.438,
+     "share": 0.3295
+    },
+    {
+     "concept": "animal",
+     "area": 0.0419,
+     "votes": -0.053,
+     "share": -0.0072
+    },
+    {
+     "concept": "info strip",
+     "area": 0.0775,
+     "votes": 0.473,
+     "share": 0.0639
+    },
+    {
+     "concept": "other scenery",
+     "area": 0.1188,
+     "votes": 0.882,
+     "share": 0.1192,
+     "parts": [
+      "plant",
+      "grass",
+      "rock",
+      "water",
+      "other"
+     ]
+    }
+   ]
+  },
+  "mixed": {
+   "n": 46869,
+   "lead": 6.443,
+   "bias": 0.002,
+   "concepts": {
+    "tree": {
+     "area": 0.4374,
+     "votes": 3.074,
+     "share": 0.4771
+    },
+    "plant": {
+     "area": 0.0338,
+     "votes": 0.239,
+     "share": 0.0371
+    },
+    "grass": {
+     "area": 0.0024,
+     "votes": 0.018,
+     "share": 0.0028
+    },
+    "ground": {
+     "area": 0.2514,
+     "votes": 1.746,
+     "share": 0.271
+    },
+    "rock": {
+     "area": 0.0144,
+     "votes": 0.127,
+     "share": 0.0198
+    },
+    "sky": {
+     "area": 0.0796,
+     "votes": 0.764,
+     "share": 0.1185
+    },
+    "water": {
+     "area": 0.0059,
+     "votes": 0.027,
+     "share": 0.0043
+    },
+    "animal": {
+     "area": 0.0461,
+     "votes": -0.957,
+     "share": -0.1485
+    },
+    "info strip": {
+     "area": 0.0774,
+     "votes": 1.043,
+     "share": 0.1619
+    },
+    "other": {
+     "area": 0.0515,
+     "votes": 0.359,
+     "share": 0.0558
+    }
+   },
+   "folded": [
+    {
+     "concept": "tree",
+     "area": 0.4374,
+     "votes": 3.074,
+     "share": 0.4771
+    },
+    {
+     "concept": "ground",
+     "area": 0.2514,
+     "votes": 1.746,
+     "share": 0.271
+    },
+    {
+     "concept": "sky",
+     "area": 0.0796,
+     "votes": 0.764,
+     "share": 0.1185
+    },
+    {
+     "concept": "animal",
+     "area": 0.0461,
+     "votes": -0.957,
+     "share": -0.1485
+    },
+    {
+     "concept": "info strip",
+     "area": 0.0774,
+     "votes": 1.043,
+     "share": 0.1619
+    },
+    {
+     "concept": "other scenery",
+     "area": 0.1079,
+     "votes": 0.771,
+     "share": 0.1197,
+     "parts": [
+      "plant",
+      "grass",
+      "rock",
+      "water",
+      "other"
+     ]
+    }
+   ]
+  },
+  "forest": {
+   "n": 48167,
+   "lead": 6.434,
+   "bias": 0.003,
+   "concepts": {
+    "tree": {
+     "area": 0.6287,
+     "votes": 4.153,
+     "share": 0.6455
+    },
+    "plant": {
+     "area": 0.034,
+     "votes": 0.301,
+     "share": 0.0469
+    },
+    "grass": {
+     "area": 0.002,
+     "votes": 0.013,
+     "share": 0.002
+    },
+    "ground": {
+     "area": 0.1404,
+     "votes": 1.325,
+     "share": 0.2059
+    },
+    "rock": {
+     "area": 0.0136,
+     "votes": 0.142,
+     "share": 0.022
+    },
+    "sky": {
+     "area": 0.0341,
+     "votes": 0.278,
+     "share": 0.0432
+    },
+    "water": {
+     "area": 0.0078,
+     "votes": 0.065,
+     "share": 0.0101
+    },
+    "animal": {
+     "area": 0.0484,
+     "votes": -1.179,
+     "share": -0.1832
+    },
+    "info strip": {
+     "area": 0.0774,
+     "votes": 1.247,
+     "share": 0.1938
+    },
+    "other": {
+     "area": 0.0135,
+     "votes": 0.087,
+     "share": 0.0135
+    }
+   },
+   "folded": [
+    {
+     "concept": "tree",
+     "area": 0.6287,
+     "votes": 4.153,
+     "share": 0.6455
+    },
+    {
+     "concept": "ground",
+     "area": 0.1404,
+     "votes": 1.325,
+     "share": 0.2059
+    },
+    {
+     "concept": "sky",
+     "area": 0.0341,
+     "votes": 0.278,
+     "share": 0.0432
+    },
+    {
+     "concept": "animal",
+     "area": 0.0484,
+     "votes": -1.179,
+     "share": -0.1832
+    },
+    {
+     "concept": "info strip",
+     "area": 0.0774,
+     "votes": 1.247,
+     "share": 0.1938
+    },
+    {
+     "concept": "other scenery",
+     "area": 0.0709,
+     "votes": 0.608,
+     "share": 0.0946,
+     "parts": [
+      "plant",
+      "grass",
+      "rock",
+      "water",
+      "other"
+     ]
+    }
+   ]
+  }
+ },
+ "great_argus_forest": {
+  "n": 2613,
+  "lead": 5.755,
+  "concepts": {
+   "tree": {
+    "area": 0.6695,
+    "share": 0.838
+   },
+   "plant": {
+    "area": 0.0296,
+    "share": 0.0145
+   },
+   "grass": {
+    "area": 0.0001,
+    "share": 0.0
+   },
+   "ground": {
+    "area": 0.149,
+    "share": 0.0611
+   },
+   "rock": {
+    "area": 0.0052,
+    "share": 0.0027
+   },
+   "sky": {
+    "area": 0.0135,
+    "share": 0.0269
+   },
+   "water": {
+    "area": 0.0068,
+    "share": -0.0007
+   },
+   "animal": {
+    "area": 0.0376,
+    "share": -0.0877
+   },
+   "info strip": {
+    "area": 0.0774,
+    "share": 0.1354
+   },
+   "other": {
+    "area": 0.0115,
+    "share": 0.0135
+   }
+  }
+ },
+ "winners": [
+  {
+   "winner": "empty",
+   "n": 59487
+  },
+  {
+   "winner": "giraffe",
+   "n": 12614
+  },
+  {
+   "winner": "vulturine guineafowl",
+   "n": 8496
+  },
+  {
+   "winner": "great argus",
+   "n": 4679
+  }
+ ],
+ "min_n": 30,
+ "by_winner": {
+  "empty": {
+   "open": {
+    "n": 4659,
+    "lead": 7.245,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.1817,
+      "votes": 1.644,
+      "share": 0.2269
+     },
+     {
+      "concept": "ground",
+      "area": 0.3191,
+      "votes": 3.06,
+      "share": 0.4224
+     },
+     {
+      "concept": "sky",
+      "area": 0.2741,
+      "votes": 1.818,
+      "share": 0.2509
+     },
+     {
+      "concept": "animal",
+      "area": 0.0341,
+      "votes": -1.172,
+      "share": -0.1617
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0775,
+      "votes": 0.625,
+      "share": 0.0863
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.1135,
+      "votes": 1.259,
+      "share": 0.1738,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   },
+   "mixed": {
+    "n": 24660,
+    "lead": 6.997,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.4376,
+      "votes": 3.385,
+      "share": 0.4838
+     },
+     {
+      "concept": "ground",
+      "area": 0.2623,
+      "votes": 2.346,
+      "share": 0.3353
+     },
+     {
+      "concept": "sky",
+      "area": 0.058,
+      "votes": 0.55,
+      "share": 0.0786
+     },
+     {
+      "concept": "animal",
+      "area": 0.0442,
+      "votes": -1.767,
+      "share": -0.2525
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0773,
+      "votes": 1.463,
+      "share": 0.2091
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.1207,
+      "votes": 1.01,
+      "share": 0.1444,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   },
+   "forest": {
+    "n": 30168,
+    "lead": 7.205,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.6263,
+      "votes": 4.57,
+      "share": 0.6344
+     },
+     {
+      "concept": "ground",
+      "area": 0.1449,
+      "votes": 1.782,
+      "share": 0.2473
+     },
+     {
+      "concept": "sky",
+      "area": 0.0297,
+      "votes": 0.265,
+      "share": 0.0368
+     },
+     {
+      "concept": "animal",
+      "area": 0.0459,
+      "votes": -1.842,
+      "share": -0.2557
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0773,
+      "votes": 1.644,
+      "share": 0.2282
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.0759,
+      "votes": 0.777,
+      "share": 0.1078,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   }
+  },
+  "giraffe": {
+   "open": {
+    "n": 6831,
+    "lead": 7.239,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.1673,
+      "votes": 1.344,
+      "share": 0.1856
+     },
+     {
+      "concept": "ground",
+      "area": 0.2623,
+      "votes": 1.126,
+      "share": 0.1555
+     },
+     {
+      "concept": "sky",
+      "area": 0.3001,
+      "votes": 3.286,
+      "share": 0.4539
+     },
+     {
+      "concept": "animal",
+      "area": 0.0447,
+      "votes": 0.165,
+      "share": 0.0228
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0776,
+      "votes": 0.369,
+      "share": 0.051
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.148,
+      "votes": 0.968,
+      "share": 0.1337,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   },
+   "mixed": {
+    "n": 2920,
+    "lead": 6.308,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.3626,
+      "votes": 2.038,
+      "share": 0.323
+     },
+     {
+      "concept": "ground",
+      "area": 0.1535,
+      "votes": 0.687,
+      "share": 0.109
+     },
+     {
+      "concept": "sky",
+      "area": 0.1346,
+      "votes": 1.588,
+      "share": 0.2517
+     },
+     {
+      "concept": "animal",
+      "area": 0.0546,
+      "votes": 0.266,
+      "share": 0.0422
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0776,
+      "votes": 0.478,
+      "share": 0.0758
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.2171,
+      "votes": 1.27,
+      "share": 0.2014,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   },
+   "forest": {
+    "n": 2863,
+    "lead": 5.624,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.6092,
+      "votes": 3.737,
+      "share": 0.6644
+     },
+     {
+      "concept": "ground",
+      "area": 0.136,
+      "votes": 0.551,
+      "share": 0.098
+     },
+     {
+      "concept": "sky",
+      "area": 0.0689,
+      "votes": 0.429,
+      "share": 0.0762
+     },
+     {
+      "concept": "animal",
+      "area": 0.0588,
+      "votes": 0.316,
+      "share": 0.0562
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0776,
+      "votes": 0.325,
+      "share": 0.0578
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.0496,
+      "votes": 0.286,
+      "share": 0.0508,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   }
+  },
+  "vulturine guineafowl": {
+   "open": {
+    "n": 5488,
+    "lead": 7.184,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.21,
+      "votes": 1.96,
+      "share": 0.2728
+     },
+     {
+      "concept": "ground",
+      "area": 0.3488,
+      "votes": 1.875,
+      "share": 0.2609
+     },
+     {
+      "concept": "sky",
+      "area": 0.2552,
+      "votes": 2.08,
+      "share": 0.2895
+     },
+     {
+      "concept": "animal",
+      "area": 0.0218,
+      "votes": 0.277,
+      "share": 0.0385
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0777,
+      "votes": 0.396,
+      "share": 0.0551
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.0864,
+      "votes": 0.579,
+      "share": 0.0806,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   },
+   "mixed": {
+    "n": 2142,
+    "lead": 5.791,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.451,
+      "votes": 2.796,
+      "share": 0.4828
+     },
+     {
+      "concept": "ground",
+      "area": 0.1872,
+      "votes": 0.777,
+      "share": 0.1342
+     },
+     {
+      "concept": "sky",
+      "area": 0.1777,
+      "votes": 1.556,
+      "share": 0.2687
+     },
+     {
+      "concept": "animal",
+      "area": 0.0205,
+      "votes": 0.185,
+      "share": 0.0319
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0778,
+      "votes": 0.237,
+      "share": 0.041
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.0858,
+      "votes": 0.221,
+      "share": 0.0382,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   },
+   "forest": {
+    "n": 866,
+    "lead": 3.024,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.5794,
+      "votes": 1.537,
+      "share": 0.5083
+     },
+     {
+      "concept": "ground",
+      "area": 0.1177,
+      "votes": 0.446,
+      "share": 0.1474
+     },
+     {
+      "concept": "sky",
+      "area": 0.1122,
+      "votes": 0.537,
+      "share": 0.1777
+     },
+     {
+      "concept": "animal",
+      "area": 0.0184,
+      "votes": 0.285,
+      "share": 0.0943
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0779,
+      "votes": -0.168,
+      "share": -0.0555
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.0944,
+      "votes": 0.367,
+      "share": 0.1213,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   }
+  },
+  "great argus": {
+   "mixed": {
+    "n": 2066,
+    "lead": 5.071,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.4783,
+      "votes": 3.803,
+      "share": 0.7499
+     },
+     {
+      "concept": "ground",
+      "area": 0.3306,
+      "votes": 0.676,
+      "share": 0.1333
+     },
+     {
+      "concept": "sky",
+      "area": 0.016,
+      "votes": 0.14,
+      "share": 0.0275
+     },
+     {
+      "concept": "animal",
+      "area": 0.0407,
+      "votes": -0.578,
+      "share": -0.114
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0774,
+      "votes": 0.86,
+      "share": 0.1697
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.057,
+      "votes": 0.193,
+      "share": 0.0381,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   },
+   "forest": {
+    "n": 2613,
+    "lead": 5.755,
+    "folded": [
+     {
+      "concept": "tree",
+      "area": 0.6695,
+      "votes": 4.822,
+      "share": 0.838
+     },
+     {
+      "concept": "ground",
+      "area": 0.149,
+      "votes": 0.351,
+      "share": 0.0611
+     },
+     {
+      "concept": "sky",
+      "area": 0.0135,
+      "votes": 0.155,
+      "share": 0.0269
+     },
+     {
+      "concept": "animal",
+      "area": 0.0376,
+      "votes": -0.505,
+      "share": -0.0877
+     },
+     {
+      "concept": "info strip",
+      "area": 0.0774,
+      "votes": 0.779,
+      "share": 0.1354
+     },
+     {
+      "concept": "other scenery",
+      "area": 0.0531,
+      "votes": 0.173,
+      "share": 0.03,
+      "parts": [
+       "plant",
+       "grass",
+       "rock",
+       "water",
+       "other"
+      ]
+     }
+    ]
+   }
+  }
+ }
+}

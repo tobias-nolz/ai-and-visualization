@@ -1,0 +1,49 @@
+{
+ "group": "elephant",
+ "species": "African elephant",
+ "variant": 0,
+ "cell": "bottom",
+ "cutout_camera": 359,
+ "cutout_split": "id_test",
+ "rule": "Rule (fixed, so the pick is reproducible):\n- open: the most confident correct answer; forest: the most confident \"great argus\";\n  the cut-out (variant) is the one where the weaker of these two is strongest (as in the Phase 1 slides).",
+ "frames": [
+  {
+   "habitat": "open",
+   "img": "hero_open.webp",
+   "width": 796,
+   "height": 448,
+   "bg_id": 65,
+   "camera": 170,
+   "split": "id_test",
+   "camera_openness": 0.9771,
+   "brightness": 0.499,
+   "answer": "African elephant",
+   "confidence": 0.9894,
+   "outcome": "exact species",
+   "p_true": 0.9894,
+   "p_empty": 0.0
+  },
+  {
+   "habitat": "forest",
+   "img": "hero_forest.webp",
+   "width": 597,
+   "height": 448,
+   "bg_id": 254,
+   "camera": 111,
+   "split": "test",
+   "camera_openness": 0.1326,
+   "brightness": 0.488,
+   "answer": "great argus",
+   "confidence": 0.9411,
+   "outcome": "other group",
+   "p_true": 0.0057,
+   "p_empty": 0.0037
+  }
+ ],
+ "context": {
+  "day_forest_composites": 240,
+  "day_forest_correct": 0.3542,
+  "day_forest_wrong_answer": 0.3375,
+  "day_open_correct": 0.7943
+ }
+}

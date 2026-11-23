@@ -1,0 +1,577 @@
+model,units_off,n_units,habitat,before,after,n
+finetuned,tree/plant,27,open,exact species,exact species,13854
+finetuned,tree/plant,27,open,exact species,same group,12
+finetuned,tree/plant,27,open,exact species,other group,135
+finetuned,tree/plant,27,open,exact species,empty,0
+finetuned,tree/plant,27,open,same group,exact species,0
+finetuned,tree/plant,27,open,same group,same group,3231
+finetuned,tree/plant,27,open,same group,other group,15
+finetuned,tree/plant,27,open,same group,empty,0
+finetuned,tree/plant,27,open,other group,exact species,31
+finetuned,tree/plant,27,open,other group,same group,72
+finetuned,tree/plant,27,open,other group,other group,28212
+finetuned,tree/plant,27,open,other group,empty,0
+finetuned,tree/plant,27,open,empty,exact species,25
+finetuned,tree/plant,27,open,empty,same group,41
+finetuned,tree/plant,27,open,empty,other group,383
+finetuned,tree/plant,27,open,empty,empty,4209
+finetuned,tree/plant,27,mixed,exact species,exact species,17755
+finetuned,tree/plant,27,mixed,exact species,same group,17
+finetuned,tree/plant,27,mixed,exact species,other group,159
+finetuned,tree/plant,27,mixed,exact species,empty,0
+finetuned,tree/plant,27,mixed,same group,exact species,19
+finetuned,tree/plant,27,mixed,same group,same group,2630
+finetuned,tree/plant,27,mixed,same group,other group,51
+finetuned,tree/plant,27,mixed,same group,empty,3
+finetuned,tree/plant,27,mixed,other group,exact species,225
+finetuned,tree/plant,27,mixed,other group,same group,54
+finetuned,tree/plant,27,mixed,other group,other group,19221
+finetuned,tree/plant,27,mixed,other group,empty,6
+finetuned,tree/plant,27,mixed,empty,exact species,443
+finetuned,tree/plant,27,mixed,empty,same group,134
+finetuned,tree/plant,27,mixed,empty,other group,803
+finetuned,tree/plant,27,mixed,empty,empty,23280
+finetuned,tree/plant,27,forest,exact species,exact species,16411
+finetuned,tree/plant,27,forest,exact species,same group,13
+finetuned,tree/plant,27,forest,exact species,other group,208
+finetuned,tree/plant,27,forest,exact species,empty,1
+finetuned,tree/plant,27,forest,same group,exact species,18
+finetuned,tree/plant,27,forest,same group,same group,2153
+finetuned,tree/plant,27,forest,same group,other group,67
+finetuned,tree/plant,27,forest,same group,empty,5
+finetuned,tree/plant,27,forest,other group,exact species,239
+finetuned,tree/plant,27,forest,other group,same group,49
+finetuned,tree/plant,27,forest,other group,other group,15453
+finetuned,tree/plant,27,forest,other group,empty,14
+finetuned,tree/plant,27,forest,empty,exact species,547
+finetuned,tree/plant,27,forest,empty,same group,152
+finetuned,tree/plant,27,forest,empty,other group,923
+finetuned,tree/plant,27,forest,empty,empty,28547
+finetuned,tree/plant top 64,64,open,exact species,exact species,13676
+finetuned,tree/plant top 64,64,open,exact species,same group,35
+finetuned,tree/plant top 64,64,open,exact species,other group,289
+finetuned,tree/plant top 64,64,open,exact species,empty,1
+finetuned,tree/plant top 64,64,open,same group,exact species,0
+finetuned,tree/plant top 64,64,open,same group,same group,3198
+finetuned,tree/plant top 64,64,open,same group,other group,48
+finetuned,tree/plant top 64,64,open,same group,empty,0
+finetuned,tree/plant top 64,64,open,other group,exact species,29
+finetuned,tree/plant top 64,64,open,other group,same group,80
+finetuned,tree/plant top 64,64,open,other group,other group,28206
+finetuned,tree/plant top 64,64,open,other group,empty,0
+finetuned,tree/plant top 64,64,open,empty,exact species,40
+finetuned,tree/plant top 64,64,open,empty,same group,72
+finetuned,tree/plant top 64,64,open,empty,other group,696
+finetuned,tree/plant top 64,64,open,empty,empty,3850
+finetuned,tree/plant top 64,64,mixed,exact species,exact species,17536
+finetuned,tree/plant top 64,64,mixed,exact species,same group,42
+finetuned,tree/plant top 64,64,mixed,exact species,other group,344
+finetuned,tree/plant top 64,64,mixed,exact species,empty,9
+finetuned,tree/plant top 64,64,mixed,same group,exact species,18
+finetuned,tree/plant top 64,64,mixed,same group,same group,2567
+finetuned,tree/plant top 64,64,mixed,same group,other group,113
+finetuned,tree/plant top 64,64,mixed,same group,empty,5
+finetuned,tree/plant top 64,64,mixed,other group,exact species,342
+finetuned,tree/plant top 64,64,mixed,other group,same group,83
+finetuned,tree/plant top 64,64,mixed,other group,other group,19068
+finetuned,tree/plant top 64,64,mixed,other group,empty,13
+finetuned,tree/plant top 64,64,mixed,empty,exact species,676
+finetuned,tree/plant top 64,64,mixed,empty,same group,239
+finetuned,tree/plant top 64,64,mixed,empty,other group,1453
+finetuned,tree/plant top 64,64,mixed,empty,empty,22292
+finetuned,tree/plant top 64,64,forest,exact species,exact species,16140
+finetuned,tree/plant top 64,64,forest,exact species,same group,31
+finetuned,tree/plant top 64,64,forest,exact species,other group,451
+finetuned,tree/plant top 64,64,forest,exact species,empty,11
+finetuned,tree/plant top 64,64,forest,same group,exact species,15
+finetuned,tree/plant top 64,64,forest,same group,same group,2096
+finetuned,tree/plant top 64,64,forest,same group,other group,126
+finetuned,tree/plant top 64,64,forest,same group,empty,6
+finetuned,tree/plant top 64,64,forest,other group,exact species,369
+finetuned,tree/plant top 64,64,forest,other group,same group,70
+finetuned,tree/plant top 64,64,forest,other group,other group,15297
+finetuned,tree/plant top 64,64,forest,other group,empty,19
+finetuned,tree/plant top 64,64,forest,empty,exact species,934
+finetuned,tree/plant top 64,64,forest,empty,same group,255
+finetuned,tree/plant top 64,64,forest,empty,other group,1694
+finetuned,tree/plant top 64,64,forest,empty,empty,27286
+finetuned,tree/plant top 256,256,open,exact species,exact species,13051
+finetuned,tree/plant top 256,256,open,exact species,same group,111
+finetuned,tree/plant top 256,256,open,exact species,other group,839
+finetuned,tree/plant top 256,256,open,exact species,empty,0
+finetuned,tree/plant top 256,256,open,same group,exact species,2
+finetuned,tree/plant top 256,256,open,same group,same group,2971
+finetuned,tree/plant top 256,256,open,same group,other group,273
+finetuned,tree/plant top 256,256,open,same group,empty,0
+finetuned,tree/plant top 256,256,open,other group,exact species,172
+finetuned,tree/plant top 256,256,open,other group,same group,236
+finetuned,tree/plant top 256,256,open,other group,other group,27907
+finetuned,tree/plant top 256,256,open,other group,empty,0
+finetuned,tree/plant top 256,256,open,empty,exact species,147
+finetuned,tree/plant top 256,256,open,empty,same group,266
+finetuned,tree/plant top 256,256,open,empty,other group,2700
+finetuned,tree/plant top 256,256,open,empty,empty,1545
+finetuned,tree/plant top 256,256,mixed,exact species,exact species,16645
+finetuned,tree/plant top 256,256,mixed,exact species,same group,122
+finetuned,tree/plant top 256,256,mixed,exact species,other group,1164
+finetuned,tree/plant top 256,256,mixed,exact species,empty,0
+finetuned,tree/plant top 256,256,mixed,same group,exact species,31
+finetuned,tree/plant top 256,256,mixed,same group,same group,2327
+finetuned,tree/plant top 256,256,mixed,same group,other group,345
+finetuned,tree/plant top 256,256,mixed,same group,empty,0
+finetuned,tree/plant top 256,256,mixed,other group,exact species,1006
+finetuned,tree/plant top 256,256,mixed,other group,same group,266
+finetuned,tree/plant top 256,256,mixed,other group,other group,18234
+finetuned,tree/plant top 256,256,mixed,other group,empty,0
+finetuned,tree/plant top 256,256,mixed,empty,exact species,3035
+finetuned,tree/plant top 256,256,mixed,empty,same group,1227
+finetuned,tree/plant top 256,256,mixed,empty,other group,7886
+finetuned,tree/plant top 256,256,mixed,empty,empty,12512
+finetuned,tree/plant top 256,256,forest,exact species,exact species,15370
+finetuned,tree/plant top 256,256,forest,exact species,same group,63
+finetuned,tree/plant top 256,256,forest,exact species,other group,1200
+finetuned,tree/plant top 256,256,forest,exact species,empty,0
+finetuned,tree/plant top 256,256,forest,same group,exact species,35
+finetuned,tree/plant top 256,256,forest,same group,same group,1881
+finetuned,tree/plant top 256,256,forest,same group,other group,327
+finetuned,tree/plant top 256,256,forest,same group,empty,0
+finetuned,tree/plant top 256,256,forest,other group,exact species,1059
+finetuned,tree/plant top 256,256,forest,other group,same group,181
+finetuned,tree/plant top 256,256,forest,other group,other group,14515
+finetuned,tree/plant top 256,256,forest,other group,empty,0
+finetuned,tree/plant top 256,256,forest,empty,exact species,4037
+finetuned,tree/plant top 256,256,forest,empty,same group,1288
+finetuned,tree/plant top 256,256,forest,empty,other group,9637
+finetuned,tree/plant top 256,256,forest,empty,empty,15207
+finetuned,ground,20,open,exact species,exact species,13900
+finetuned,ground,20,open,exact species,same group,9
+finetuned,ground,20,open,exact species,other group,92
+finetuned,ground,20,open,exact species,empty,0
+finetuned,ground,20,open,same group,exact species,3
+finetuned,ground,20,open,same group,same group,3141
+finetuned,ground,20,open,same group,other group,102
+finetuned,ground,20,open,same group,empty,0
+finetuned,ground,20,open,other group,exact species,40
+finetuned,ground,20,open,other group,same group,27
+finetuned,ground,20,open,other group,other group,28245
+finetuned,ground,20,open,other group,empty,3
+finetuned,ground,20,open,empty,exact species,28
+finetuned,ground,20,open,empty,same group,49
+finetuned,ground,20,open,empty,other group,410
+finetuned,ground,20,open,empty,empty,4171
+finetuned,ground,20,mixed,exact species,exact species,17731
+finetuned,ground,20,mixed,exact species,same group,22
+finetuned,ground,20,mixed,exact species,other group,177
+finetuned,ground,20,mixed,exact species,empty,1
+finetuned,ground,20,mixed,same group,exact species,6
+finetuned,ground,20,mixed,same group,same group,2652
+finetuned,ground,20,mixed,same group,other group,43
+finetuned,ground,20,mixed,same group,empty,2
+finetuned,ground,20,mixed,other group,exact species,100
+finetuned,ground,20,mixed,other group,same group,31
+finetuned,ground,20,mixed,other group,other group,19370
+finetuned,ground,20,mixed,other group,empty,5
+finetuned,ground,20,mixed,empty,exact species,243
+finetuned,ground,20,mixed,empty,same group,95
+finetuned,ground,20,mixed,empty,other group,565
+finetuned,ground,20,mixed,empty,empty,23757
+finetuned,ground,20,forest,exact species,exact species,16410
+finetuned,ground,20,forest,exact species,same group,17
+finetuned,ground,20,forest,exact species,other group,205
+finetuned,ground,20,forest,exact species,empty,1
+finetuned,ground,20,forest,same group,exact species,2
+finetuned,ground,20,forest,same group,same group,2206
+finetuned,ground,20,forest,same group,other group,35
+finetuned,ground,20,forest,same group,empty,0
+finetuned,ground,20,forest,other group,exact species,50
+finetuned,ground,20,forest,other group,same group,30
+finetuned,ground,20,forest,other group,other group,15671
+finetuned,ground,20,forest,other group,empty,4
+finetuned,ground,20,forest,empty,exact species,253
+finetuned,ground,20,forest,empty,same group,116
+finetuned,ground,20,forest,empty,other group,630
+finetuned,ground,20,forest,empty,empty,29170
+finetuned,ground top 64,64,open,exact species,exact species,13707
+finetuned,ground top 64,64,open,exact species,same group,42
+finetuned,ground top 64,64,open,exact species,other group,252
+finetuned,ground top 64,64,open,exact species,empty,0
+finetuned,ground top 64,64,open,same group,exact species,2
+finetuned,ground top 64,64,open,same group,same group,2963
+finetuned,ground top 64,64,open,same group,other group,281
+finetuned,ground top 64,64,open,same group,empty,0
+finetuned,ground top 64,64,open,other group,exact species,78
+finetuned,ground top 64,64,open,other group,same group,112
+finetuned,ground top 64,64,open,other group,other group,28124
+finetuned,ground top 64,64,open,other group,empty,1
+finetuned,ground top 64,64,open,empty,exact species,64
+finetuned,ground top 64,64,open,empty,same group,173
+finetuned,ground top 64,64,open,empty,other group,1028
+finetuned,ground top 64,64,open,empty,empty,3393
+finetuned,ground top 64,64,mixed,exact species,exact species,17320
+finetuned,ground top 64,64,mixed,exact species,same group,61
+finetuned,ground top 64,64,mixed,exact species,other group,547
+finetuned,ground top 64,64,mixed,exact species,empty,3
+finetuned,ground top 64,64,mixed,same group,exact species,11
+finetuned,ground top 64,64,mixed,same group,same group,2562
+finetuned,ground top 64,64,mixed,same group,other group,130
+finetuned,ground top 64,64,mixed,same group,empty,0
+finetuned,ground top 64,64,mixed,other group,exact species,169
+finetuned,ground top 64,64,mixed,other group,same group,80
+finetuned,ground top 64,64,mixed,other group,other group,19252
+finetuned,ground top 64,64,mixed,other group,empty,5
+finetuned,ground top 64,64,mixed,empty,exact species,619
+finetuned,ground top 64,64,mixed,empty,same group,299
+finetuned,ground top 64,64,mixed,empty,other group,1781
+finetuned,ground top 64,64,mixed,empty,empty,21961
+finetuned,ground top 64,64,forest,exact species,exact species,16019
+finetuned,ground top 64,64,forest,exact species,same group,53
+finetuned,ground top 64,64,forest,exact species,other group,561
+finetuned,ground top 64,64,forest,exact species,empty,0
+finetuned,ground top 64,64,forest,same group,exact species,11
+finetuned,ground top 64,64,forest,same group,same group,2181
+finetuned,ground top 64,64,forest,same group,other group,51
+finetuned,ground top 64,64,forest,same group,empty,0
+finetuned,ground top 64,64,forest,other group,exact species,125
+finetuned,ground top 64,64,forest,other group,same group,72
+finetuned,ground top 64,64,forest,other group,other group,15556
+finetuned,ground top 64,64,forest,other group,empty,2
+finetuned,ground top 64,64,forest,empty,exact species,675
+finetuned,ground top 64,64,forest,empty,same group,362
+finetuned,ground top 64,64,forest,empty,other group,1877
+finetuned,ground top 64,64,forest,empty,empty,27255
+finetuned,ground top 256,256,open,exact species,exact species,13255
+finetuned,ground top 256,256,open,exact species,same group,66
+finetuned,ground top 256,256,open,exact species,other group,680
+finetuned,ground top 256,256,open,exact species,empty,0
+finetuned,ground top 256,256,open,same group,exact species,14
+finetuned,ground top 256,256,open,same group,same group,2580
+finetuned,ground top 256,256,open,same group,other group,652
+finetuned,ground top 256,256,open,same group,empty,0
+finetuned,ground top 256,256,open,other group,exact species,204
+finetuned,ground top 256,256,open,other group,same group,255
+finetuned,ground top 256,256,open,other group,other group,27856
+finetuned,ground top 256,256,open,other group,empty,0
+finetuned,ground top 256,256,open,empty,exact species,157
+finetuned,ground top 256,256,open,empty,same group,458
+finetuned,ground top 256,256,open,empty,other group,2394
+finetuned,ground top 256,256,open,empty,empty,1649
+finetuned,ground top 256,256,mixed,exact species,exact species,16098
+finetuned,ground top 256,256,mixed,exact species,same group,123
+finetuned,ground top 256,256,mixed,exact species,other group,1710
+finetuned,ground top 256,256,mixed,exact species,empty,0
+finetuned,ground top 256,256,mixed,same group,exact species,30
+finetuned,ground top 256,256,mixed,same group,same group,2388
+finetuned,ground top 256,256,mixed,same group,other group,285
+finetuned,ground top 256,256,mixed,same group,empty,0
+finetuned,ground top 256,256,mixed,other group,exact species,323
+finetuned,ground top 256,256,mixed,other group,same group,225
+finetuned,ground top 256,256,mixed,other group,other group,18955
+finetuned,ground top 256,256,mixed,other group,empty,3
+finetuned,ground top 256,256,mixed,empty,exact species,1728
+finetuned,ground top 256,256,mixed,empty,same group,1117
+finetuned,ground top 256,256,mixed,empty,other group,6488
+finetuned,ground top 256,256,mixed,empty,empty,15327
+finetuned,ground top 256,256,forest,exact species,exact species,14820
+finetuned,ground top 256,256,forest,exact species,same group,109
+finetuned,ground top 256,256,forest,exact species,other group,1704
+finetuned,ground top 256,256,forest,exact species,empty,0
+finetuned,ground top 256,256,forest,same group,exact species,29
+finetuned,ground top 256,256,forest,same group,same group,2027
+finetuned,ground top 256,256,forest,same group,other group,187
+finetuned,ground top 256,256,forest,same group,empty,0
+finetuned,ground top 256,256,forest,other group,exact species,257
+finetuned,ground top 256,256,forest,other group,same group,188
+finetuned,ground top 256,256,forest,other group,other group,15310
+finetuned,ground top 256,256,forest,other group,empty,0
+finetuned,ground top 256,256,forest,empty,exact species,2070
+finetuned,ground top 256,256,forest,empty,same group,1240
+finetuned,ground top 256,256,forest,empty,other group,7463
+finetuned,ground top 256,256,forest,empty,empty,19396
+imagenet,tree/plant,40,open,exact species,exact species,14439
+imagenet,tree/plant,40,open,exact species,same group,408
+imagenet,tree/plant,40,open,exact species,other group,938
+imagenet,tree/plant,40,open,exact species,empty,398
+imagenet,tree/plant,40,open,same group,exact species,202
+imagenet,tree/plant,40,open,same group,same group,4459
+imagenet,tree/plant,40,open,same group,other group,444
+imagenet,tree/plant,40,open,same group,empty,228
+imagenet,tree/plant,40,open,other group,exact species,731
+imagenet,tree/plant,40,open,other group,same group,309
+imagenet,tree/plant,40,open,other group,other group,24679
+imagenet,tree/plant,40,open,other group,empty,970
+imagenet,tree/plant,40,open,empty,exact species,18
+imagenet,tree/plant,40,open,empty,same group,4
+imagenet,tree/plant,40,open,empty,other group,42
+imagenet,tree/plant,40,open,empty,empty,1951
+imagenet,tree/plant,40,mixed,exact species,exact species,13555
+imagenet,tree/plant,40,mixed,exact species,same group,301
+imagenet,tree/plant,40,mixed,exact species,other group,878
+imagenet,tree/plant,40,mixed,exact species,empty,195
+imagenet,tree/plant,40,mixed,same group,exact species,213
+imagenet,tree/plant,40,mixed,same group,same group,5238
+imagenet,tree/plant,40,mixed,same group,other group,758
+imagenet,tree/plant,40,mixed,same group,empty,170
+imagenet,tree/plant,40,mixed,other group,exact species,1344
+imagenet,tree/plant,40,mixed,other group,same group,393
+imagenet,tree/plant,40,mixed,other group,other group,28395
+imagenet,tree/plant,40,mixed,other group,empty,913
+imagenet,tree/plant,40,mixed,empty,exact species,336
+imagenet,tree/plant,40,mixed,empty,same group,104
+imagenet,tree/plant,40,mixed,empty,other group,1185
+imagenet,tree/plant,40,mixed,empty,empty,10822
+imagenet,tree/plant,40,forest,exact species,exact species,14120
+imagenet,tree/plant,40,forest,exact species,same group,261
+imagenet,tree/plant,40,forest,exact species,other group,977
+imagenet,tree/plant,40,forest,exact species,empty,120
+imagenet,tree/plant,40,forest,same group,exact species,220
+imagenet,tree/plant,40,forest,same group,same group,4870
+imagenet,tree/plant,40,forest,same group,other group,987
+imagenet,tree/plant,40,forest,same group,empty,105
+imagenet,tree/plant,40,forest,other group,exact species,1524
+imagenet,tree/plant,40,forest,other group,same group,397
+imagenet,tree/plant,40,forest,other group,other group,27312
+imagenet,tree/plant,40,forest,other group,empty,640
+imagenet,tree/plant,40,forest,empty,exact species,577
+imagenet,tree/plant,40,forest,empty,same group,173
+imagenet,tree/plant,40,forest,empty,other group,1589
+imagenet,tree/plant,40,forest,empty,empty,10928
+imagenet,tree/plant top 64,64,open,exact species,exact species,13230
+imagenet,tree/plant top 64,64,open,exact species,same group,320
+imagenet,tree/plant top 64,64,open,exact species,other group,794
+imagenet,tree/plant top 64,64,open,exact species,empty,1839
+imagenet,tree/plant top 64,64,open,same group,exact species,177
+imagenet,tree/plant top 64,64,open,same group,same group,3868
+imagenet,tree/plant top 64,64,open,same group,other group,386
+imagenet,tree/plant top 64,64,open,same group,empty,902
+imagenet,tree/plant top 64,64,open,other group,exact species,679
+imagenet,tree/plant top 64,64,open,other group,same group,266
+imagenet,tree/plant top 64,64,open,other group,other group,21263
+imagenet,tree/plant top 64,64,open,other group,empty,4481
+imagenet,tree/plant top 64,64,open,empty,exact species,0
+imagenet,tree/plant top 64,64,open,empty,same group,0
+imagenet,tree/plant top 64,64,open,empty,other group,1
+imagenet,tree/plant top 64,64,open,empty,empty,2014
+imagenet,tree/plant top 64,64,mixed,exact species,exact species,11360
+imagenet,tree/plant top 64,64,mixed,exact species,same group,268
+imagenet,tree/plant top 64,64,mixed,exact species,other group,947
+imagenet,tree/plant top 64,64,mixed,exact species,empty,2354
+imagenet,tree/plant top 64,64,mixed,same group,exact species,188
+imagenet,tree/plant top 64,64,mixed,same group,same group,4304
+imagenet,tree/plant top 64,64,mixed,same group,other group,762
+imagenet,tree/plant top 64,64,mixed,same group,empty,1125
+imagenet,tree/plant top 64,64,mixed,other group,exact species,1059
+imagenet,tree/plant top 64,64,mixed,other group,same group,270
+imagenet,tree/plant top 64,64,mixed,other group,other group,22662
+imagenet,tree/plant top 64,64,mixed,other group,empty,7054
+imagenet,tree/plant top 64,64,mixed,empty,exact species,8
+imagenet,tree/plant top 64,64,mixed,empty,same group,1
+imagenet,tree/plant top 64,64,mixed,empty,other group,55
+imagenet,tree/plant top 64,64,mixed,empty,empty,12383
+imagenet,tree/plant top 64,64,forest,exact species,exact species,11596
+imagenet,tree/plant top 64,64,forest,exact species,same group,315
+imagenet,tree/plant top 64,64,forest,exact species,other group,1184
+imagenet,tree/plant top 64,64,forest,exact species,empty,2383
+imagenet,tree/plant top 64,64,forest,same group,exact species,213
+imagenet,tree/plant top 64,64,forest,same group,same group,3890
+imagenet,tree/plant top 64,64,forest,same group,other group,979
+imagenet,tree/plant top 64,64,forest,same group,empty,1100
+imagenet,tree/plant top 64,64,forest,other group,exact species,1091
+imagenet,tree/plant top 64,64,forest,other group,same group,329
+imagenet,tree/plant top 64,64,forest,other group,other group,21825
+imagenet,tree/plant top 64,64,forest,other group,empty,6628
+imagenet,tree/plant top 64,64,forest,empty,exact species,12
+imagenet,tree/plant top 64,64,forest,empty,same group,1
+imagenet,tree/plant top 64,64,forest,empty,other group,40
+imagenet,tree/plant top 64,64,forest,empty,empty,13214
+imagenet,tree/plant top 256,256,open,exact species,exact species,12087
+imagenet,tree/plant top 256,256,open,exact species,same group,899
+imagenet,tree/plant top 256,256,open,exact species,other group,3102
+imagenet,tree/plant top 256,256,open,exact species,empty,95
+imagenet,tree/plant top 256,256,open,same group,exact species,463
+imagenet,tree/plant top 256,256,open,same group,same group,3705
+imagenet,tree/plant top 256,256,open,same group,other group,1102
+imagenet,tree/plant top 256,256,open,same group,empty,63
+imagenet,tree/plant top 256,256,open,other group,exact species,710
+imagenet,tree/plant top 256,256,open,other group,same group,792
+imagenet,tree/plant top 256,256,open,other group,other group,24985
+imagenet,tree/plant top 256,256,open,other group,empty,202
+imagenet,tree/plant top 256,256,open,empty,exact species,317
+imagenet,tree/plant top 256,256,open,empty,same group,141
+imagenet,tree/plant top 256,256,open,empty,other group,845
+imagenet,tree/plant top 256,256,open,empty,empty,712
+imagenet,tree/plant top 256,256,mixed,exact species,exact species,10945
+imagenet,tree/plant top 256,256,mixed,exact species,same group,639
+imagenet,tree/plant top 256,256,mixed,exact species,other group,3288
+imagenet,tree/plant top 256,256,mixed,exact species,empty,57
+imagenet,tree/plant top 256,256,mixed,same group,exact species,469
+imagenet,tree/plant top 256,256,mixed,same group,same group,4415
+imagenet,tree/plant top 256,256,mixed,same group,other group,1458
+imagenet,tree/plant top 256,256,mixed,same group,empty,37
+imagenet,tree/plant top 256,256,mixed,other group,exact species,1285
+imagenet,tree/plant top 256,256,mixed,other group,same group,931
+imagenet,tree/plant top 256,256,mixed,other group,other group,28563
+imagenet,tree/plant top 256,256,mixed,other group,empty,266
+imagenet,tree/plant top 256,256,mixed,empty,exact species,1477
+imagenet,tree/plant top 256,256,mixed,empty,same group,604
+imagenet,tree/plant top 256,256,mixed,empty,other group,5106
+imagenet,tree/plant top 256,256,mixed,empty,empty,5260
+imagenet,tree/plant top 256,256,forest,exact species,exact species,11457
+imagenet,tree/plant top 256,256,forest,exact species,same group,573
+imagenet,tree/plant top 256,256,forest,exact species,other group,3398
+imagenet,tree/plant top 256,256,forest,exact species,empty,50
+imagenet,tree/plant top 256,256,forest,same group,exact species,515
+imagenet,tree/plant top 256,256,forest,same group,same group,4155
+imagenet,tree/plant top 256,256,forest,same group,other group,1487
+imagenet,tree/plant top 256,256,forest,same group,empty,25
+imagenet,tree/plant top 256,256,forest,other group,exact species,1258
+imagenet,tree/plant top 256,256,forest,other group,same group,1011
+imagenet,tree/plant top 256,256,forest,other group,other group,27447
+imagenet,tree/plant top 256,256,forest,other group,empty,157
+imagenet,tree/plant top 256,256,forest,empty,exact species,2109
+imagenet,tree/plant top 256,256,forest,empty,same group,915
+imagenet,tree/plant top 256,256,forest,empty,other group,5758
+imagenet,tree/plant top 256,256,forest,empty,empty,4485
+imagenet,ground,111,open,exact species,exact species,14157
+imagenet,ground,111,open,exact species,same group,539
+imagenet,ground,111,open,exact species,other group,1421
+imagenet,ground,111,open,exact species,empty,66
+imagenet,ground,111,open,same group,exact species,385
+imagenet,ground,111,open,same group,same group,4428
+imagenet,ground,111,open,same group,other group,518
+imagenet,ground,111,open,same group,empty,2
+imagenet,ground,111,open,other group,exact species,805
+imagenet,ground,111,open,other group,same group,549
+imagenet,ground,111,open,other group,other group,25254
+imagenet,ground,111,open,other group,empty,81
+imagenet,ground,111,open,empty,exact species,353
+imagenet,ground,111,open,empty,same group,155
+imagenet,ground,111,open,empty,other group,780
+imagenet,ground,111,open,empty,empty,727
+imagenet,ground,111,mixed,exact species,exact species,12773
+imagenet,ground,111,mixed,exact species,same group,425
+imagenet,ground,111,mixed,exact species,other group,1503
+imagenet,ground,111,mixed,exact species,empty,228
+imagenet,ground,111,mixed,same group,exact species,189
+imagenet,ground,111,mixed,same group,same group,5209
+imagenet,ground,111,mixed,same group,other group,900
+imagenet,ground,111,mixed,same group,empty,81
+imagenet,ground,111,mixed,other group,exact species,1415
+imagenet,ground,111,mixed,other group,same group,491
+imagenet,ground,111,mixed,other group,other group,28463
+imagenet,ground,111,mixed,other group,empty,676
+imagenet,ground,111,mixed,empty,exact species,862
+imagenet,ground,111,mixed,empty,same group,309
+imagenet,ground,111,mixed,empty,other group,2323
+imagenet,ground,111,mixed,empty,empty,8953
+imagenet,ground,111,forest,exact species,exact species,13281
+imagenet,ground,111,forest,exact species,same group,341
+imagenet,ground,111,forest,exact species,other group,1434
+imagenet,ground,111,forest,exact species,empty,422
+imagenet,ground,111,forest,same group,exact species,164
+imagenet,ground,111,forest,same group,same group,4919
+imagenet,ground,111,forest,same group,other group,938
+imagenet,ground,111,forest,same group,empty,161
+imagenet,ground,111,forest,other group,exact species,1268
+imagenet,ground,111,forest,other group,same group,414
+imagenet,ground,111,forest,other group,other group,26778
+imagenet,ground,111,forest,other group,empty,1413
+imagenet,ground,111,forest,empty,exact species,919
+imagenet,ground,111,forest,empty,same group,348
+imagenet,ground,111,forest,empty,other group,1863
+imagenet,ground,111,forest,empty,empty,10137
+imagenet,ground top 64,64,open,exact species,exact species,14256
+imagenet,ground top 64,64,open,exact species,same group,544
+imagenet,ground top 64,64,open,exact species,other group,1383
+imagenet,ground top 64,64,open,exact species,empty,0
+imagenet,ground top 64,64,open,same group,exact species,294
+imagenet,ground top 64,64,open,same group,same group,4485
+imagenet,ground top 64,64,open,same group,other group,554
+imagenet,ground top 64,64,open,same group,empty,0
+imagenet,ground top 64,64,open,other group,exact species,491
+imagenet,ground top 64,64,open,other group,same group,405
+imagenet,ground top 64,64,open,other group,other group,25793
+imagenet,ground top 64,64,open,other group,empty,0
+imagenet,ground top 64,64,open,empty,exact species,483
+imagenet,ground top 64,64,open,empty,same group,203
+imagenet,ground top 64,64,open,empty,other group,1124
+imagenet,ground top 64,64,open,empty,empty,205
+imagenet,ground top 64,64,mixed,exact species,exact species,13514
+imagenet,ground top 64,64,mixed,exact species,same group,315
+imagenet,ground top 64,64,mixed,exact species,other group,1058
+imagenet,ground top 64,64,mixed,exact species,empty,42
+imagenet,ground top 64,64,mixed,same group,exact species,271
+imagenet,ground top 64,64,mixed,same group,same group,5399
+imagenet,ground top 64,64,mixed,same group,other group,685
+imagenet,ground top 64,64,mixed,same group,empty,24
+imagenet,ground top 64,64,mixed,other group,exact species,1528
+imagenet,ground top 64,64,mixed,other group,same group,429
+imagenet,ground top 64,64,mixed,other group,other group,28881
+imagenet,ground top 64,64,mixed,other group,empty,207
+imagenet,ground top 64,64,mixed,empty,exact species,1267
+imagenet,ground top 64,64,mixed,empty,same group,546
+imagenet,ground top 64,64,mixed,empty,other group,3402
+imagenet,ground top 64,64,mixed,empty,empty,7232
+imagenet,ground top 64,64,forest,exact species,exact species,14048
+imagenet,ground top 64,64,forest,exact species,same group,264
+imagenet,ground top 64,64,forest,exact species,other group,1086
+imagenet,ground top 64,64,forest,exact species,empty,80
+imagenet,ground top 64,64,forest,same group,exact species,224
+imagenet,ground top 64,64,forest,same group,same group,5162
+imagenet,ground top 64,64,forest,same group,other group,754
+imagenet,ground top 64,64,forest,same group,empty,42
+imagenet,ground top 64,64,forest,other group,exact species,1548
+imagenet,ground top 64,64,forest,other group,same group,439
+imagenet,ground top 64,64,forest,other group,other group,27447
+imagenet,ground top 64,64,forest,other group,empty,439
+imagenet,ground top 64,64,forest,empty,exact species,1398
+imagenet,ground top 64,64,forest,empty,same group,648
+imagenet,ground top 64,64,forest,empty,other group,3085
+imagenet,ground top 64,64,forest,empty,empty,8136
+imagenet,ground top 256,256,open,exact species,exact species,12841
+imagenet,ground top 256,256,open,exact species,same group,784
+imagenet,ground top 256,256,open,exact species,other group,2537
+imagenet,ground top 256,256,open,exact species,empty,21
+imagenet,ground top 256,256,open,same group,exact species,294
+imagenet,ground top 256,256,open,same group,same group,3179
+imagenet,ground top 256,256,open,same group,other group,1855
+imagenet,ground top 256,256,open,same group,empty,5
+imagenet,ground top 256,256,open,other group,exact species,1225
+imagenet,ground top 256,256,open,other group,same group,760
+imagenet,ground top 256,256,open,other group,other group,24609
+imagenet,ground top 256,256,open,other group,empty,95
+imagenet,ground top 256,256,open,empty,exact species,330
+imagenet,ground top 256,256,open,empty,same group,138
+imagenet,ground top 256,256,open,empty,other group,1134
+imagenet,ground top 256,256,open,empty,empty,413
+imagenet,ground top 256,256,mixed,exact species,exact species,10807
+imagenet,ground top 256,256,mixed,exact species,same group,780
+imagenet,ground top 256,256,mixed,exact species,other group,2846
+imagenet,ground top 256,256,mixed,exact species,empty,496
+imagenet,ground top 256,256,mixed,same group,exact species,182
+imagenet,ground top 256,256,mixed,same group,same group,4204
+imagenet,ground top 256,256,mixed,same group,other group,1868
+imagenet,ground top 256,256,mixed,same group,empty,125
+imagenet,ground top 256,256,mixed,other group,exact species,3018
+imagenet,ground top 256,256,mixed,other group,same group,782
+imagenet,ground top 256,256,mixed,other group,other group,26255
+imagenet,ground top 256,256,mixed,other group,empty,990
+imagenet,ground top 256,256,mixed,empty,exact species,1475
+imagenet,ground top 256,256,mixed,empty,same group,465
+imagenet,ground top 256,256,mixed,empty,other group,3192
+imagenet,ground top 256,256,mixed,empty,empty,7315
+imagenet,ground top 256,256,forest,exact species,exact species,10905
+imagenet,ground top 256,256,forest,exact species,same group,838
+imagenet,ground top 256,256,forest,exact species,other group,3097
+imagenet,ground top 256,256,forest,exact species,empty,638
+imagenet,ground top 256,256,forest,same group,exact species,144
+imagenet,ground top 256,256,forest,same group,same group,3792
+imagenet,ground top 256,256,forest,same group,other group,2032
+imagenet,ground top 256,256,forest,same group,empty,214
+imagenet,ground top 256,256,forest,other group,exact species,2752
+imagenet,ground top 256,256,forest,other group,same group,731
+imagenet,ground top 256,256,forest,other group,other group,25190
+imagenet,ground top 256,256,forest,other group,empty,1200
+imagenet,ground top 256,256,forest,empty,exact species,1811
+imagenet,ground top 256,256,forest,empty,same group,536
+imagenet,ground top 256,256,forest,empty,other group,3592
+imagenet,ground top 256,256,forest,empty,empty,7328

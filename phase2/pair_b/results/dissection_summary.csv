@@ -1,0 +1,37 @@
+model,layer,concept,labelled,best_concept,max_iou
+finetuned,layer3,tree,0,36,0.0044
+finetuned,layer3,plant,0,25,0.0054
+finetuned,layer3,grass,0,31,0.0109
+finetuned,layer3,ground,0,21,0.0048
+finetuned,layer3,rock,0,43,0.0059
+finetuned,layer3,sky,3,121,0.0508
+finetuned,layer3,water,0,79,0.04
+finetuned,layer3,animal,0,321,0.0263
+finetuned,layer3,info strip,3,347,0.0526
+finetuned,layer4,tree,0,14,0.0078
+finetuned,layer4,plant,0,33,0.0155
+finetuned,layer4,grass,0,10,0.0235
+finetuned,layer4,ground,0,14,0.0096
+finetuned,layer4,rock,0,29,0.0218
+finetuned,layer4,sky,0,31,0.0386
+finetuned,layer4,water,1,62,0.0491
+finetuned,layer4,animal,1,1806,0.043
+finetuned,layer4,info strip,0,49,0.0263
+imagenet,layer3,tree,0,19,0.0049
+imagenet,layer3,plant,0,17,0.0075
+imagenet,layer3,grass,0,24,0.0263
+imagenet,layer3,ground,0,22,0.0093
+imagenet,layer3,rock,0,58,0.0171
+imagenet,layer3,sky,3,97,0.0512
+imagenet,layer3,water,6,87,0.1538
+imagenet,layer3,animal,0,391,0.04
+imagenet,layer3,info strip,8,309,0.0516
+imagenet,layer4,tree,0,22,0.007
+imagenet,layer4,plant,0,37,0.026
+imagenet,layer4,grass,1,36,0.0472
+imagenet,layer4,ground,0,34,0.0139
+imagenet,layer4,rock,2,124,0.0501
+imagenet,layer4,sky,3,38,0.0445
+imagenet,layer4,water,33,125,0.253
+imagenet,layer4,animal,45,1414,0.0451
+imagenet,layer4,info strip,0,218,0.0351
